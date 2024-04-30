@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="facebook_app_id">722621943129243</string>
+    <string name="fb_login_protocol_scheme">fb722621943129243</string>
+    <string name="facebook_client_token">99fde4e0b021439d88c1531092a98228</string>
+    <string name="app_name">wegosport</string>
+</resources>
