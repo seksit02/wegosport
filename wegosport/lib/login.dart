@@ -12,6 +12,24 @@ class _LoginPageState extends State<LoginPage> {
   TextEditingController inputtwo = TextEditingController();
 
 
+Widget appLogo1() {
+  return Container(
+    width: 300,
+    height: 250,
+    margin: EdgeInsets.fromLTRB(0, 50, 0, 0),
+    decoration: BoxDecoration(
+      borderRadius: BorderRadius.circular(50), // กำหนดรูปร่างของกรอบ
+    ),
+    child: ClipRRect(
+      borderRadius: BorderRadius.circular(10), // ให้ Clip รูปภาพตามรูปร่างของกรอบ
+      child: Image.asset(
+        "images/login.png",
+        fit: BoxFit.cover, // ให้รูปภาพปรับตามขนาดของ Container
+      ),
+    ),
+  );
+}
+
 Widget appLogo() {
   return Container(
     width: 300,
