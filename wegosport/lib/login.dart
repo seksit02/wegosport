@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
+import 'package:wegosport/activity.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
@@ -30,7 +32,7 @@ Widget appLogo() {
   );
 }
 
-  Widget inputOne() {
+Widget inputOne() {
   return Container(
     margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
     child: TextFormField(
@@ -121,7 +123,7 @@ Widget buttonfacebook() {
         ),
       ),
       onPressed: () {
-        // โค้ดที่ต้องการทำเมื่อกดปุ่ม Facebook
+        facebookLogin();// โค้ดที่ต้องการทำเมื่อกดปุ่ม Facebook
       },
       style: ElevatedButton.styleFrom(
         padding: EdgeInsets.fromLTRB(15, 10, 20, 8),
@@ -136,7 +138,21 @@ Widget buttonfacebook() {
   );
 }
 
-
+facebookLogin() async {
+    try {
+      final result =
+      await FacebookAuth.i.login(permissions: ['public_profile', 'email']);
+      if (result.status == LoginStatus.success) {
+        final userData = await FacebookAuth.i.getUserData();
+        print('facebook_login_data:-');
+        print(userData);
+        Navigator.push(context, MaterialPageRoute(builder: (context) => ActivityPage(image: userData['picture']['data']['url'],
+          name: userData['name'], email: userData['email'])));
+      }
+    } catch (error) {
+      print(error);
+    }
+  }
 
   
   @override

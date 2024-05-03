@@ -1,38 +1,41 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
+import 'package:wegosport/login.dart';
 
 class ActivityPage extends StatefulWidget {
-  const ActivityPage({Key? key}) : super(key: key);
+  const ActivityPage({Key? key, this.image, this.name, this.email})
+      : super(key: key);
 
   @override
   State<ActivityPage> createState() => _ActivityPageState();
+  final image;
+  final name;
+  final email;
 }
 
 class _ActivityPageState extends State<ActivityPage> {
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
-        appBar: AppBar(
-          title: Text('หน้าหลักกิจกรรม'),
-          backgroundColor: Colors.red, // กำหนดสีพื้นหลังของแถบ App Bar เป็นสีแดง
-        ),
-        body: Container(
-          color: Colors.red, // กำหนดสีพื้นหลังของหน้าจอเป็นสีแดง
-          child: Center(
-            child: Text(
-              'นี่คือหน้าหลักกิจกรรม',
-              style: TextStyle(
-                fontSize: 24.0,
-                color: Colors.white, // กำหนดสีข้อความเป็นสีขาว
-              ),
-            ),
-          ),
+   Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('หน้ากิจกรรม'),
+      ),
+      body: Center(
+        child: Column(
+          children: [
+            Image.network(widget.image, height: 200, width: 200,),
+            Text(widget.name),
+            Text(widget.email),
+            SizedBox(height: 100),
+            ElevatedButton(
+                onPressed: (){
+                  FacebookAuth.i.logOut();
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => LoginPage()));
+                },
+                child: Text('Logout')),
+          ],
         ),
       ),
     );
   }
-}
-
-void main() {
-  runApp(ActivityPage());
 }
