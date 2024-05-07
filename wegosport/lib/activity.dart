@@ -15,7 +15,7 @@ class ActivityPage extends StatefulWidget {
 
 class _ActivityPageState extends State<ActivityPage> {
   @override
-   Widget build(BuildContext context) {
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text('หน้ากิจกรรม'),
@@ -23,14 +23,19 @@ class _ActivityPageState extends State<ActivityPage> {
       body: Center(
         child: Column(
           children: [
-            Image.network(widget.image, height: 200, width: 200,),
+            Image.network(
+              widget.image,
+              height: 200,
+              width: 200,
+            ),
             Text(widget.name),
             Text(widget.email),
             SizedBox(height: 100),
             ElevatedButton(
-                onPressed: (){
+                onPressed: () {
                   FacebookAuth.i.logOut();
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => LoginPage()));
+                  Navigator.push(context,
+                      MaterialPageRoute(builder: (context) => LoginPage()));
                 },
                 child: Text('Logout')),
           ],
