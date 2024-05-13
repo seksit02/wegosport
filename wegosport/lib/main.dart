@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:wegosport/editinformation.dart';
+import 'package:wegosport/forgetpassword.dart';
+import 'package:wegosport/homepage.dart';
 import 'package:wegosport/login.dart';
 
 void main() {
@@ -10,7 +13,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: LoginPage(),
+      home: homepage(),
     );
   }
 }
