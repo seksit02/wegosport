@@ -1,10 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
+import 'package:wegosport/login.dart';
 
 class homepage extends StatefulWidget {
-  const homepage({super.key});
+  const homepage({Key? key, this.image, this.name, this.email})
+      : super(key: key);
 
   @override
   State<homepage> createState() => _homepageState();
+  final image;
+  final name;
+  final email;
 }
 
 class _homepageState extends State<homepage> {
@@ -97,7 +103,7 @@ class _homepageState extends State<homepage> {
     );
   }
 
- Widget twoButtons() {
+  Widget twoButtons() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
@@ -108,9 +114,8 @@ class _homepageState extends State<homepage> {
               // โค้ดที่จะทำงานเมื่อปุ่ม 1 ถูกกด
             },
             style: ElevatedButton.styleFrom(
-              primary: Colors.white, 
-              side:
-                  BorderSide(width: 2, color: Colors.black), 
+              primary: Colors.white,
+              side: BorderSide(width: 2, color: Colors.black),
             ),
             child: Text(
               'หน้าหลัก',
@@ -125,9 +130,8 @@ class _homepageState extends State<homepage> {
               // โค้ดที่จะทำงานเมื่อปุ่ม 2 ถูกกด
             },
             style: ElevatedButton.styleFrom(
-              primary: Colors.white, 
-              side:
-                  BorderSide(width: 2, color: Colors.black), 
+              primary: Colors.white,
+              side: BorderSide(width: 2, color: Colors.black),
             ),
             child: Text(
               'แชท',
@@ -138,9 +142,6 @@ class _homepageState extends State<homepage> {
       ],
     );
   }
-
-
-
 
   Widget text1() {
     return Container(
@@ -163,6 +164,9 @@ class _homepageState extends State<homepage> {
         children: [
           Scaffold(
             backgroundColor: Color.fromARGB(255, 255, 255, 255),
+            appBar: AppBar(
+              title: Text("หน้าลืมหลัก แสดงกิจกรรมต่างๆ"),
+            ),
             body: SafeArea(
               child: ListView(
                 children: [
@@ -176,7 +180,6 @@ class _homepageState extends State<homepage> {
                         text1(),
                         inputOne(),
                         inputTwo(),
-                        
                       ],
                     ),
                   ),

@@ -1,8 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:wegosport/editinformation.dart';
+import 'package:wegosport/activity.dart';
+import 'package:wegosport/addlocation.dart';
+import 'package:wegosport/chat.dart';
+import 'package:wegosport/createactivity.dart';
+import 'package:wegosport/editforget.dart';
 import 'package:wegosport/forgetpassword.dart';
+import 'package:wegosport/groupchat.dart';
 import 'package:wegosport/homepage.dart';
 import 'package:wegosport/login.dart';
+import 'package:wegosport/profile.dart';
 
 void main() {
   runApp(MyApp());
@@ -13,7 +19,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: homepage(),
+      home: chat(),
     );
   }
 }

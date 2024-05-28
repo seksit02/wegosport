@@ -199,6 +199,9 @@ Widget buttonProcesslogin() {
         children: [
           Scaffold(
             backgroundColor: Color.fromARGB(255, 255, 255, 255),
+            appBar: AppBar(
+              title: Text("หน้าลืมรหัสผ่าน"),
+            ),
             body: SafeArea(
               child: ListView(
                 children: [

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:wegosport/activity.dart';
+import 'package:wegosport/homepage.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
@@ -148,7 +149,7 @@ class _LoginPageState extends State<LoginPage> {
         Navigator.push(
             context,
             MaterialPageRoute(
-                builder: (context) => ActivityPage(
+                builder: (context) => homepage(
                     image: userData['picture']['data']['url'],
                     name: userData['name'],
                     email: userData['email'])));
@@ -158,6 +159,10 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
+  fungtionlogin() {
+
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -165,6 +170,9 @@ class _LoginPageState extends State<LoginPage> {
         children: [
           Scaffold(
             backgroundColor: Color.fromARGB(255, 255, 255, 255),
+            appBar: AppBar(
+              title: Text("หน้าล็อกอิน"),
+            ),
             body: SafeArea(
               child: ListView(
                 children: [

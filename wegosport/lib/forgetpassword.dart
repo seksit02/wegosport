@@ -75,7 +75,7 @@ Widget buttonProcesslogin() {
             ),
           ),
           onPressed: () {
-            // โค้ดการเข้าสู่ระบบ
+            functionforget();// โค้ดการเข้าสู่ระบบ
           },
         ),
       ),
@@ -110,16 +110,19 @@ Widget buttonProcesslogin() {
     );
   }
 
+functionforget(){
 
+}
 
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: Stack(
+      home:Stack(
         children: [
           Scaffold(
             backgroundColor: Color.fromARGB(255, 255, 255, 255),
+            appBar: AppBar(title: Text("หน้าลืมรหัสผ่าน"),),
             body: SafeArea(
               child: ListView(
                 children: [
@@ -129,9 +132,7 @@ Widget buttonProcesslogin() {
                     text1(),
                     text2(),
                     inputOne(),
-                    
                     buttonProcesslogin(),
-                    
                   ])),
                 ],
               ),

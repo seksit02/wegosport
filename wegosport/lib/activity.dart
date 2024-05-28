@@ -3,14 +3,10 @@ import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:wegosport/login.dart';
 
 class ActivityPage extends StatefulWidget {
-  const ActivityPage({Key? key, this.image, this.name, this.email})
-      : super(key: key);
+  const ActivityPage({super.key});
 
   @override
   State<ActivityPage> createState() => _ActivityPageState();
-  final image;
-  final name;
-  final email;
 }
 
 class _ActivityPageState extends State<ActivityPage> {
@@ -18,18 +14,11 @@ class _ActivityPageState extends State<ActivityPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('หน้ากิจกรรม'),
+        title: Text('หน้ากิจกรรมที่เข้าร่วม'),
       ),
       body: Center(
         child: Column(
           children: [
-            Image.network(
-              widget.image,
-              height: 200,
-              width: 200,
-            ),
-            Text(widget.name),
-            Text(widget.email),
             SizedBox(height: 100),
             ElevatedButton(
                 onPressed: () {
