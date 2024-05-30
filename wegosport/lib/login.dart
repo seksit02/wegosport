@@ -107,6 +107,10 @@ class _LoginPageState extends State<LoginPage> {
           ),
           onPressed: () {
             FunctionLogin(); // โค้ดการเข้าสู่ระบบ
+            Map<String, String> passdata = {
+              "user_userID": inputone.text.toString(),
+              "user_pass": inputtwo.text.toString(),
+            };
             setState(() {
               Navigator.of(this.context).pushReplacement(
                   MaterialPageRoute(builder: (context) => homepage()));
