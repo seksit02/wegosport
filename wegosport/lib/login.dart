@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:wegosport/activity.dart';
+import 'package:wegosport/editforget.dart';
 import 'package:wegosport/homepage.dart';
+
+import 'package:http/http.dart' as http;
+import 'dart:async';
+import 'dart:convert';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
@@ -101,7 +106,11 @@ class _LoginPageState extends State<LoginPage> {
             ),
           ),
           onPressed: () {
-            // โค้ดการเข้าสู่ระบบ
+            FunctionLogin(); // โค้ดการเข้าสู่ระบบ
+            setState(() {
+              Navigator.of(this.context).pushReplacement(
+                  MaterialPageRoute(builder: (context) => editinformation()));
+            });
           },
         ),
       ),
@@ -159,8 +168,40 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  fungtionlogin() {
+  Future<void> FunctionLogin() async {
+    print("user_userID: ${inputone.text}");
+    print("user_pass: ${inputtwo.text}");
 
+    // Prepare data to send
+    Map<String, String> dataPost = {
+      "user_userID": inputone.text,
+      "user_pass": inputtwo.text,
+    };
+
+    // Prepare headers
+    Map<String, String> headers = {
+      "Content-Type": "application/json",
+      "Accept": "application/json"
+    };
+
+    var url = Uri.parse("http://127.0.0.1/flutter_webservice/get_login.php");
+
+    try {
+      var response = await http.post(
+        url,
+        headers: headers,
+        body: json.encode(dataPost),
+      );
+
+      if (response.statusCode == 200) {
+        Map<String, dynamic> jsonResponse = json.decode(response.body);
+        print(jsonResponse);
+      } else {
+        print("Request failed with status: ${response.statusCode}");
+      }
+    } catch (error) {
+      print("Error: $error");
+    }
   }
 
   @override
