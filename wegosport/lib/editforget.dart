@@ -1,20 +1,36 @@
+import 'dart:math';
+import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:flutter/material.dart';
 
+import 'package:http/http.dart' as http;
+import 'dart:async';
+import 'dart:convert';
+
+import 'package:wegosport/login.dart';
+
 class editinformation extends StatefulWidget {
-  const editinformation({super.key});
+  const editinformation({Key? key, this.image, this.name, this.email})
+      : super(key: key); 
 
   @override
   State<editinformation> createState() => _editinformationState();
+  final image;
+  final name;
+  final email;
 }
 
 class _editinformationState extends State<editinformation> {
-  TextEditingController inputone = TextEditingController();
+  TextEditingController one_value = TextEditingController();
+  TextEditingController two_value = TextEditingController();
+  TextEditingController three_value = TextEditingController();
+  TextEditingController four_value = TextEditingController();
+  TextEditingController five_value = TextEditingController();
 
- Widget inputOne() {
+  Widget inputOne() {
     return Container(
       margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
       child: TextFormField(
-        controller: inputone,
+        controller: one_value,
         decoration: InputDecoration(
           contentPadding: EdgeInsets.fromLTRB(0, 15, 0, 0),
           hintText: 'กรอกชื่อผู้ใช้งาน',
@@ -33,15 +49,14 @@ class _editinformationState extends State<editinformation> {
     );
   }
 
-
-Widget inputTwo() {
+  Widget inputTwo() {
     return Container(
       margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
       child: TextFormField(
-        controller: inputone,
+        controller: two_value,
         decoration: InputDecoration(
           contentPadding: EdgeInsets.fromLTRB(0, 15, 0, 0),
-          hintText: 'กรอกชื่อ-นามสกุล',
+          hintText: 'กรอกอีเมล',
           fillColor: Colors.white, // กำหนดสีพื้นหลังเป็นสีขาว
           filled: true,
           prefixIcon: Icon(
@@ -57,14 +72,14 @@ Widget inputTwo() {
     );
   }
 
-Widget inputthree() {
+  Widget inputthree() {
     return Container(
       margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
       child: TextFormField(
-        controller: inputone,
+        controller: three_value,
         decoration: InputDecoration(
           contentPadding: EdgeInsets.fromLTRB(0, 15, 0, 0),
-          hintText: 'กรอกอีเมลล์',
+          hintText: 'กรอกรหัสผ่าน',
           fillColor: Colors.white,
           filled: true,
           prefixIcon: Icon(
@@ -80,15 +95,14 @@ Widget inputthree() {
     );
   }
 
-
-Widget inputfour() {
+  Widget inputfour() {
     return Container(
       margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
       child: TextFormField(
-        controller: inputone,
+        controller: four_value,
         decoration: InputDecoration(
           contentPadding: EdgeInsets.fromLTRB(0, 15, 0, 0),
-          hintText: 'กรอกรหัสผ่าน',
+          hintText: 'กรอกชื่อ-สกุล',
           fillColor: Colors.white,
           filled: true,
           prefixIcon: Icon(
@@ -108,7 +122,7 @@ Widget inputfour() {
     return Container(
       margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
       child: TextFormField(
-        controller: inputone,
+        controller: five_value,
         decoration: InputDecoration(
           contentPadding: EdgeInsets.fromLTRB(0, 15, 0, 0),
           hintText: 'กรอกอายุ',
@@ -127,8 +141,7 @@ Widget inputfour() {
     );
   }
 
-
-Widget appLogo() {
+  Widget appLogo() {
     return Container(
       width: 100,
       height: 100,
@@ -147,7 +160,7 @@ Widget appLogo() {
     );
   }
 
-Widget buttonProcesslogin() {
+  Widget buttonProcesslogin() {
     return ButtonTheme(
       minWidth: double.infinity,
       child: Container(
@@ -169,11 +182,57 @@ Widget buttonProcesslogin() {
             ),
           ),
           onPressed: () {
-            // โค้ดการเข้าสู่ระบบ
+            Functionregister(); // โค้ดการเข้าสู่ระบบ
+            setState(() {
+              Navigator.of(this.context).pushReplacement(
+                  MaterialPageRoute(builder: (context) => LoginPage()));
+            });
           },
         ),
       ),
     );
+  }
+
+  Future<void> Functionregister() async {
+    print("user_userID: ${one_value.text}");
+    print("user_email: ${two_value.text}");
+    print("user_pass: ${three_value.text}");
+    print("user_name_lastname: ${four_value.text}");
+    print("user_age: ${five_value.text}");
+
+    // Prepare data to send
+    Map<String, String> dataPost = {
+      "user_userID": one_value.text,
+      "user_email": two_value.text,
+      "user_pass": three_value.text,
+      "user_name_lastname": four_value.text,
+      "user_age": five_value.text
+    };
+
+    // Prepare headers
+    Map<String, String> headers = {
+      "Content-Type": "application/json",
+      "Accept": "application/json"
+    };
+
+    var url = Uri.parse("http://127.0.0.1/flutter_webservice/get_register.php");
+
+    try {
+      var response = await http.post(
+        url,
+        headers: headers,
+        body: json.encode(dataPost),
+      );
+
+      if (response.statusCode == 200) {
+        Map<String, dynamic> jsonResponse = json.decode(response.body);
+        print(jsonResponse);
+      } else {
+        print("Request failed with status: ${response.statusCode}");
+      }
+    } catch (error) {
+      print("Error: $error");
+    }
   }
 
   Widget text1() {
@@ -189,8 +248,6 @@ Widget buttonProcesslogin() {
       ),
     );
   }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -215,7 +272,6 @@ Widget buttonProcesslogin() {
                     inputfour(),
                     inputfive(),
                     buttonProcesslogin(),
-                    
                   ])),
                 ],
               ),

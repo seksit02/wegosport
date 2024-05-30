@@ -158,7 +158,7 @@ class _LoginPageState extends State<LoginPage> {
         Navigator.push(
             context,
             MaterialPageRoute(
-                builder: (context) => homepage(
+                builder: (context) => editinformation(
                     image: userData['picture']['data']['url'],
                     name: userData['name'],
                     email: userData['email'])));

@@ -3,14 +3,10 @@ import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:wegosport/login.dart';
 
 class homepage extends StatefulWidget {
-  const homepage({Key? key, this.image, this.name, this.email})
-      : super(key: key);
+  const homepage({super.key});
 
   @override
   State<homepage> createState() => _homepageState();
-  final image;
-  final name;
-  final email;
 }
 
 class _homepageState extends State<homepage> {
