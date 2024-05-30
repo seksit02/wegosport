@@ -109,7 +109,7 @@ class _LoginPageState extends State<LoginPage> {
             FunctionLogin(); // โค้ดการเข้าสู่ระบบ
             setState(() {
               Navigator.of(this.context).pushReplacement(
-                  MaterialPageRoute(builder: (context) => editinformation()));
+                  MaterialPageRoute(builder: (context) => homepage()));
             });
           },
         ),
