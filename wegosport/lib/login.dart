@@ -90,33 +90,32 @@ class _LoginPageState extends State<LoginPage> {
       child: Container(
         margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
         child: ElevatedButton(
-          child: Text(
-            "เข้าสู่ระบบ",
-            style: TextStyle(
-              color: Colors.white,
+            child: Text(
+              "เข้าสู่ระบบ",
+              style: TextStyle(
+                color: Colors.white,
+              ),
             ),
-          ),
-          style: ElevatedButton.styleFrom(
-            padding: EdgeInsets.fromLTRB(20, 10, 20, 10),
-            backgroundColor: Color.fromARGB(249, 255, 4, 4),
-            shadowColor: Color.fromARGB(255, 255, 255, 255),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(30), // ปรับความโค้งของกรอบ
-              side: BorderSide(color: Colors.black),
+            style: ElevatedButton.styleFrom(
+              padding: EdgeInsets.fromLTRB(20, 10, 20, 10),
+              backgroundColor: Color.fromARGB(249, 255, 4, 4),
+              shadowColor: Color.fromARGB(255, 255, 255, 255),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(30), // ปรับความโค้งของกรอบ
+                side: BorderSide(color: Colors.black),
+              ),
             ),
-          ),
-          onPressed: () {
-            FunctionLogin(); // โค้ดการเข้าสู่ระบบ
-            Map<String, String> passdata = {
-              "user_userID": inputone.text.toString(),
-              "user_pass": inputtwo.text.toString(),
-            };
-            setState(() {
-              Navigator.of(this.context).pushReplacement(
-                  MaterialPageRoute(builder: (context) => homepage()));
-            });
-          },
-        ),
+            onPressed: () async {
+              bool loginSuccess = await FunctionLogin();
+              if (loginSuccess) {
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(builder: (context) => homepage()),
+                );
+              } else {
+                // แสดงข้อความหรือการแจ้งเตือนว่าการเข้าสู่ระบบล้มเหลว
+                print("Login failed");
+              }
+            }),
       ),
     );
   }
@@ -172,14 +171,14 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  Future<void> FunctionLogin() async {
-    print("user_userID: ${inputone.text}");
-    print("user_pass: ${inputtwo.text}");
+  Future<bool> FunctionLogin() async {
+    print("username: ${inputone.text}");
+    print("password: ${inputtwo.text}");
 
     // Prepare data to send
     Map<String, String> dataPost = {
-      "user_userID": inputone.text,
-      "user_pass": inputtwo.text,
+      "username": inputone.text,
+      "password": inputtwo.text,
     };
 
     // Prepare headers
@@ -188,7 +187,7 @@ class _LoginPageState extends State<LoginPage> {
       "Accept": "application/json"
     };
 
-    var url = Uri.parse("http://127.0.0.1/flutter_webservice/get_login.php");
+    var url = Uri.parse("http://10.0.2.2/flutter_webservice/get_login.php");
 
     try {
       var response = await http.post(
@@ -197,14 +196,25 @@ class _LoginPageState extends State<LoginPage> {
         body: json.encode(dataPost),
       );
 
+      print("Response body: ${response.body}");
+
       if (response.statusCode == 200) {
         Map<String, dynamic> jsonResponse = json.decode(response.body);
         print(jsonResponse);
+
+        // ตรวจสอบว่าการเข้าสู่ระบบสำเร็จหรือไม่
+        if (jsonResponse['result'] == "1") {
+          return true;
+        } else {
+          return false;
+        }
       } else {
         print("Request failed with status: ${response.statusCode}");
+        return false;
       }
     } catch (error) {
       print("Error: $error");
+      return false;
     }
   }
 
