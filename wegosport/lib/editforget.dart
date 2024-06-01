@@ -1,11 +1,9 @@
 import 'dart:math';
 import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:flutter/material.dart';
-
 import 'package:http/http.dart' as http;
 import 'dart:async';
 import 'dart:convert';
-
 import 'package:wegosport/login.dart';
 
 class editinformation extends StatefulWidget {
@@ -182,7 +180,7 @@ class _editinformationState extends State<editinformation> {
             ),
           ),
           onPressed: () {
-            Functionregister(); // โค้ดการเข้าสู่ระบบ
+            functionregister(); // โค้ดการเข้าสู่ระบบ
             setState(() {
               Navigator.of(this.context).pushReplacement(
                   MaterialPageRoute(builder: (context) => LoginPage()));
@@ -193,7 +191,7 @@ class _editinformationState extends State<editinformation> {
     );
   }
 
-  Future<void> Functionregister() async {
+  Future<void> functionregister() async {
     print("user_userID: ${one_value.text}");
     print("user_email: ${two_value.text}");
     print("user_pass: ${three_value.text}");
@@ -215,7 +213,7 @@ class _editinformationState extends State<editinformation> {
       "Accept": "application/json"
     };
 
-    var url = Uri.parse("http://127.0.0.1/flutter_webservice/get_register.php");
+    var url = Uri.parse("http://10.0.2.2/flutter_webservice/get_register.php");
 
     try {
       var response = await http.post(
@@ -234,6 +232,8 @@ class _editinformationState extends State<editinformation> {
       print("Error: $error");
     }
   }
+
+  
 
   Widget text1() {
     return Container(
