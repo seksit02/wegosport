@@ -30,8 +30,6 @@ $conn = @mysqli_connect($serName, $userNameDB, $userNamePassword, $dbName);
 }
 ?>
 
-
-
 <?php
     $strSQL = "SELECT * FROM information WHERE user_userID ='".@$username."' ";
     $query = @mysqli_query($conn,$strSQL);
