@@ -192,18 +192,18 @@ class _editinformationState extends State<editinformation> {
   }
 
   Future<void> functionregister() async {
-    print("user_userID: ${one_value.text}");
+    print("user_id: ${one_value.text}");
     print("user_email: ${two_value.text}");
     print("user_pass: ${three_value.text}");
-    print("user_name_lastname: ${four_value.text}");
+    print("user_name: ${four_value.text}");
     print("user_age: ${five_value.text}");
 
     // Prepare data to send
     Map<String, String> dataPost = {
-      "user_userID": one_value.text,
+      "user_id": one_value.text,
       "user_email": two_value.text,
       "user_pass": three_value.text,
-      "user_name_lastname": four_value.text,
+      "user_name": four_value.text,
       "user_age": five_value.text
     };
 
