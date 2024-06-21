@@ -3,7 +3,7 @@ import 'package:wegosport/activity.dart';
 import 'package:wegosport/addlocation.dart';
 import 'package:wegosport/chat.dart';
 import 'package:wegosport/createactivity.dart';
-import 'package:wegosport/editforget.dart';
+import 'package:wegosport/editinformation.dart';
 import 'package:wegosport/forgetpassword.dart';
 import 'package:wegosport/groupchat.dart';
 import 'package:wegosport/homepage.dart';
@@ -19,7 +19,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: LoginPage(),
+      home: editinformation(),
     );
   }
 }

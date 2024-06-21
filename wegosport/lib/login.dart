@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:wegosport/activity.dart';
-import 'package:wegosport/editforget.dart';
+import 'package:wegosport/editinformation.dart';
 import 'package:wegosport/homepage.dart';
 
 import 'package:http/http.dart' as http;
@@ -187,7 +187,7 @@ class _LoginPageState extends State<LoginPage> {
       "Accept": "application/json"
     };
 
-    var url = Uri.parse("http://10.0.2.2/flutter_webservice/get_login.php");
+    var url = Uri.parse("http://10.0.2.2/flutter_webservice/get_Login.php");
 
     try {
       var response = await http.post(

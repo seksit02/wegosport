@@ -213,7 +213,7 @@ class _editinformationState extends State<editinformation> {
       "Accept": "application/json"
     };
 
-    var url = Uri.parse("http://10.0.2.2/flutter_webservice/get_register.php");
+    var url = Uri.parse("http://10.0.2.2/flutter_webservice/get_Register.php");
 
     try {
       var response = await http.post(
@@ -257,7 +257,7 @@ class _editinformationState extends State<editinformation> {
           Scaffold(
             backgroundColor: Color.fromARGB(255, 255, 255, 255),
             appBar: AppBar(
-              title: Text("หน้าลืมรหัสผ่าน"),
+              title: Text("หน้าแก้ไขข้อมูล"),
             ),
             body: SafeArea(
               child: ListView(
