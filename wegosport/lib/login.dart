@@ -172,13 +172,13 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future<bool> FunctionLogin() async {
-    print("username: ${inputone.text}");
-    print("password: ${inputtwo.text}");
+    print("user_id: ${inputone.text}");
+    print("user_pass: ${inputtwo.text}");
 
     // Prepare data to send
     Map<String, String> dataPost = {
-      "username": inputone.text,
-      "password": inputtwo.text,
+      "user_id": inputone.text,
+      "user_pass": inputtwo.text,
     };
 
     // Prepare headers
