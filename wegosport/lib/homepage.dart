@@ -13,6 +13,9 @@ class homepage extends StatefulWidget {
 
 class _homepageState extends State<homepage> {
   String activityDate = '';
+  String activityName = '';
+  String activityLocation = '';
+
 
   @override
   void initState() {
@@ -21,12 +24,44 @@ class _homepageState extends State<homepage> {
   }
 
   Future<void> fetchActivityDate() async {
-    final response = await http.get(Uri.parse('http://10.0.2.2/flutter_webservice/get_ShowDataActivity.php'));
+    final response = await http.get(Uri.parse(
+        'http://10.0.2.2/flutter_webservice/get_ShowDataActivity.php'));
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
       setState(() {
-        activityDate = data['activity_date']; // ปรับตามโครงสร้าง JSON ที่ได้รับ
+        activityDate = data.toString();
+        ['activity_date']; // ปรับตามโครงสร้าง JSON ที่ได้รับ
+      });
+    } else {
+      throw Exception('Failed to load activity date');
+    }
+  }
+
+  Future<void> fetchActivityName() async {
+    final response = await http.get(Uri.parse(
+        'http://10.0.2.2/flutter_webservice/get_ShowDataActivityName.php'));
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      setState(() {
+        activityName = data;
+        ['activity_name']; // ปรับตามโครงสร้าง JSON ที่ได้รับ
+      });
+    } else {
+      throw Exception('Failed to load activity date');
+    }
+  }
+
+  Future<void> fetchActivityLocation() async {
+    final response = await http.get(Uri.parse(
+        'http://10.0.2.2/flutter_webservice/get_ShowDataActivityLocation.php'));
+
+    if (response.statusCode == 200) {
+      final data2 = json.decode(response.body);
+      setState(() {
+        activityLocation = data2;
+        ['location_name']; // ปรับตามโครงสร้าง JSON ที่ได้รับ
       });
     } else {
       throw Exception('Failed to load activity date');
@@ -57,9 +92,11 @@ class _homepageState extends State<homepage> {
     return Container(
       margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
       child: TextFormField(
+        readOnly: true,
         decoration: InputDecoration(
           contentPadding: EdgeInsets.fromLTRB(20, 15, 0, 0),
-          hintText: 'แสดงผลข้อมูล ชื่อกิจกรรม',
+          hintText:
+              activityName.isNotEmpty ? activityName : 'กำลังโหลดข้อมูล...',
           fillColor: Colors.white,
           filled: true,
           border: OutlineInputBorder(
@@ -77,7 +114,8 @@ class _homepageState extends State<homepage> {
       child: TextFormField(
         decoration: InputDecoration(
           contentPadding: EdgeInsets.fromLTRB(20, 15, 0, 0),
-          hintText: 'แสดงผลข้อมูล สถานที่เล่นกีฬา',
+          hintText:
+              activityLocation.isNotEmpty ? activityLocation : 'กำลังโหลดข้อมูล...',
           fillColor: Colors.white,
           filled: true,
           border: OutlineInputBorder(
