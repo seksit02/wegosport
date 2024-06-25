@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:async';
+import 'dart:convert';
 
 class createactivitypage extends StatefulWidget {
   const createactivitypage({super.key});
@@ -8,16 +11,14 @@ class createactivitypage extends StatefulWidget {
 }
 
 class _createactivitypageState extends State<createactivitypage> {
-  TextEditingController input1 = TextEditingController();
-  TextEditingController input2 = TextEditingController();
-  TextEditingController input3 = TextEditingController();
-  TextEditingController input4 = TextEditingController();
-  TextEditingController input5 = TextEditingController();
-  TextEditingController input6 = TextEditingController();
+  TextEditingController one_value = TextEditingController();
+  TextEditingController two_value = TextEditingController();
+  TextEditingController three_value = TextEditingController();
+
 
   Widget appLogo() {
     return Container(
-      width: 300,
+      width: 350,
       height: 250,
       margin: EdgeInsets.fromLTRB(0, 50, 0, 0),
       decoration: BoxDecoration(
@@ -38,7 +39,7 @@ class _createactivitypageState extends State<createactivitypage> {
     return Container(
       margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
       child: TextFormField(
-        controller: input1,
+        controller: one_value,
         decoration: InputDecoration(
           contentPadding: EdgeInsets.fromLTRB(0, 15, 0, 0),
           hintText: 'ชื่อกิจกรรม',
@@ -61,7 +62,7 @@ class _createactivitypageState extends State<createactivitypage> {
     return Container(
       margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
       child: TextFormField(
-        controller: input1,
+        
         decoration: InputDecoration(
           contentPadding: EdgeInsets.fromLTRB(0, 15, 0, 0),
           hintText: 'สถานที่',
@@ -84,7 +85,7 @@ class _createactivitypageState extends State<createactivitypage> {
     return Container(
       margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
       child: TextFormField(
-        controller: input1,
+        controller: three_value,
         decoration: InputDecoration(
           contentPadding: EdgeInsets.fromLTRB(0, 15, 0, 0),
           hintText: 'วันที่',
@@ -107,7 +108,7 @@ class _createactivitypageState extends State<createactivitypage> {
     return Container(
       margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
       child: TextFormField(
-        controller: input1,
+        
         decoration: InputDecoration(
           contentPadding: EdgeInsets.fromLTRB(0, 15, 0, 0),
           hintText: 'แฮชแท็ก',
@@ -159,7 +160,7 @@ class _createactivitypageState extends State<createactivitypage> {
     return Container(
       margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
       child: TextFormField(
-        controller: input1,
+        controller: two_value,
         decoration: InputDecoration(
           contentPadding: EdgeInsets.fromLTRB(0, 15, 0, 0),
           hintText: 'ข้อความขังเขป',
@@ -182,7 +183,7 @@ class _createactivitypageState extends State<createactivitypage> {
     return Container(
       margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
       child: TextFormField(
-        controller: input1,
+        
         decoration: InputDecoration(
           contentPadding: EdgeInsets.fromLTRB(0, 15, 0, 0),
           hintText: 'แนปรูป',
@@ -223,11 +224,52 @@ class _createactivitypageState extends State<createactivitypage> {
             ),
           ),
           onPressed: () {
-            // โค้ดการเข้าสู่ระบบ
+            functionCreateActivity();
           },
         ),
       ),
     );
+  }
+
+
+  Future<void> functionCreateActivity() async {
+    print("activity_name: ${one_value.text}");
+    print("activity_details: ${two_value.text}");
+    print("activity_date: ${three_value.text}");
+
+
+    // Prepare data to send
+    Map<String, String> dataPost = {
+      "activity_name": one_value.text,
+      "activity_details": two_value.text,
+      "activity_date": three_value.text,
+   
+    };
+
+    // Prepare headers
+    Map<String, String> headers = {
+      "Content-Type": "application/json",
+      "Accept": "application/json"
+    };
+
+    var url = Uri.parse("http://10.0.2.2/flutter_webservice/get_CreateActivity.php");
+
+    try {
+      var response = await http.post(
+        url,
+        headers: headers,
+        body: json.encode(dataPost),
+      );
+
+      if (response.statusCode == 200) {
+        Map<String, dynamic> jsonResponse = json.decode(response.body);
+        print(jsonResponse);
+      } else {
+        print("Request failed with status: ${response.statusCode}");
+      }
+    } catch (error) {
+      print("Error: $error");
+    }
   }
 
   @override
@@ -246,8 +288,7 @@ class _createactivitypageState extends State<createactivitypage> {
                   Center(
                       child:
                           Column(mainAxisSize: MainAxisSize.max, children: [])),
-                  buttonblack(),
-                  appLogo(),
+                  //appLogo(),
                   nameactivity(),
                   location(),
                   date(),

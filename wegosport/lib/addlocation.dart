@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:async';
+import 'dart:convert';
+
 
 class addlocationpage extends StatefulWidget {
   const addlocationpage({super.key});
@@ -12,8 +16,7 @@ class _addlocationState extends State<addlocationpage> {
   TextEditingController input2 = TextEditingController();
   TextEditingController input3 = TextEditingController();
   TextEditingController input4 = TextEditingController();
-  TextEditingController input5 = TextEditingController();
-  TextEditingController input6 = TextEditingController();
+  
 
   Widget buttonblack() {
     return ButtonTheme(
@@ -74,7 +77,7 @@ class _addlocationState extends State<addlocationpage> {
           fillColor: Color.fromARGB(255, 255, 255, 255),
           filled: true,
           prefixIcon: Icon(
-            Icons.add,
+            Icons.edit,
             color: Colors.red, // ตั้งค่าสีของไอคอนเป็นสีแดง
           ),
           border: OutlineInputBorder(
@@ -90,14 +93,14 @@ class _addlocationState extends State<addlocationpage> {
     return Container(
       margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
       child: TextFormField(
-        controller: input1,
+        controller: input2,
         decoration: InputDecoration(
           contentPadding: EdgeInsets.fromLTRB(0, 15, 0, 0),
           hintText: 'เวลาเปิด-ปิด',
           fillColor: Color.fromARGB(255, 255, 255, 255),
           filled: true,
           prefixIcon: Icon(
-            Icons.add,
+            Icons.edit,
             color: Colors.red, // ตั้งค่าสีของไอคอนเป็นสีแดง
           ),
           border: OutlineInputBorder(
@@ -113,14 +116,14 @@ class _addlocationState extends State<addlocationpage> {
     return Container(
       margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
       child: TextFormField(
-        controller: input1,
+        controller: input3,
         decoration: InputDecoration(
           contentPadding: EdgeInsets.fromLTRB(0, 15, 0, 0),
           hintText: 'กฎการใช้สถานที่',
           fillColor: Color.fromARGB(255, 255, 255, 255),
           filled: true,
           prefixIcon: Icon(
-            Icons.add,
+            Icons.edit,
             color: Colors.red, // ตั้งค่าสีของไอคอนเป็นสีแดง
           ),
           border: OutlineInputBorder(
@@ -132,41 +135,19 @@ class _addlocationState extends State<addlocationpage> {
     );
   }
 
-  Widget note() {
-    return Container(
-      margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
-      child: TextFormField(
-        controller: input1,
-        decoration: InputDecoration(
-          contentPadding: EdgeInsets.fromLTRB(0, 15, 0, 0),
-          hintText: 'หมายเหตุ',
-          fillColor: Color.fromARGB(255, 255, 255, 255),
-          filled: true,
-          prefixIcon: Icon(
-            Icons.add,
-            color: Colors.red, // ตั้งค่าสีของไอคอนเป็นสีแดง
-          ),
-          border: OutlineInputBorder(
-            borderSide: BorderSide(color: Colors.black),
-            borderRadius: BorderRadius.circular(30), // ปรับความโค้งของกรอบ
-          ),
-        ),
-      ),
-    );
-  }
 
   Widget map() {
     return Container(
       margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
       child: TextFormField(
-        controller: input1,
+        
         decoration: InputDecoration(
           contentPadding: EdgeInsets.fromLTRB(0, 15, 0, 0),
           hintText: 'Map',
           fillColor: Color.fromARGB(255, 255, 255, 255),
           filled: true,
           prefixIcon: Icon(
-            Icons.add,
+            Icons.edit,
             color: Colors.red, // ตั้งค่าสีของไอคอนเป็นสีแดง
           ),
           border: OutlineInputBorder(
@@ -182,14 +163,14 @@ class _addlocationState extends State<addlocationpage> {
     return Container(
       margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
       child: TextFormField(
-        controller: input1,
+        
         decoration: InputDecoration(
           contentPadding: EdgeInsets.fromLTRB(0, 15, 0, 0),
           hintText: 'แนปรูป',
           fillColor: Color.fromARGB(255, 255, 255, 255),
           filled: true,
           prefixIcon: Icon(
-            Icons.add,
+            Icons.edit,
             color: Colors.red, // ตั้งค่าสีของไอคอนเป็นสีแดง
           ),
           border: OutlineInputBorder(
@@ -223,11 +204,53 @@ class _addlocationState extends State<addlocationpage> {
             ),
           ),
           onPressed: () {
-            // โค้ดการเข้าสู่ระบบ
+            functionAddLocation();
           },
         ),
       ),
     );
+  }
+
+  Future<void> functionAddLocation() async {
+    print("location_name: ${input1.text}");
+    print("location_time: ${input2.text}");
+    print("location_rules: ${input3.text}");
+   
+
+    // Prepare data to send
+    Map<String, String> dataPost = {
+      "location_name": input1.text,
+      "location_time": input2.text,
+      "location_rules": input3.text,
+     
+      
+    };
+
+    // Prepare headers
+    Map<String, String> headers = {
+      "Content-Type": "application/json",
+      "Accept": "application/json"
+    };
+
+    var url =
+        Uri.parse("http://10.0.2.2/flutter_webservice/get_AddLocation.php");
+
+    try {
+      var response = await http.post(
+        url,
+        headers: headers,
+        body: json.encode(dataPost),
+      );
+
+      if (response.statusCode == 200) {
+        Map<String, dynamic> jsonResponse = json.decode(response.body);
+        print(jsonResponse);
+      } else {
+        print("Request failed with status: ${response.statusCode}");
+      }
+    } catch (error) {
+      print("Error: $error");
+    }
   }
 
   @override
@@ -245,12 +268,12 @@ class _addlocationState extends State<addlocationpage> {
                 children: [
                   Center(
                       child: Column(mainAxisSize: MainAxisSize.max, children: [
-                    buttonblack(),
-                    appLogo(),
+                    
+                    //appLogo(),
                     namelocation(),
                     time(),
                     rule(),
-                    note(),
+                    
                     picture(),
                     map(),
                     buttonaddlocation()

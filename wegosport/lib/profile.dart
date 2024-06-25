@@ -218,8 +218,6 @@ class _profilepageState extends State<profilepage> {
                 children: [
                   Center(
                       child: Column(mainAxisSize: MainAxisSize.max, children: [
-                    buttonblack(),
-                    appLogo(),
                     profilepicture(),
                     username(),
                     usernameid(),

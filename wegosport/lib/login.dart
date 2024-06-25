@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:wegosport/activity.dart';
-import 'package:wegosport/editinformation.dart';
+import 'package:wegosport/Addinformation.dart';
 import 'package:wegosport/homepage.dart';
 
 import 'package:http/http.dart' as http;

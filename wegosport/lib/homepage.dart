@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -44,6 +46,7 @@ class _homepageState extends State<homepage> {
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
+      log(data);
       setState(() {
         activityName = data;
         ['activity_name']; // ปรับตามโครงสร้าง JSON ที่ได้รับ

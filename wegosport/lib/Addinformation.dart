@@ -58,7 +58,7 @@ class _editinformationState extends State<editinformation> {
           fillColor: Colors.white, // กำหนดสีพื้นหลังเป็นสีขาว
           filled: true,
           prefixIcon: Icon(
-            Icons.person,
+            Icons.edit,
             color: Colors.red, // ตั้งค่าสีของไอคอนเป็นสีแดง
           ),
           border: OutlineInputBorder(
@@ -81,7 +81,7 @@ class _editinformationState extends State<editinformation> {
           fillColor: Colors.white,
           filled: true,
           prefixIcon: Icon(
-            Icons.email, // เปลี่ยนไอคอนเป็นจดหมาย
+            Icons.edit, // เปลี่ยนไอคอนเป็นจดหมาย
             color: Colors.red,
           ),
           border: OutlineInputBorder(
@@ -104,7 +104,7 @@ class _editinformationState extends State<editinformation> {
           fillColor: Colors.white,
           filled: true,
           prefixIcon: Icon(
-            Icons.lock, // เปลี่ยนไอคอนเป็นกุญแจ
+            Icons.edit, // เปลี่ยนไอคอนเป็นกุญแจ
             color: Colors.red,
           ),
           border: OutlineInputBorder(
@@ -127,7 +127,7 @@ class _editinformationState extends State<editinformation> {
           fillColor: Colors.white,
           filled: true,
           prefixIcon: Icon(
-            Icons.format_list_numbered, // เปลี่ยนเป็นไอคอนตัวเลข
+            Icons.edit, // เปลี่ยนเป็นไอคอนตัวเลข
             color: Colors.red,
           ),
           border: OutlineInputBorder(
@@ -238,7 +238,7 @@ class _editinformationState extends State<editinformation> {
   Widget text1() {
     return Container(
       child: Text(
-        "แก้ไขข้อมูล",
+        "เพิ่มข้อมูลผู้ใช้",
         style: TextStyle(
           fontSize: 24,
           fontWeight: FontWeight.bold,
@@ -257,7 +257,7 @@ class _editinformationState extends State<editinformation> {
           Scaffold(
             backgroundColor: Color.fromARGB(255, 255, 255, 255),
             appBar: AppBar(
-              title: Text("หน้าแก้ไขข้อมูล"),
+              title: Text("หน้าเพิ่มข้อมูลผู้ใช้"),
             ),
             body: SafeArea(
               child: ListView(
