@@ -1,9 +1,7 @@
 import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:wegosport/login.dart';
 
 class homepage extends StatefulWidget {
@@ -15,9 +13,8 @@ class homepage extends StatefulWidget {
 
 class _homepageState extends State<homepage> {
   String activityDate = '';
-  String activityName = '';
+  List<String> activityNames = [];
   String activityLocation = '';
-
 
   @override
   void initState() {
@@ -31,28 +28,40 @@ class _homepageState extends State<homepage> {
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
+      List<String> dates = [];
+
+      for (var activity in data) {
+        String dateTime = activity['activity_date'];
+        String date = dateTime.split(' ')[0]; // แยกวันที่ออกจากเวลาที่ได้มา
+        dates.add(date);
+      }
+
       setState(() {
-        activityDate = data.toString();
-        ['activity_date']; // ปรับตามโครงสร้าง JSON ที่ได้รับ
+        activityDate =
+            dates.join(', '); // รวมวันที่ทั้งหมดให้แสดงเป็นสตริงเดียวกัน
       });
     } else {
       throw Exception('Failed to load activity date');
     }
   }
 
-  Future<void> fetchActivityName() async {
+  Future<void> fetchActivityNames() async {
     final response = await http.get(Uri.parse(
-        'http://10.0.2.2/flutter_webservice/get_ShowDataActivityName.php'));
+        'http://10.0.2.2/flutter_webservice/get_ShowDataActivity.php'));
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
-      log(data);
+      List<String> names = [];
+
+      for (var activity in data) {
+        names.add(activity['activity_name']);
+      }
+
       setState(() {
-        activityName = data;
-        ['activity_name']; // ปรับตามโครงสร้าง JSON ที่ได้รับ
+        activityNames = names;
       });
     } else {
-      throw Exception('Failed to load activity date');
+      throw Exception('Failed to load activity names');
     }
   }
 
@@ -98,8 +107,9 @@ class _homepageState extends State<homepage> {
         readOnly: true,
         decoration: InputDecoration(
           contentPadding: EdgeInsets.fromLTRB(20, 15, 0, 0),
-          hintText:
-              activityName.isNotEmpty ? activityName : 'กำลังโหลดข้อมูล...',
+          hintText: activityNames.isNotEmpty
+              ? activityNames[0]
+              : 'กำลังโหลดข้อมูล...',
           fillColor: Colors.white,
           filled: true,
           border: OutlineInputBorder(
@@ -117,8 +127,9 @@ class _homepageState extends State<homepage> {
       child: TextFormField(
         decoration: InputDecoration(
           contentPadding: EdgeInsets.fromLTRB(20, 15, 0, 0),
-          hintText:
-              activityLocation.isNotEmpty ? activityLocation : 'กำลังโหลดข้อมูล...',
+          hintText: activityLocation.isNotEmpty
+              ? activityLocation
+              : 'กำลังโหลดข้อมูล...',
           fillColor: Colors.white,
           filled: true,
           border: OutlineInputBorder(

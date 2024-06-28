@@ -9,6 +9,7 @@ import 'package:wegosport/groupchat.dart';
 import 'package:wegosport/homepage.dart';
 import 'package:wegosport/login.dart';
 import 'package:wegosport/profile.dart';
+import 'package:wegosport/test.dart';
 
 void main() {
   runApp(MyApp());
@@ -19,7 +20,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: addlocationpage(),
+      home: ActivityCard(),
     );
   }
 }
