@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'package:flutter/services.dart';
 import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -8,7 +9,7 @@ import 'package:wegosport/login.dart';
 
 class editinformation extends StatefulWidget {
   const editinformation({Key? key, this.image, this.name, this.email})
-      : super(key: key); 
+      : super(key: key);
 
   @override
   State<editinformation> createState() => _editinformationState();
@@ -31,11 +32,11 @@ class _editinformationState extends State<editinformation> {
         controller: one_value,
         decoration: InputDecoration(
           contentPadding: EdgeInsets.fromLTRB(0, 15, 0, 0),
-          hintText: 'กรอกชื่อผู้ใช้งาน',
+          hintText: 'ชื่อผู้ใช้งาน "มากกว่า 6 ตัว"',
           fillColor: Colors.white,
           filled: true,
           prefixIcon: Icon(
-            Icons.edit, // เปลี่ยนเป็นไอคอนดินสอ
+            Icons.create, // เปลี่ยนไอคอนเป็นดินสอ
             color: Colors.red,
           ),
           border: OutlineInputBorder(
@@ -43,6 +44,18 @@ class _editinformationState extends State<editinformation> {
             borderRadius: BorderRadius.circular(30),
           ),
         ),
+        validator: (value) {
+          if (value!.isEmpty) {
+            return 'กรุณากรอกชื่อผู้ใช้งาน';
+          }
+          if (value.length <= 6) {
+            return 'ชื่อผู้ใช้งานควรมีมากกว่า 6 ตัวอักษร';
+          }
+          if (!value.contains(RegExp(r'[a-zA-Z]'))) {
+            return 'ชื่อผู้ใช้งานควรมีตัวอักษรประกอบด้วยอย่างน้อย 1 ตัว';
+          }
+          return null;
+        },
       ),
     );
   }
@@ -54,7 +67,7 @@ class _editinformationState extends State<editinformation> {
         controller: two_value,
         decoration: InputDecoration(
           contentPadding: EdgeInsets.fromLTRB(0, 15, 0, 0),
-          hintText: 'กรอกอีเมล',
+          hintText: 'อีเมล "ใช้อีเมลที่ติดต่อได้เท่านั้น"',
           fillColor: Colors.white, // กำหนดสีพื้นหลังเป็นสีขาว
           filled: true,
           prefixIcon: Icon(
@@ -75,9 +88,26 @@ class _editinformationState extends State<editinformation> {
       margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
       child: TextFormField(
         controller: three_value,
+        keyboardType: TextInputType.text,
+        obscureText: true, // ทำเป็นรหัสผ่านที่ถูกซ่อนไว้
+        validator: (value) {
+          if (value!.isEmpty) {
+            return 'กรุณากรอกรหัสผ่าน';
+          }
+          if (value!.length <= 6) {
+            return 'รหัสผ่านควรมีอย่างน้อย 6 ตัว';
+          }
+          // ตรวจสอบว่ามีตัวเลขและตัวอักษรประกอบอยู่
+          bool hasDigits = value.contains(RegExp(r'\d'));
+          bool hasLetters = value.contains(RegExp(r'[a-zA-Z]'));
+          if (!hasDigits || !hasLetters) {
+            return 'รหัสผ่านควรประกอบด้วยตัวเลขและตัวอักษร';
+          }
+          return null;
+        },
         decoration: InputDecoration(
           contentPadding: EdgeInsets.fromLTRB(0, 15, 0, 0),
-          hintText: 'กรอกรหัสผ่าน',
+          hintText: 'รหัสผ่าน "มากกว่า 6 ตัว"',
           fillColor: Colors.white,
           filled: true,
           prefixIcon: Icon(
@@ -89,6 +119,10 @@ class _editinformationState extends State<editinformation> {
             borderRadius: BorderRadius.circular(30),
           ),
         ),
+        inputFormatters: <TextInputFormatter>[
+          FilteringTextInputFormatter.allow(
+              RegExp(r'[a-zA-Z0-9]')), // อนุญาตให้กรอกได้เฉพาะตัวเลขและตัวอักษร
+        ],
       ),
     );
   }
@@ -98,9 +132,14 @@ class _editinformationState extends State<editinformation> {
       margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
       child: TextFormField(
         controller: four_value,
+        keyboardType: TextInputType.text,
+        inputFormatters: <TextInputFormatter>[
+          FilteringTextInputFormatter.allow(RegExp(
+              r'[a-zA-Zก-๏เ-๙]')), // อนุญาตให้กรอกเฉพาะตัวอักษรภาษาไทยและอักษรภาษาอังกฤษ
+        ],
         decoration: InputDecoration(
           contentPadding: EdgeInsets.fromLTRB(0, 15, 0, 0),
-          hintText: 'กรอกชื่อ-สกุล',
+          hintText: 'ชื่อ-สกุล',
           fillColor: Colors.white,
           filled: true,
           prefixIcon: Icon(
@@ -121,13 +160,17 @@ class _editinformationState extends State<editinformation> {
       margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
       child: TextFormField(
         controller: five_value,
+        keyboardType: TextInputType.number,
+        inputFormatters: <TextInputFormatter>[
+          FilteringTextInputFormatter.digitsOnly,
+        ],
         decoration: InputDecoration(
           contentPadding: EdgeInsets.fromLTRB(0, 15, 0, 0),
-          hintText: 'กรอกอายุ',
+          hintText: 'อายุ',
           fillColor: Colors.white,
           filled: true,
           prefixIcon: Icon(
-            Icons.edit, // เปลี่ยนเป็นไอคอนตัวเลข
+            Icons.edit,
             color: Colors.red,
           ),
           border: OutlineInputBorder(
@@ -158,7 +201,7 @@ class _editinformationState extends State<editinformation> {
     );
   }
 
-  Widget buttonProcesslogin() {
+  Widget buttonProcesslogin(BuildContext context) {
     return ButtonTheme(
       minWidth: double.infinity,
       child: Container(
@@ -175,23 +218,72 @@ class _editinformationState extends State<editinformation> {
             backgroundColor: Color.fromARGB(249, 255, 4, 4),
             shadowColor: Color.fromARGB(255, 255, 255, 255),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(30), // ปรับความโค้งของกรอบ
+              borderRadius: BorderRadius.circular(30),
               side: BorderSide(color: Colors.black),
             ),
           ),
           onPressed: () {
-            functionregister(); // โค้ดการเข้าสู่ระบบ
-            setState(() {
-              Navigator.of(this.context).pushReplacement(
-                  MaterialPageRoute(builder: (context) => LoginPage()));
-            });
+            if (_validateInputs()) {
+              functionregister(context); // เรียกใช้งานฟังก์ชันสำหรับส่งข้อมูล
+              showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    title: Text("กรอกข้อมูลสำเร็จ"),
+                    actions: <Widget>[
+                      TextButton(
+                        child: Text("ตกลง"),
+                        onPressed: () {
+                          Navigator.of(context).pushReplacement(
+                              MaterialPageRoute(
+                                  builder: (context) => LoginPage()));
+                        },
+                      ),
+                    ],
+                  );
+                },
+              );
+            } else {
+              showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    title: Text("กรุณากรอกข้อมูลให้ครบถ้วน"),
+                    actions: <Widget>[
+                      TextButton(
+                        child: Text("ตกลง"),
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                      ),
+                    ],
+                  );
+                },
+              );
+            }
           },
         ),
       ),
     );
   }
 
-  Future<void> functionregister() async {
+  bool _validateInputs() {
+    return one_value.text.isNotEmpty &&
+        one_value.text.length >= 6 &&
+        one_value.text.contains(RegExp(r'[a-zA-Z]')) &&
+        two_value.text.isNotEmpty &&
+        two_value.text.contains('@') &&
+        three_value.text.isNotEmpty &&
+        three_value.text.length >= 6 &&
+        three_value.text.contains(RegExp(r'\d')) &&
+        three_value.text.contains(RegExp(r'[a-zA-Z]')) &&
+        four_value.text.isNotEmpty &&
+        five_value.text.isNotEmpty &&
+        int.tryParse(five_value.text) != null &&
+        int.parse(five_value.text) > 0;
+  }
+
+  Future<void> functionregister(BuildContext context) async {
     print("user_id: ${one_value.text}");
     print("user_email: ${two_value.text}");
     print("user_pass: ${three_value.text}");
@@ -233,8 +325,6 @@ class _editinformationState extends State<editinformation> {
     }
   }
 
-  
-
   Widget text1() {
     return Container(
       child: Text(
@@ -271,7 +361,7 @@ class _editinformationState extends State<editinformation> {
                     inputthree(),
                     inputfour(),
                     inputfive(),
-                    buttonProcesslogin(),
+                    buttonProcesslogin(context),
                   ])),
                 ],
               ),

@@ -19,6 +19,7 @@ class _LoginPageState extends State<LoginPage> {
   TextEditingController inputone = TextEditingController();
   TextEditingController inputtwo = TextEditingController();
 
+
   Widget appLogo() {
     return Container(
       width: 300,
@@ -135,7 +136,7 @@ class _LoginPageState extends State<LoginPage> {
           ),
         ),
         onPressed: () {
-          facebookLogin(); // โค้ดที่ต้องการทำเมื่อกดปุ่ม Facebook
+          facebookLogin(context); // โค้ดที่ต้องการทำเมื่อกดปุ่ม Facebook
         },
         style: ElevatedButton.styleFrom(
           padding: EdgeInsets.fromLTRB(15, 10, 20, 8),
@@ -150,21 +151,50 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  facebookLogin() async {
+  facebookLogin(BuildContext context) async {
     try {
       final result =
           await FacebookAuth.i.login(permissions: ['public_profile', 'email']);
       if (result.status == LoginStatus.success) {
         final userData = await FacebookAuth.i.getUserData();
-        print('facebook_login_data:-');
-        print(userData);
-        Navigator.push(
-            context,
-            MaterialPageRoute(
+        final userToken =
+            userData['id']; // Assuming 'id' from Facebook API is used as token
+        final userProfilePicture = userData['picture']['data']['url'];
+        final userName = userData['name'];
+        final userEmail = userData['email'];
+
+        // Prepare the data to send to the server
+        final data = {
+          'user_token': userToken,
+        };
+
+        // Make the API call
+        final response = await http.post(
+          Uri.parse('http://10.0.2.2/flutter_webservice/get_AddTokenFacebook.php'),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode(data),
+        );
+
+        if (response.statusCode == 200) {
+          final responseData = jsonDecode(response.body);
+          if (responseData['result'] == 1 &&
+              responseData['message'] == "ผู้ใช้มีอยู่ในระบบแล้ว") {
+            Navigator.pushNamed(context, '/homepage');
+          } else {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
                 builder: (context) => editinformation(
-                    image: userData['picture']['data']['url'],
-                    name: userData['name'],
-                    email: userData['email'])));
+                  image: userProfilePicture,
+                  name: userName,
+                  email: userEmail,
+                ),
+              ),
+            );
+          }
+        } else {
+          print('Server error: ${response.statusCode}');
+        }
       }
     } catch (error) {
       print(error);

@@ -123,7 +123,8 @@ class ActivityCardItem extends StatelessWidget {
               ),
             ),
             SizedBox(height: 4),
-            Text('วันและเวลาสะดวกวันไหนคุยได้ครับ'),
+            // Activity Details
+            Text(activity['activity_details'] ?? ''),
             SizedBox(height: 8),
             // Activity Image
             Image.network('https://via.placeholder.com/150'),
@@ -168,3 +169,4 @@ class MemberAvatar extends StatelessWidget {
     );
   }
 }
+
