@@ -12,266 +12,164 @@ class homepage extends StatefulWidget {
 }
 
 class _homepageState extends State<homepage> {
-  String activityDate = '';
-  List<String> activityNames = [];
-  String activityLocation = '';
+  List<dynamic> activities = [];
 
   @override
   void initState() {
     super.initState();
-    fetchActivityDate();
+    fetchActivities();
   }
 
-  Future<void> fetchActivityDate() async {
+  Future<void> fetchActivities() async {
     final response = await http.get(Uri.parse(
         'http://10.0.2.2/flutter_webservice/get_ShowDataActivity.php'));
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
-      List<String> dates = [];
-
-      for (var activity in data) {
-        String dateTime = activity['activity_date'];
-        String date = dateTime.split(' ')[0]; // แยกวันที่ออกจากเวลาที่ได้มา
-        dates.add(date);
-      }
-
       setState(() {
-        activityDate =
-            dates.join(', '); // รวมวันที่ทั้งหมดให้แสดงเป็นสตริงเดียวกัน
+        activities = data;
       });
     } else {
-      throw Exception('Failed to load activity date');
+      throw Exception('Failed to load activities');
     }
-  }
-
-  Future<void> fetchActivityNames() async {
-    final response = await http.get(Uri.parse(
-        'http://10.0.2.2/flutter_webservice/get_ShowDataActivity.php'));
-
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      List<String> names = [];
-
-      for (var activity in data) {
-        names.add(activity['activity_name']);
-      }
-
-      setState(() {
-        activityNames = names;
-      });
-    } else {
-      throw Exception('Failed to load activity names');
-    }
-  }
-
-  Future<void> fetchActivityLocation() async {
-    final response = await http.get(Uri.parse(
-        'http://10.0.2.2/flutter_webservice/get_ShowDataActivityLocation.php'));
-
-    if (response.statusCode == 200) {
-      final data2 = json.decode(response.body);
-      setState(() {
-        activityLocation = data2;
-        ['location_name']; // ปรับตามโครงสร้าง JSON ที่ได้รับ
-      });
-    } else {
-      throw Exception('Failed to load activity date');
-    }
-  }
-
-  Widget showData1() {
-    return Container(
-      margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
-      child: TextFormField(
-        readOnly: true,
-        decoration: InputDecoration(
-          contentPadding: EdgeInsets.fromLTRB(20, 15, 0, 0),
-          hintText:
-              activityDate.isNotEmpty ? activityDate : 'กำลังโหลดข้อมูล...',
-          fillColor: Colors.white,
-          filled: true,
-          border: OutlineInputBorder(
-            borderSide: BorderSide(color: Colors.black),
-            borderRadius: BorderRadius.circular(0),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget showData2() {
-    return Container(
-      margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
-      child: TextFormField(
-        readOnly: true,
-        decoration: InputDecoration(
-          contentPadding: EdgeInsets.fromLTRB(20, 15, 0, 0),
-          hintText: activityNames.isNotEmpty
-              ? activityNames[0]
-              : 'กำลังโหลดข้อมูล...',
-          fillColor: Colors.white,
-          filled: true,
-          border: OutlineInputBorder(
-            borderSide: BorderSide(color: Colors.black),
-            borderRadius: BorderRadius.circular(0),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget showData3() {
-    return Container(
-      margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
-      child: TextFormField(
-        decoration: InputDecoration(
-          contentPadding: EdgeInsets.fromLTRB(20, 15, 0, 0),
-          hintText: activityLocation.isNotEmpty
-              ? activityLocation
-              : 'กำลังโหลดข้อมูล...',
-          fillColor: Colors.white,
-          filled: true,
-          border: OutlineInputBorder(
-            borderSide: BorderSide(color: Colors.black),
-            borderRadius: BorderRadius.circular(0),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget showData4() {
-    return Container(
-      margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
-      child: TextFormField(
-        decoration: InputDecoration(
-          contentPadding: EdgeInsets.fromLTRB(20, 15, 0, 0),
-          hintText: 'แสดงผลข้อมูล รายละเอียดกิจกรรม',
-          fillColor: Colors.white,
-          filled: true,
-          border: OutlineInputBorder(
-            borderSide: BorderSide(color: Colors.black),
-            borderRadius: BorderRadius.circular(0),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget search() {
-    return Container(
-      margin: EdgeInsets.fromLTRB(40, 25, 25, 30),
-      child: TextFormField(
-        decoration: InputDecoration(
-          contentPadding:
-              EdgeInsets.fromLTRB(10, 5, 10, 5), // ปรับขนาดช่องให้เล็กลง
-          hintText: 'ค้นหา',
-          fillColor: Colors.white,
-          filled: true,
-          prefixIcon: Icon(
-            Icons.search,
-            color: Colors.red,
-          ),
-          border: OutlineInputBorder(
-            borderSide: BorderSide(color: Colors.black),
-            borderRadius: BorderRadius.circular(30),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget logo() {
-    return Padding(
-      padding: const EdgeInsets.only(top: 50, bottom: 20),
-      child: Container(
-        width: 50,
-        height: 50,
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(10),
-          child: Image.asset(
-            "images/login.png",
-            fit: BoxFit.cover,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget twoButtons() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        ClipRRect(
-          borderRadius: BorderRadius.circular(30),
-          child: ElevatedButton(
-            onPressed: () {
-              // โค้ดที่จะทำงานเมื่อปุ่ม 1 ถูกกด
-            },
-            style: ElevatedButton.styleFrom(
-              primary: Colors.white,
-              side: BorderSide(width: 2, color: Colors.black),
-            ),
-            child: Text(
-              'หน้าหลัก',
-              style: TextStyle(color: Colors.black),
-            ),
-          ),
-        ),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(30),
-          child: ElevatedButton(
-            onPressed: () {
-              // โค้ดที่จะทำงานเมื่อปุ่ม 2 ถูกกด
-            },
-            style: ElevatedButton.styleFrom(
-              primary: Colors.white,
-              side: BorderSide(width: 2, color: Colors.black),
-            ),
-            child: Text(
-              'แชท',
-              style: TextStyle(color: Colors.black),
-            ),
-          ),
-        ),
-      ],
-    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Stack(
-        children: [
-          Scaffold(
-            backgroundColor: Color.fromARGB(255, 255, 255, 255),
-            appBar: AppBar(
-              title: Text("หน้าหลัก แสดงกิจกรรมต่างๆ"),
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('หน้าแสดงกิจกรรม'),
+      ),
+      body: activities.isEmpty
+          ? Center(child: CircularProgressIndicator())
+          : ListView.builder(
+              itemCount: activities.length,
+              itemBuilder: (context, index) {
+                final activity = activities[index];
+                return ActivityCardItem(activity: activity);
+              },
             ),
-            body: SafeArea(
-              child: ListView(
-                children: [
-                  Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.max,
-                      children: [
-                        logo(),
-                        twoButtons(),
-                        search(),
-                        showData1(),
-                        showData2(),
-                        showData3(),
-                        showData4(),
-                      ],
-                    ),
-                  ),
-                ],
+    );
+  }
+}
+
+class ActivityCardItem extends StatelessWidget {
+  final dynamic activity;
+
+  ActivityCardItem({required this.activity});
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: EdgeInsets.all(10),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Tag Row
+            Row(
+              children: [
+                TagWidget(text: 'ตีกัน'),
+                TagWidget(text: 'สนามกลาง'),
+                TagWidget(text: 'ก๊วน'),
+              ],
+            ),
+            SizedBox(height: 8),
+            // Date and Time
+            Text(
+              activity['activity_date'] ?? '',
+              style: TextStyle(
+                color: Colors.grey,
               ),
             ),
-          ),
-        ],
+            SizedBox(height: 8),
+            // Activity Title
+            Text(
+              activity['activity_name'] ?? '',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 18,
+              ),
+            ),
+            SizedBox(height: 4),
+            // Location
+            Text(
+              activity['location_name'] ?? '',
+              style: TextStyle(
+                color: Colors.grey,
+              ),
+            ),
+            SizedBox(height: 8),
+            // Members Row
+            Row(
+              children: [
+                MemberAvatar(imageUrl: 'https://via.placeholder.com/50'),
+                MemberAvatar(imageUrl: 'https://via.placeholder.com/50'),
+                MemberAvatar(imageUrl: 'https://via.placeholder.com/50'),
+                Spacer(),
+                // Member Count
+                Row(
+                  children: [
+                    Icon(Icons.person),
+                    SizedBox(width: 4),
+                    Text('${activity['members'].length}'),
+                  ],
+                ),
+              ],
+            ),
+            SizedBox(height: 8),
+            // Attendance
+            Text(
+              '${activity['members'].length}/99 จะไป',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(height: 4),
+            // Activity Details
+            Text(activity['activity_details'] ?? ''),
+            SizedBox(height: 8),
+            // Activity Image
+            Image.network('https://via.placeholder.com/150'),
+          ],
+        ),
       ),
     );
   }
 }
+
+class TagWidget extends StatelessWidget {
+  final String text;
+
+  TagWidget({required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: EdgeInsets.only(right: 8),
+      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      decoration: BoxDecoration(
+        color: Colors.yellow,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(text),
+    );
+  }
+}
+
+class MemberAvatar extends StatelessWidget {
+  final String imageUrl;
+
+  MemberAvatar({required this.imageUrl});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: EdgeInsets.only(right: 8),
+      child: CircleAvatar(
+        backgroundImage: NetworkImage(imageUrl),
+      ),
+    );
+  }
+} 

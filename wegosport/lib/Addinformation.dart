@@ -8,7 +8,7 @@ import 'dart:convert';
 import 'package:wegosport/login.dart';
 
 class editinformation extends StatefulWidget {
-  const editinformation({Key? key, this.image, this.name, this.email})
+  const editinformation({Key? key, this.image, this.name, this.email, required String six_value})
       : super(key: key);
 
   @override
@@ -24,6 +24,7 @@ class _editinformationState extends State<editinformation> {
   TextEditingController three_value = TextEditingController();
   TextEditingController four_value = TextEditingController();
   TextEditingController five_value = TextEditingController();
+  TextEditingController six_value = TextEditingController();
 
   Widget inputOne() {
     return Container(
@@ -289,6 +290,7 @@ class _editinformationState extends State<editinformation> {
     print("user_pass: ${three_value.text}");
     print("user_name: ${four_value.text}");
     print("user_age: ${five_value.text}");
+    print("user_token: ${six_value.text}");
 
     // Prepare data to send
     Map<String, String> dataPost = {
@@ -296,7 +298,8 @@ class _editinformationState extends State<editinformation> {
       "user_email": two_value.text,
       "user_pass": three_value.text,
       "user_name": four_value.text,
-      "user_age": five_value.text
+      "user_age": five_value.text,
+      "user_token": six_value.text
     };
 
     // Prepare headers

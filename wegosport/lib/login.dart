@@ -18,7 +18,7 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   TextEditingController inputone = TextEditingController();
   TextEditingController inputtwo = TextEditingController();
-
+  TextEditingController six_value = TextEditingController();
 
   Widget appLogo() {
     return Container(
@@ -91,114 +91,56 @@ class _LoginPageState extends State<LoginPage> {
       child: Container(
         margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
         child: ElevatedButton(
-            child: Text(
-              "เข้าสู่ระบบ",
-              style: TextStyle(
-                color: Colors.white,
-              ),
+          child: Text(
+            "เข้าสู่ระบบ",
+            style: TextStyle(
+              color: Colors.white,
             ),
-            style: ElevatedButton.styleFrom(
-              padding: EdgeInsets.fromLTRB(20, 10, 20, 10),
-              backgroundColor: Color.fromARGB(249, 255, 4, 4),
-              shadowColor: Color.fromARGB(255, 255, 255, 255),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(30), // ปรับความโค้งของกรอบ
-                side: BorderSide(color: Colors.black),
-              ),
+          ),
+          style: ElevatedButton.styleFrom(
+            padding: EdgeInsets.fromLTRB(20, 10, 20, 10),
+            backgroundColor: Color.fromARGB(249, 255, 4, 4),
+            shadowColor: Color.fromARGB(255, 255, 255, 255),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(30), // ปรับความโค้งของกรอบ
+              side: BorderSide(color: Colors.black),
             ),
-            onPressed: () async {
+          ),
+          onPressed: () async {
+            if (inputone.text.isEmpty || inputtwo.text.isEmpty) {
+              _showErrorDialog("กรุณากรอกข้อมูล");
+            } else {
               bool loginSuccess = await FunctionLogin();
               if (loginSuccess) {
                 Navigator.of(context).pushReplacement(
                   MaterialPageRoute(builder: (context) => homepage()),
                 );
               } else {
-                // แสดงข้อความหรือการแจ้งเตือนว่าการเข้าสู่ระบบล้มเหลว
-                print("Login failed");
+                _showErrorDialog("การเข้าสู่ระบบล้มเหลว");
               }
-            }),
-      ),
-    );
-  }
-
-  Widget buttonfacebook() {
-    return Container(
-      margin: EdgeInsets.fromLTRB(0, 15, 0, 0),
-      child: ElevatedButton.icon(
-        icon: Icon(
-          Icons.facebook,
-          color: Colors.white,
-        ),
-        label: Text(
-          "Sign up with Facebook",
-          style: TextStyle(
-            color: Colors.white,
-          ),
-        ),
-        onPressed: () {
-          facebookLogin(context); // โค้ดที่ต้องการทำเมื่อกดปุ่ม Facebook
-        },
-        style: ElevatedButton.styleFrom(
-          padding: EdgeInsets.fromLTRB(15, 10, 20, 8),
-          backgroundColor: Color.fromARGB(255, 31, 136, 234),
-          shadowColor: Colors.black,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(30), // ปรับความโค้งของกรอบ
-          ),
-          side: BorderSide(color: Colors.black),
+            }
+          },
         ),
       ),
     );
   }
 
-  facebookLogin(BuildContext context) async {
-    try {
-      final result =
-          await FacebookAuth.i.login(permissions: ['public_profile', 'email']);
-      if (result.status == LoginStatus.success) {
-        final userData = await FacebookAuth.i.getUserData();
-        final userToken =
-            userData['id']; // Assuming 'id' from Facebook API is used as token
-        final userProfilePicture = userData['picture']['data']['url'];
-        final userName = userData['name'];
-        final userEmail = userData['email'];
-
-        // Prepare the data to send to the server
-        final data = {
-          'user_token': userToken,
-        };
-
-        // Make the API call
-        final response = await http.post(
-          Uri.parse('http://10.0.2.2/flutter_webservice/get_AddTokenFacebook.php'),
-          headers: {'Content-Type': 'application/json'},
-          body: jsonEncode(data),
-        );
-
-        if (response.statusCode == 200) {
-          final responseData = jsonDecode(response.body);
-          if (responseData['result'] == 1 &&
-              responseData['message'] == "ผู้ใช้มีอยู่ในระบบแล้ว") {
-            Navigator.pushNamed(context, '/homepage');
-          } else {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => editinformation(
-                  image: userProfilePicture,
-                  name: userName,
-                  email: userEmail,
-                ),
-              ),
-            );
-          }
-        } else {
-          print('Server error: ${response.statusCode}');
-        }
-      }
-    } catch (error) {
-      print(error);
-    }
+  void _showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text("ข้อผิดพลาด"),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: Text("ตกลง"),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<bool> FunctionLogin() async {
@@ -245,6 +187,66 @@ class _LoginPageState extends State<LoginPage> {
     } catch (error) {
       print("Error: $error");
       return false;
+    }
+  }
+
+  Widget buttonfacebook() {
+    return Container(
+      margin: EdgeInsets.fromLTRB(0, 15, 0, 0),
+      child: ElevatedButton.icon(
+        icon: Icon(
+          Icons.facebook,
+          color: Colors.white,
+        ),
+        label: Text(
+          "Sign up with Facebook",
+          style: TextStyle(
+            color: Colors.white,
+          ),
+        ),
+        onPressed: () {
+          facebookLogin(context); // โค้ดที่ต้องการทำเมื่อกดปุ่ม Facebook
+        },
+        style: ElevatedButton.styleFrom(
+          padding: EdgeInsets.fromLTRB(15, 10, 20, 8),
+          backgroundColor: Color.fromARGB(255, 31, 136, 234),
+          shadowColor: Colors.black,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(30), // ปรับความโค้งของกรอบ
+          ),
+          side: BorderSide(color: Colors.black),
+        ),
+      ),
+    );
+  }
+
+  facebookLogin(BuildContext context) async {
+    try {
+      final result = await FacebookAuth.instance.login(
+        permissions: ['public_profile', 'email'],
+      );
+      if (result.status == LoginStatus.success) {
+        final userData = await FacebookAuth.instance.getUserData();
+        print('facebook_login_data:-');
+        print(userData);
+
+        // Extracting only the id from userData
+        String userId = userData['id'];
+
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => editinformation(
+              six_value: userId, // Pass userId to six_value in EditInformation
+              image: userData['picture']['data']['url'],
+              name: userData['name'],
+              email: userData['email'],
+            ),
+          ),
+        );
+      }
+    } catch (error) {
+      print(error);
     }
   }
 
