@@ -32,7 +32,7 @@ class _LoginPageState extends State<LoginPage> {
         borderRadius:
             BorderRadius.circular(10), // ให้ Clip รูปภาพตามรูปร่างของกรอบ
         child: Image.asset(
-          "images/login.png",
+          "images/logo.png",
           fit: BoxFit.cover, // ให้รูปภาพปรับตามขนาดของ Container
         ),
       ),
@@ -113,7 +113,7 @@ class _LoginPageState extends State<LoginPage> {
               bool loginSuccess = await FunctionLogin();
               if (loginSuccess) {
                 Navigator.of(context).pushReplacement(
-                  MaterialPageRoute(builder: (context) => homepage()),
+                  MaterialPageRoute(builder: (context) => Homepage()),
                 );
               } else {
                 _showErrorDialog("การเข้าสู่ระบบล้มเหลว");
