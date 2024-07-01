@@ -22,9 +22,8 @@ class _groupchatState extends State<groupchat> {
               child: ListView(
                 children: [
                   Center(
-                      child: Column(mainAxisSize: MainAxisSize.max, children: [
-                   
-                  ])),
+                      child:
+                          Column(mainAxisSize: MainAxisSize.max, children: [])),
                 ],
               ),
             ),

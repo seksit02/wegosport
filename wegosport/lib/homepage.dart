@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:wegosport/addlocation.dart';
 import 'package:wegosport/createactivity.dart';
+import 'package:wegosport/groupchat.dart'; // นำเข้าไฟล์ groupchat.dart
 import 'dart:convert';
 import 'package:wegosport/login.dart';
 
@@ -33,19 +34,24 @@ class _HomepageState extends State<Homepage> {
       final data = json.decode(response.body);
       setState(() {
         activities = data;
-        filteredActivities =
-            activities; // ตั้งค่ารายการที่กรองเป็นรายการทั้งหมดเมื่อเริ่มต้น
+        filteredActivities = activities; // ตั้งค่ารายการที่กรองเป็นรายการทั้งหมดเมื่อเริ่มต้น
       });
     } else {
       throw Exception('Failed to load activities');
     }
   }
 
-  /*void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-  }*/
+  void _onItemTapped(int index) {
+    if (index == 0) {
+      setState(() {
+        _selectedIndex = 0;
+      });
+    } else if (index == 1) {
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (context) => groupchat()),
+      );
+    }
+  }
 
   void _filterActivities(String query) {
     final filtered = activities.where((activity) {
@@ -88,11 +94,7 @@ class _HomepageState extends State<Homepage> {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: <Widget>[
               TextButton(
-                onPressed: () {
-                  setState(() {
-                    _selectedIndex = 0;
-                  });
-                },
+                onPressed: () => _onItemTapped(0),
                 child: Text(
                   'หน้าหลัก',
                   style: TextStyle(
@@ -102,11 +104,7 @@ class _HomepageState extends State<Homepage> {
               ),
               VerticalDivider(thickness: 1, color: Colors.grey),
               TextButton(
-                onPressed: () {
-                  setState(() {
-                    _selectedIndex = 1;
-                  });
-                },
+                onPressed: () => _onItemTapped(1),
                 child: Text(
                   'แชท',
                   style: TextStyle(
@@ -123,8 +121,7 @@ class _HomepageState extends State<Homepage> {
           Padding(
             padding: const EdgeInsets.all(8.0), // ปรับขนาด padding ของช่องค้นหา
             child: TextField(
-              onChanged:
-                  _filterActivities, // เรียกฟังก์ชันกรองเมื่อมีการเปลี่ยนแปลงข้อความ
+              onChanged: _filterActivities, // เรียกฟังก์ชันกรองเมื่อมีการเปลี่ยนแปลงข้อความ
               decoration: InputDecoration(
                 hintText: 'ค้นหา',
                 prefixIcon: Icon(Icons.search),
@@ -151,8 +148,8 @@ class _HomepageState extends State<Homepage> {
               children: [
                 ElevatedButton(
                   onPressed: () {
-                    Navigator.of(context).pushReplacement(MaterialPageRoute(
-                        builder: (context) => createactivitypage()));
+                    Navigator.of(context).pushReplacement(
+                        MaterialPageRoute(builder: (context) => createactivitypage()));
                   },
                   style: ElevatedButton.styleFrom(
                     primary: Colors.yellow,
@@ -166,6 +163,7 @@ class _HomepageState extends State<Homepage> {
                   onPressed: () {
                     Navigator.of(context).pushReplacement(MaterialPageRoute(
                         builder: (context) => addlocationpage()));
+                    
                   },
                   style: ElevatedButton.styleFrom(
                     primary: Colors.yellow,
