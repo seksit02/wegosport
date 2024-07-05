@@ -1,235 +1,90 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 
-class profilepage extends StatefulWidget {
-  const profilepage({super.key});
-
+class ProfilePage extends StatefulWidget {
   @override
-  State<profilepage> createState() => _profilepageState();
+  _ProfilePageState createState() => _ProfilePageState();
 }
 
-class _profilepageState extends State<profilepage> {
-  TextEditingController input1 = TextEditingController();
-  TextEditingController input2 = TextEditingController();
-  TextEditingController input3 = TextEditingController();
-  TextEditingController input4 = TextEditingController();
+class _ProfilePageState extends State<ProfilePage> {
+  File? _image;
 
-  Widget appLogo() {
-    return Container(
-      width: 100,
-      height: 100,
-      margin: EdgeInsets.fromLTRB(0, 50, 0, 0),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(50), // กำหนดรูปร่างของกรอบ
-      ),
-      child: ClipRRect(
-        borderRadius:
-            BorderRadius.circular(10), // ให้ Clip รูปภาพตามรูปร่างของกรอบ
-        child: Image.asset(
-          "images/login.png",
-          fit: BoxFit.cover, // ให้รูปภาพปรับตามขนาดของ Container
-        ),
-      ),
-    );
-  }
+  Future<void> _pickImage() async {
+    final pickedFile =
+        await ImagePicker().pickImage(source: ImageSource.gallery);
 
-  Widget buttonblack() {
-    return ButtonTheme(
-      minWidth: double.infinity,
-      child: Container(
-        margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
-        child: ElevatedButton(
-          child: Text(
-            "ปุ่มย้อนกลับ",
-            style: TextStyle(
-              color: Colors.white,
-            ),
-          ),
-          style: ElevatedButton.styleFrom(
-            padding: EdgeInsets.fromLTRB(20, 10, 20, 10),
-            backgroundColor: Color.fromARGB(249, 255, 4, 4),
-            shadowColor: Color.fromARGB(255, 255, 255, 255),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(30), // ปรับความโค้งของกรอบ
-              side: BorderSide(color: Colors.black),
-            ),
-          ),
-          onPressed: () {
-            // โค้ดการเข้าสู่ระบบ
-          },
-        ),
-      ),
-    );
-  }
-
-  Widget profilepicture() {
-    return Container(
-      width: 100,
-      height: 100,
-      margin: EdgeInsets.fromLTRB(0, 50, 0, 0),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(50), // กำหนดรูปร่างของกรอบ
-      ),
-      child: ClipRRect(
-        borderRadius:
-            BorderRadius.circular(10), // ให้ Clip รูปภาพตามรูปร่างของกรอบ
-        child: Image.asset(
-          "images/login.png",
-          fit: BoxFit.cover, // ให้รูปภาพปรับตามขนาดของ Container
-        ),
-      ),
-    );
-  }
-
-  Widget username() {
-    return Container(
-      margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
-      child: TextFormField(
-        controller: input1,
-        decoration: InputDecoration(
-          contentPadding: EdgeInsets.fromLTRB(0, 15, 0, 0),
-          hintText: 'เต้ สุดหล่อ',
-          fillColor: Color.fromARGB(255, 255, 255, 255),
-          filled: true,
-          prefixIcon: Icon(
-            Icons.add,
-            color: Colors.red, // ตั้งค่าสีของไอคอนเป็นสีแดง
-          ),
-          border: OutlineInputBorder(
-            borderSide: BorderSide(color: Colors.black),
-            borderRadius: BorderRadius.circular(30), // ปรับความโค้งของกรอบ
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget usernameid() {
-    return Container(
-      margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
-      child: TextFormField(
-        controller: input1,
-        decoration: InputDecoration(
-          contentPadding: EdgeInsets.fromLTRB(0, 15, 0, 0),
-          hintText: '@seksit02',
-          fillColor: Color.fromARGB(255, 255, 255, 255),
-          filled: true,
-          prefixIcon: Icon(
-            Icons.add,
-            color: Colors.red, // ตั้งค่าสีของไอคอนเป็นสีแดง
-          ),
-          border: OutlineInputBorder(
-            borderSide: BorderSide(color: Colors.black),
-            borderRadius: BorderRadius.circular(30), // ปรับความโค้งของกรอบ
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget friend() {
-    return Container(
-      margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
-      child: TextFormField(
-        controller: input1,
-        decoration: InputDecoration(
-          contentPadding: EdgeInsets.fromLTRB(0, 15, 0, 0),
-          hintText: 'เพื่อน 0',
-          fillColor: Color.fromARGB(255, 255, 255, 255),
-          filled: true,
-          prefixIcon: Icon(
-            Icons.add,
-            color: Colors.red, // ตั้งค่าสีของไอคอนเป็นสีแดง
-          ),
-          border: OutlineInputBorder(
-            borderSide: BorderSide(color: Colors.black),
-            borderRadius: BorderRadius.circular(30), // ปรับความโค้งของกรอบ
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget message() {
-    return Container(
-      margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
-      child: TextFormField(
-        controller: input1,
-        decoration: InputDecoration(
-          contentPadding: EdgeInsets.fromLTRB(0, 15, 0, 0),
-          hintText: 'เต้ สุดหล่อ ยังไม่ได้พิมพ์อะไรเลย',
-          fillColor: Color.fromARGB(255, 255, 255, 255),
-          filled: true,
-          prefixIcon: Icon(
-            Icons.add,
-            color: Colors.red, // ตั้งค่าสีของไอคอนเป็นสีแดง
-          ),
-          border: OutlineInputBorder(
-            borderSide: BorderSide(color: Colors.black),
-            borderRadius: BorderRadius.circular(30), // ปรับความโค้งของกรอบ
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget editprofile() {
-    return ButtonTheme(
-      minWidth: double.infinity,
-      child: Container(
-        margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
-        child: ElevatedButton(
-          child: Text(
-            "แก้ไขข้อมูล",
-            style: TextStyle(
-              color: Colors.white,
-            ),
-          ),
-          style: ElevatedButton.styleFrom(
-            padding: EdgeInsets.fromLTRB(20, 10, 20, 10),
-            backgroundColor: Color.fromARGB(249, 255, 4, 4),
-            shadowColor: Color.fromARGB(255, 255, 255, 255),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(30), // ปรับความโค้งของกรอบ
-              side: BorderSide(color: Colors.black),
-            ),
-          ),
-          onPressed: () {
-            // โค้ดการเข้าสู่ระบบ
-          },
-        ),
-      ),
-    );
+    if (pickedFile != null) {
+      setState(() {
+        _image = File(pickedFile.path);
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Stack(
-        children: [
-          Scaffold(
-            backgroundColor: Color.fromARGB(255, 255, 255, 255),
-            appBar: AppBar(
-              title: Text("หน้าโปรไฟล์"),
-            ),
-            body: SafeArea(
-              child: ListView(
-                children: [
-                  Center(
-                      child: Column(mainAxisSize: MainAxisSize.max, children: [
-                    profilepicture(),
-                    username(),
-                    usernameid(),
-                    friend(),
-                    message(),
-                    editprofile()
-                  ])),
-                ],
+    return Scaffold(
+      backgroundColor: Colors.grey[300],
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: <Widget>[
+            SizedBox(height: 50), // ระยะห่างจากด้านบน
+            GestureDetector(
+              onTap: _pickImage,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(16.0),
+                child: _image != null
+                    ? Image.file(
+                        _image!,
+                        height: 120.0,
+                        width: 120.0,
+                        fit: BoxFit.cover,
+                      )
+                    : Image.asset(
+                        'images/logo.png',
+                        height: 120.0,
+                        width: 120.0,
+                        fit: BoxFit.cover,
+                      ),
               ),
             ),
-          )
-        ],
+            SizedBox(height: 16),
+            Text(
+              'เต้ สุดหล่อ',
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+            Text('@Amaegmee', style: TextStyle(color: Colors.grey[700])),
+            SizedBox(height: 8),
+            Text('เพื่อน 0'),
+            SizedBox(height: 8),
+            Text('เต้ สุดหล่อ ยังไม่ได้เขียนอะไรเล้ยยย'),
+            SizedBox(height: 16),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                primary: Colors.white,
+                onPrimary: Colors.black,
+                padding: EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(24.0),
+                  side: BorderSide(color: Colors.black),
+                ),
+              ),
+              onPressed: () {},
+              child: Text('แก้ไขข้อมูล'),
+            ),
+          ],
+        ),
       ),
     );
   }

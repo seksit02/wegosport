@@ -5,17 +5,17 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:async';
 import 'dart:convert';
-import 'package:wegosport/login.dart';
+import 'package:wegosport/Login.dart';
 
 class editinformation extends StatefulWidget {
-  const editinformation({Key? key, this.image, this.name, this.email, required String six_value})
-      : super(key: key);
+  const editinformation({Key? key,required this.image,required this.name,required this.email,required this.six_value}): super(key: key);
 
   @override
   State<editinformation> createState() => _editinformationState();
-  final image;
-  final name;
-  final email;
+  final String image;
+  final String name;
+  final String email;
+  final String six_value;
 }
 
 class _editinformationState extends State<editinformation> {
@@ -24,7 +24,18 @@ class _editinformationState extends State<editinformation> {
   TextEditingController three_value = TextEditingController();
   TextEditingController four_value = TextEditingController();
   TextEditingController five_value = TextEditingController();
-  TextEditingController six_value = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    setState(() {
+      one_value.text = widget.name;
+      two_value.text = widget.email;
+      six_value = widget.six_value;
+    });
+  }
+
+  String? six_value;
 
   Widget inputOne() {
     return Container(
@@ -95,7 +106,7 @@ class _editinformationState extends State<editinformation> {
           if (value!.isEmpty) {
             return 'กรุณากรอกรหัสผ่าน';
           }
-          if (value!.length <= 6) {
+          if (value.length <= 6) {
             return 'รหัสผ่านควรมีอย่างน้อย 6 ตัว';
           }
           // ตรวจสอบว่ามีตัวเลขและตัวอักษรประกอบอยู่
@@ -195,7 +206,7 @@ class _editinformationState extends State<editinformation> {
         borderRadius:
             BorderRadius.circular(10), // ให้ Clip รูปภาพตามรูปร่างของกรอบ
         child: Image.asset(
-          "images/login.png",
+          "images/logo.png",
           fit: BoxFit.cover, // ให้รูปภาพปรับตามขนาดของ Container
         ),
       ),
@@ -290,7 +301,7 @@ class _editinformationState extends State<editinformation> {
     print("user_pass: ${three_value.text}");
     print("user_name: ${four_value.text}");
     print("user_age: ${five_value.text}");
-    print("user_token: ${six_value.text}");
+    print("user_token: ${six_value}");
 
     // Prepare data to send
     Map<String, String> dataPost = {
@@ -299,7 +310,7 @@ class _editinformationState extends State<editinformation> {
       "user_pass": three_value.text,
       "user_name": four_value.text,
       "user_age": five_value.text,
-      "user_token": six_value.text
+      "user_token": six_value.toString()
     };
 
     // Prepare headers

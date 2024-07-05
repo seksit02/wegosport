@@ -59,7 +59,7 @@ class _addlocationState extends State<addlocationpage> {
         borderRadius:
             BorderRadius.circular(10), // ให้ Clip รูปภาพตามรูปร่างของกรอบ
         child: Image.asset(
-          "images/login.png",
+          "images/logo.png",
           fit: BoxFit.cover, // ให้รูปภาพปรับตามขนาดของ Container
         ),
       ),
@@ -136,51 +136,7 @@ class _addlocationState extends State<addlocationpage> {
   }
 
 
-  Widget map() {
-    return Container(
-      margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
-      child: TextFormField(
-        
-        decoration: InputDecoration(
-          contentPadding: EdgeInsets.fromLTRB(0, 15, 0, 0),
-          hintText: 'Map',
-          fillColor: Color.fromARGB(255, 255, 255, 255),
-          filled: true,
-          prefixIcon: Icon(
-            Icons.edit,
-            color: Colors.red, // ตั้งค่าสีของไอคอนเป็นสีแดง
-          ),
-          border: OutlineInputBorder(
-            borderSide: BorderSide(color: Colors.black),
-            borderRadius: BorderRadius.circular(30), // ปรับความโค้งของกรอบ
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget picture() {
-    return Container(
-      margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
-      child: TextFormField(
-        
-        decoration: InputDecoration(
-          contentPadding: EdgeInsets.fromLTRB(0, 15, 0, 0),
-          hintText: 'แนปรูป',
-          fillColor: Color.fromARGB(255, 255, 255, 255),
-          filled: true,
-          prefixIcon: Icon(
-            Icons.edit,
-            color: Colors.red, // ตั้งค่าสีของไอคอนเป็นสีแดง
-          ),
-          border: OutlineInputBorder(
-            borderSide: BorderSide(color: Colors.black),
-            borderRadius: BorderRadius.circular(30), // ปรับความโค้งของกรอบ
-          ),
-        ),
-      ),
-    );
-  }
+  
 
   Widget buttonaddlocation() {
     return ButtonTheme(
@@ -274,8 +230,7 @@ class _addlocationState extends State<addlocationpage> {
                     time(),
                     rule(),
                     
-                    picture(),
-                    map(),
+                    
                     buttonaddlocation()
                   ])),
                 ],

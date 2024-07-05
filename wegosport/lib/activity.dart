@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
-import 'package:wegosport/login.dart';
+import 'package:wegosport/Login.dart';
 
 class ActivityPage extends StatefulWidget {
   const ActivityPage({super.key, required activity});

@@ -1,11 +1,11 @@
 import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:wegosport/addlocation.dart';
-import 'package:wegosport/createactivity.dart';
+import 'package:wegosport/Addlocation.dart';
+import 'package:wegosport/Createactivity.dart';
 import 'package:wegosport/groupchat.dart'; // นำเข้าไฟล์ groupchat.dart
 import 'dart:convert';
-import 'package:wegosport/login.dart';
+import 'package:wegosport/Login.dart';
 
 class Homepage extends StatefulWidget {
   const Homepage({super.key});
@@ -34,7 +34,8 @@ class _HomepageState extends State<Homepage> {
       final data = json.decode(response.body);
       setState(() {
         activities = data;
-        filteredActivities = activities; // ตั้งค่ารายการที่กรองเป็นรายการทั้งหมดเมื่อเริ่มต้น
+        filteredActivities =
+            activities; // ตั้งค่ารายการที่กรองเป็นรายการทั้งหมดเมื่อเริ่มต้น
       });
     } else {
       throw Exception('Failed to load activities');
@@ -121,7 +122,8 @@ class _HomepageState extends State<Homepage> {
           Padding(
             padding: const EdgeInsets.all(8.0), // ปรับขนาด padding ของช่องค้นหา
             child: TextField(
-              onChanged: _filterActivities, // เรียกฟังก์ชันกรองเมื่อมีการเปลี่ยนแปลงข้อความ
+              onChanged:
+                  _filterActivities, // เรียกฟังก์ชันกรองเมื่อมีการเปลี่ยนแปลงข้อความ
               decoration: InputDecoration(
                 hintText: 'ค้นหา',
                 prefixIcon: Icon(Icons.search),
@@ -148,8 +150,8 @@ class _HomepageState extends State<Homepage> {
               children: [
                 ElevatedButton(
                   onPressed: () {
-                    Navigator.of(context).pushReplacement(
-                        MaterialPageRoute(builder: (context) => createactivitypage()));
+                    Navigator.of(context).pushReplacement(MaterialPageRoute(
+                        builder: (context) => createactivitypage()));
                   },
                   style: ElevatedButton.styleFrom(
                     primary: Colors.yellow,
@@ -163,7 +165,6 @@ class _HomepageState extends State<Homepage> {
                   onPressed: () {
                     Navigator.of(context).pushReplacement(MaterialPageRoute(
                         builder: (context) => addlocationpage()));
-                    
                   },
                   style: ElevatedButton.styleFrom(
                     primary: Colors.yellow,
@@ -259,13 +260,19 @@ class ActivityCardItem extends StatelessWidget {
             Text(activity['activity_details'] ?? ''),
             SizedBox(height: 8),
             // รูปภาพกิจกรรม
-            Image.network('https://via.placeholder.com/150'),
+            Image.network(
+              'https://via.placeholder.com/50',
+              errorBuilder: (context, error, stackTrace) {
+                return Text('Failed to load image');
+              },
+            ),
           ],
         ),
       ),
     );
   }
 }
+
 
 class TagWidget extends StatelessWidget {
   final String text;

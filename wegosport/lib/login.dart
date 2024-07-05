@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:wegosport/activity.dart';
 import 'package:wegosport/Addinformation.dart';
-import 'package:wegosport/homepage.dart';
+import 'package:wegosport/Homepage.dart';
 
 import 'package:http/http.dart' as http;
 import 'dart:async';
@@ -18,7 +18,7 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   TextEditingController inputone = TextEditingController();
   TextEditingController inputtwo = TextEditingController();
-  TextEditingController six_value = TextEditingController();
+  
 
   Widget appLogo() {
     return Container(
@@ -220,7 +220,7 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  facebookLogin(BuildContext context) async {
+  Future<void> facebookLogin(BuildContext context) async {
     try {
       final result = await FacebookAuth.instance.login(
         permissions: ['public_profile', 'email'],
@@ -231,19 +231,40 @@ class _LoginPageState extends State<LoginPage> {
         print(userData);
 
         // Extracting only the id from userData
-        String userId = userData['id'];
+        String userId = userData['id'] ?? 'Unknown ID';
+        String imageUrl = userData['picture']?['data']?['url'] ??
+            'https://via.placeholder.com/150';
+        String name = userData['name'] ?? 'Unknown Name';
+        String email = userData['email'] ?? 'Unknown Email';
 
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => editinformation(
-              six_value: userId, // Pass userId to six_value in EditInformation
-              image: userData['picture']['data']['url'],
-              name: userData['name'],
-              email: userData['email'],
-            ),
-          ),
+        // Check if userId exists in the database
+        var response = await http.post(
+          Uri.parse('http://10.0.2.2/flutter_webservice/get_ChackToken.php'),
+          headers: {"Content-Type": "application/json"},
+          body: jsonEncode({"id": userId}),
         );
+
+        if (response.statusCode == 200) {
+          var jsonResponse = jsonDecode(response.body);
+          if (jsonResponse['exists']) {
+            Navigator.pushNamed(context, '/homepage');
+          } else {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => editinformation(
+                  six_value: userId,
+                  image: imageUrl,
+                  name: name,
+                  email: email,
+                ),
+              ),
+            );
+          }
+        } else {
+          // Handle server error
+          print('Server error: ${response.statusCode}');
+        }
       }
     } catch (error) {
       print(error);
