@@ -1,206 +1,170 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:image_picker/image_picker.dart';
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
-
-class addlocationpage extends StatefulWidget {
-  const addlocationpage({super.key});
+class AddLocationPage extends StatefulWidget {
+  const AddLocationPage({super.key});
 
   @override
-  State<addlocationpage> createState() => _addlocationState();
+  State<AddLocationPage> createState() => _AddLocationState();
 }
 
-class _addlocationState extends State<addlocationpage> {
+class _AddLocationState extends State<AddLocationPage> {
   TextEditingController input1 = TextEditingController();
   TextEditingController input2 = TextEditingController();
   TextEditingController input3 = TextEditingController();
-  TextEditingController input4 = TextEditingController();
-  
+  File? _imageFile;
 
-  Widget buttonblack() {
-    return ButtonTheme(
-      minWidth: double.infinity,
-      child: Container(
-        margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
-        child: ElevatedButton(
-          child: Text(
-            "ปุ่มย้อนกลับ",
-            style: TextStyle(
-              color: Colors.white,
-            ),
-          ),
-          style: ElevatedButton.styleFrom(
-            padding: EdgeInsets.fromLTRB(20, 10, 20, 10),
-            backgroundColor: Color.fromARGB(249, 255, 4, 4),
-            shadowColor: Color.fromARGB(255, 255, 255, 255),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(30), // ปรับความโค้งของกรอบ
-              side: BorderSide(color: Colors.black),
-            ),
-          ),
-          onPressed: () {
-            // โค้ดการเข้าสู่ระบบ
-          },
-        ),
-      ),
-    );
+  final ImagePicker _picker = ImagePicker();
+
+  Future<void> _pickImage() async {
+    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+    setState(() {
+      if (pickedFile != null) {
+        _imageFile = File(pickedFile.path);
+      } else {
+        print('No image selected.');
+      }
+    });
   }
 
-  Widget appLogo() {
-    return Container(
-      width: 300,
-      height: 250,
-      margin: EdgeInsets.fromLTRB(0, 50, 0, 0),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(50), // กำหนดรูปร่างของกรอบ
-      ),
-      child: ClipRRect(
-        borderRadius:
-            BorderRadius.circular(10), // ให้ Clip รูปภาพตามรูปร่างของกรอบ
-        child: Image.asset(
-          "images/logo.png",
-          fit: BoxFit.cover, // ให้รูปภาพปรับตามขนาดของ Container
-        ),
-      ),
+  Widget backButton() {
+    return IconButton(
+      icon: Icon(Icons.arrow_back, color: Colors.black),
+      onPressed: () {
+        Navigator.of(context).pop();
+      },
     );
   }
 
   Widget namelocation() {
     return Container(
-      margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
+      margin: EdgeInsets.fromLTRB(20, 20, 20, 0),
       child: TextFormField(
         controller: input1,
         decoration: InputDecoration(
-          contentPadding: EdgeInsets.fromLTRB(0, 15, 0, 0),
+          contentPadding: EdgeInsets.fromLTRB(15, 10, 15, 10),
           hintText: 'ชื่อสถานที่',
-          fillColor: Color.fromARGB(255, 255, 255, 255),
+          fillColor: Colors.black,
           filled: true,
-          prefixIcon: Icon(
-            Icons.edit,
-            color: Colors.red, // ตั้งค่าสีของไอคอนเป็นสีแดง
-          ),
+          hintStyle: TextStyle(color: Colors.white),
           border: OutlineInputBorder(
-            borderSide: BorderSide(color: Colors.black),
-            borderRadius: BorderRadius.circular(30), // ปรับความโค้งของกรอบ
+            borderRadius: BorderRadius.circular(10),
           ),
         ),
+        style: TextStyle(color: Colors.white),
       ),
     );
   }
 
   Widget time() {
     return Container(
-      margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
+      margin: EdgeInsets.fromLTRB(20, 20, 20, 0),
       child: TextFormField(
         controller: input2,
         decoration: InputDecoration(
-          contentPadding: EdgeInsets.fromLTRB(0, 15, 0, 0),
-          hintText: 'เวลาเปิด-ปิด',
-          fillColor: Color.fromARGB(255, 255, 255, 255),
+          contentPadding: EdgeInsets.fromLTRB(15, 10, 15, 10),
+          hintText: 'เวลาเปิด - ปิด',
+          fillColor: Colors.black,
           filled: true,
-          prefixIcon: Icon(
-            Icons.edit,
-            color: Colors.red, // ตั้งค่าสีของไอคอนเป็นสีแดง
-          ),
+          hintStyle: TextStyle(color: Colors.white),
           border: OutlineInputBorder(
-            borderSide: BorderSide(color: Colors.black),
-            borderRadius: BorderRadius.circular(30), // ปรับความโค้งของกรอบ
+            borderRadius: BorderRadius.circular(10),
           ),
         ),
+        style: TextStyle(color: Colors.white),
       ),
     );
   }
 
-  Widget rule() {
+
+  Widget addImage() {
     return Container(
-      margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
-      child: TextFormField(
-        controller: input3,
-        decoration: InputDecoration(
-          contentPadding: EdgeInsets.fromLTRB(0, 15, 0, 0),
-          hintText: 'กฎการใช้สถานที่',
-          fillColor: Color.fromARGB(255, 255, 255, 255),
-          filled: true,
-          prefixIcon: Icon(
-            Icons.edit,
-            color: Colors.red, // ตั้งค่าสีของไอคอนเป็นสีแดง
-          ),
-          border: OutlineInputBorder(
-            borderSide: BorderSide(color: Colors.black),
-            borderRadius: BorderRadius.circular(30), // ปรับความโค้งของกรอบ
+      margin: EdgeInsets.fromLTRB(20, 20, 20, 0),
+      child: ElevatedButton.icon(
+        icon: Icon(Icons.image, color: Colors.white),
+        label: Text("แบบรูป", style: TextStyle(color: Colors.white)),
+        style: ElevatedButton.styleFrom(
+          primary: Colors.black,
+          padding: EdgeInsets.symmetric(vertical: 15),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
           ),
         ),
+        onPressed: _pickImage,
       ),
     );
   }
 
-
-  
-
-  Widget buttonaddlocation() {
-    return ButtonTheme(
-      minWidth: double.infinity,
-      child: Container(
-        margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
-        child: ElevatedButton(
-          child: Text(
-            "เพิ่มสถานที่",
-            style: TextStyle(
-              color: Colors.white,
+  Widget mapImage() {
+    return _imageFile == null
+        ? Container(
+            margin: EdgeInsets.fromLTRB(20, 20, 20, 0),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: Image.asset(
+                'images/logo.png', // เปลี่ยนเป็นรูปภาพของแผนที่
+                fit: BoxFit.cover,
+              ),
             ),
-          ),
-          style: ElevatedButton.styleFrom(
-            padding: EdgeInsets.fromLTRB(20, 10, 20, 10),
-            backgroundColor: Color.fromARGB(249, 255, 4, 4),
-            shadowColor: Color.fromARGB(255, 255, 255, 255),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(30), // ปรับความโค้งของกรอบ
-              side: BorderSide(color: Colors.black),
+          )
+        : Container(
+            margin: EdgeInsets.fromLTRB(20, 20, 20, 0),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: Image.file(
+                _imageFile!,
+                fit: BoxFit.cover,
+              ),
             ),
+          );
+  }
+
+  Widget buttonAddLocation() {
+    return Container(
+      margin: EdgeInsets.fromLTRB(20, 20, 20, 0),
+      child: ElevatedButton(
+        child: Text("เพิ่มสถานที่", style: TextStyle(color: Colors.white)),
+        style: ElevatedButton.styleFrom(
+          primary: Colors.yellow[700],
+          padding: EdgeInsets.symmetric(vertical: 15),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
           ),
-          onPressed: () {
-            functionAddLocation();
-          },
         ),
+        onPressed: () {
+          functionAddLocation();
+        },
       ),
     );
   }
 
   Future<void> functionAddLocation() async {
-    print("location_name: ${input1.text}");
-    print("location_time: ${input2.text}");
-    print("location_rules: ${input3.text}");
-   
+    if (_imageFile == null) {
+      print("No image selected.");
+      return;
+    }
 
-    // Prepare data to send
-    Map<String, String> dataPost = {
-      "location_name": input1.text,
-      "location_time": input2.text,
-      "location_rules": input3.text,
-     
-      
-    };
+    var request = http.MultipartRequest(
+      'POST',
+      Uri.parse("http://10.0.2.2/flutter_webservice/get_AddLocation.php"),
+    );
 
-    // Prepare headers
-    Map<String, String> headers = {
-      "Content-Type": "application/json",
-      "Accept": "application/json"
-    };
-
-    var url =
-        Uri.parse("http://10.0.2.2/flutter_webservice/get_AddLocation.php");
+    request.fields['location_name'] = input1.text;
+    request.fields['location_time'] = input2.text;
+    
+    request.files
+        .add(await http.MultipartFile.fromPath('image', _imageFile!.path));
 
     try {
-      var response = await http.post(
-        url,
-        headers: headers,
-        body: json.encode(dataPost),
-      );
+      var response = await request.send();
 
       if (response.statusCode == 200) {
-        Map<String, dynamic> jsonResponse = json.decode(response.body);
-        print(jsonResponse);
+        var responseData = await response.stream.bytesToString();
+        print(responseData);
       } else {
         print("Request failed with status: ${response.statusCode}");
       }
@@ -211,33 +175,23 @@ class _addlocationState extends State<addlocationpage> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Stack(
-        children: [
-          Scaffold(
-            backgroundColor: Color.fromARGB(255, 255, 255, 255),
-            appBar: AppBar(
-              title: Text("หน้าเพิ่มสถานที่"),
-            ),
-            body: SafeArea(
-              child: ListView(
-                children: [
-                  Center(
-                      child: Column(mainAxisSize: MainAxisSize.max, children: [
-                    
-                    //appLogo(),
-                    namelocation(),
-                    time(),
-                    rule(),
-                    
-                    
-                    buttonaddlocation()
-                  ])),
-                ],
-              ),
-            ),
-          )
-        ],
+    return Scaffold(
+      backgroundColor: Colors.grey[300],
+      appBar: AppBar(
+        title: Text("เพิ่มสถานที่"),
+        leading: backButton(),
+        backgroundColor: Colors.grey[800],
+      ),
+      body: SafeArea(
+        child: ListView(
+          children: [
+            namelocation(),
+            time(),
+            addImage(),
+            mapImage(),
+            buttonAddLocation(),
+          ],
+        ),
       ),
     );
   }

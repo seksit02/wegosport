@@ -164,7 +164,7 @@ class _HomepageState extends State<Homepage> {
                 ElevatedButton(
                   onPressed: () {
                     Navigator.of(context).pushReplacement(MaterialPageRoute(
-                        builder: (context) => addlocationpage()));
+                        builder: (context) => AddLocationPage()));
                   },
                   style: ElevatedButton.styleFrom(
                     primary: Colors.yellow,
@@ -189,6 +189,9 @@ class ActivityCardItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Debug: พิมพ์ URL ของรูปภาพเพื่อตรวจสอบ
+    print('Location photo URL: ${activity['location_photo']}');
+
     return Card(
       margin: EdgeInsets.all(10),
       child: Padding(
@@ -197,12 +200,10 @@ class ActivityCardItem extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // แถวของแท็ก
-            Row(
-              children: [
-                TagWidget(text: 'ตีกัน'),
-                TagWidget(text: 'สนามกลาง'),
-                TagWidget(text: 'ก๊วน'),
-              ],
+            Wrap(
+              children: (activity['hashtags'] as List<dynamic>)
+                  .map((tag) => TagWidget(text: tag['hashtag_message']))
+                  .toList(),
             ),
             SizedBox(height: 8),
             // วันที่และเวลา
@@ -233,9 +234,9 @@ class ActivityCardItem extends StatelessWidget {
             // แถวของสมาชิก
             Row(
               children: [
-                MemberAvatar(imageUrl: 'https://via.placeholder.com/50'),
-                MemberAvatar(imageUrl: 'https://via.placeholder.com/50'),
-                MemberAvatar(imageUrl: 'https://via.placeholder.com/50'),
+                MemberAvatar(),
+                MemberAvatar(),
+                MemberAvatar(),
                 Spacer(),
                 // จำนวนสมาชิก
                 Row(
@@ -259,20 +260,14 @@ class ActivityCardItem extends StatelessWidget {
             // รายละเอียดกิจกรรม
             Text(activity['activity_details'] ?? ''),
             SizedBox(height: 8),
-            // รูปภาพกิจกรรม
-            Image.network(
-              'https://via.placeholder.com/50',
-              errorBuilder: (context, error, stackTrace) {
-                return Text('Failed to load image');
-              },
-            ),
+            // รูปภาพสถานที่
+            Image.asset('images/L001.jpg', height: 200), // ใช้รูปภาพจาก assets
           ],
         ),
       ),
     );
   }
 }
-
 
 class TagWidget extends StatelessWidget {
   final String text;
@@ -294,16 +289,12 @@ class TagWidget extends StatelessWidget {
 }
 
 class MemberAvatar extends StatelessWidget {
-  final String imageUrl;
-
-  MemberAvatar({required this.imageUrl});
-
   @override
   Widget build(BuildContext context) {
     return Container(
       margin: EdgeInsets.only(right: 8),
       child: CircleAvatar(
-        backgroundImage: NetworkImage(imageUrl),
+        backgroundImage: AssetImage('images/P001.jpg'), // ใช้รูปจาก assets
         radius: 16, // ปรับขนาดของรูปโปรไฟล์ในสมาชิก
       ),
     );

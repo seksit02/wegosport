@@ -1,59 +1,52 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
-import 'dart:io';
 
-void main() => runApp(MyApp());
+void main() {
+  runApp(MyApp());
+}
 
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: UploadImageScreen(),
+      title: 'Flutter Demo',
+      theme: ThemeData(
+        primarySwatch: Colors.red,
+      ),
+      home: ProfilePage(),
     );
   }
 }
 
-class UploadImageScreen extends StatefulWidget {
+class ProfilePage extends StatefulWidget {
   @override
-  _UploadImageScreenState createState() => _UploadImageScreenState();
+  _ProfilePageState createState() => _ProfilePageState();
 }
 
-class _UploadImageScreenState extends State<UploadImageScreen> {
-  File? _image;
+class _ProfilePageState extends State<ProfilePage> {
+  List<Activity> activities = [];
+  bool isLoading = true;
 
-  Future<void> _pickImage() async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.getImage(source: ImageSource.gallery);
-
-    setState(() {
-      if (pickedFile != null) {
-        _image = File(pickedFile.path);
-      }
-    });
+  @override
+  void initState() {
+    super.initState();
+    fetchActivities();
   }
 
-  Future<void> _uploadImage() async {
-    if (_image == null) return;
-
-    final request = http.MultipartRequest(
-      'POST',
-      Uri.parse('http://localhost/flutter_webservice/get_UploadPhoto.php'),
-    );
-    request.fields['user_id'] =
-        'admin'; // เปลี่ยนเป็น user_id ที่ต้องการ
-    request.files.add(await http.MultipartFile.fromPath(
-      'image',
-      _image!.path,
-    ));
-
-    final response = await request.send();
+  Future<void> fetchActivities() async {
+    final response = await http.get(Uri.parse(
+        'http://10.0.2.2/flutter_webservice/get_ShowDataActivity.php'));
 
     if (response.statusCode == 200) {
-      final responseBody = await response.stream.bytesToString();
-      print('Response: $responseBody');
+      List<dynamic> data = json.decode(response.body);
+      setState(() {
+        activities =
+            data.map((activity) => Activity.fromJson(activity)).toList();
+        isLoading = false;
+      });
     } else {
-      print('Image upload failed');
+      throw Exception('Failed to load activities');
     }
   }
 
@@ -61,28 +54,118 @@ class _UploadImageScreenState extends State<UploadImageScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Upload Image'),
+        title: Text('Profile'),
       ),
-      body: SingleChildScrollView(
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              _image == null ? Text('No image selected.') : Image.file(_image!),
-              SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: _pickImage,
-                child: Text('Pick Image'),
-              ),
-              SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: _uploadImage,
-                child: Text('Upload Image'),
-              ),
-            ],
-          ),
-        ),
-      ),
+      body: isLoading
+          ? Center(child: CircularProgressIndicator())
+          : ListView.builder(
+              itemCount: activities.length,
+              itemBuilder: (context, index) {
+                return Card(
+                  child: ListTile(
+                    leading: Image.network(
+                      'http://10.0.2.2/flutter_webservice/upload/d5b3dcd9e9770986d05f2d78c0d22479.jpg',
+                      fit: BoxFit.cover,
+                    ),
+                    title: Text(activities[index].activityName),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(activities[index].activityDetails),
+                        Text('Date: ${activities[index].activityDate}'),
+                        Text('Location: ${activities[index].locationName}'),
+                        Text('Time: ${activities[index].locationTime}'),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+    );
+  }
+}
+
+class Activity {
+  final String activityId;
+  final String activityName;
+  final String activityDetails;
+  final String activityDate;
+  final String locationName;
+  final String locationTime;
+  final String location_photo;
+  final List<Member> members;
+  final List<SportType> sportTypes;
+
+  Activity({
+    required this.activityId,
+    required this.activityName,
+    required this.activityDetails,
+    required this.activityDate,
+    required this.locationName,
+    required this.locationTime,
+    required this.location_photo,
+    required this.members,
+    required this.sportTypes,
+  });
+
+  factory Activity.fromJson(Map<String, dynamic> json) {
+    var membersList = json['members'] as List;
+    List<Member> members = membersList.map((i) => Member.fromJson(i)).toList();
+
+    var sportTypesList = json['sport_types'] as List;
+    List<SportType> sportTypes =
+        sportTypesList.map((i) => SportType.fromJson(i)).toList();
+
+    return Activity(
+      activityId: json['activity_id'],
+      activityName: json['activity_name'],
+      activityDetails: json['activity_details'],
+      activityDate: json['activity_date'],
+      locationName: json['location_name'],
+      locationTime: json['location_time'],
+      location_photo: json['location_photo'],
+      members: members,
+      sportTypes: sportTypes,
+    );
+  }
+}
+
+class Member {
+  final String userId;
+  final String userName;
+  final String userEmail;
+  final int userAge;
+
+  Member({
+    required this.userId,
+    required this.userName,
+    required this.userEmail,
+    required this.userAge,
+  });
+
+  factory Member.fromJson(Map<String, dynamic> json) {
+    return Member(
+      userId: json['user_id'],
+      userName: json['user_name'],
+      userEmail: json['user_email'],
+      userAge: json['user_age'],
+    );
+  }
+}
+
+class SportType {
+  dynamic typeId;
+  dynamic typeName;
+
+  SportType({
+    required this.typeId,
+    required this.typeName,
+  });
+
+  factory SportType.fromJson(Map<String, dynamic> json) {
+    return SportType(
+      typeId: json['type_id'],
+      typeName: json['type_name'],
     );
   }
 }
