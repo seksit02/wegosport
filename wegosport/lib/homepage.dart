@@ -67,6 +67,12 @@ class _HomepageState extends State<Homepage> {
     });
   }
 
+  void _logout() {
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (context) => LoginPage()),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -74,6 +80,11 @@ class _HomepageState extends State<Homepage> {
         backgroundColor: Colors.white,
         iconTheme: IconThemeData(color: Colors.black),
         toolbarHeight: 56.0,
+        leading: IconButton(
+          icon: Icon(Icons.logout),
+          onPressed: _logout,
+          tooltip: 'ออกจากระบบ',
+        ),
         title: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -151,7 +162,7 @@ class _HomepageState extends State<Homepage> {
                 ElevatedButton(
                   onPressed: () {
                     Navigator.of(context).pushReplacement(MaterialPageRoute(
-                        builder: (context) => createactivitypage()));
+                        builder: (context) => CreateActivityPage()));
                   },
                   style: ElevatedButton.styleFrom(
                     primary: Colors.yellow,

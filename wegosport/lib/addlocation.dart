@@ -5,6 +5,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:wegosport/Homepage.dart';
+
 class AddLocationPage extends StatefulWidget {
   const AddLocationPage({super.key});
 
@@ -35,7 +37,8 @@ class _AddLocationState extends State<AddLocationPage> {
     return IconButton(
       icon: Icon(Icons.arrow_back, color: Colors.black),
       onPressed: () {
-        Navigator.of(context).pop();
+        Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (context) => Homepage()));
       },
     );
   }

@@ -3,43 +3,53 @@ import 'package:http/http.dart' as http;
 import 'dart:async';
 import 'dart:convert';
 
-class createactivitypage extends StatefulWidget {
-  const createactivitypage({super.key});
+import 'package:wegosport/Homepage.dart';
+
+class CreateActivityPage extends StatefulWidget {
+  const CreateActivityPage({super.key});
 
   @override
-  State<createactivitypage> createState() => _createactivitypageState();
+  State<CreateActivityPage> createState() => _CreateActivityPageState();
 }
 
-class _createactivitypageState extends State<createactivitypage> {
-  TextEditingController one_value = TextEditingController();
-  TextEditingController two_value = TextEditingController();
-  TextEditingController three_value = TextEditingController();
+class _CreateActivityPageState extends State<CreateActivityPage> {
+  TextEditingController nameController = TextEditingController();
+  TextEditingController detailsController = TextEditingController();
+  TextEditingController dateController = TextEditingController();
+  TextEditingController hashtagController = TextEditingController();
 
+  String? selectedLocation;
+  List<String> locations = [];
 
-  Widget appLogo() {
-    return Container(
-      width: 350,
-      height: 250,
-      margin: EdgeInsets.fromLTRB(0, 50, 0, 0),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(50), // กำหนดรูปร่างของกรอบ
-      ),
-      child: ClipRRect(
-        borderRadius:
-            BorderRadius.circular(10), // ให้ Clip รูปภาพตามรูปร่างของกรอบ
-        child: Image.asset(
-          "images/login.png",
-          fit: BoxFit.cover, // ให้รูปภาพปรับตามขนาดของ Container
-        ),
-      ),
-    );
+  get selectedSportId => 1;
+
+  Future<void> fetchLocations() async {
+    final response = await http.get(Uri.parse(
+        'http://10.0.2.2/flutter_webservice/get_ShowDataActivity.php'));
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      setState(() {
+        locations = List<String>.from(
+            data.map((item) => item['location_name']).toSet());
+      });
+    } else {
+      print('Failed to load locations. Status code: ${response.statusCode}');
+      throw Exception('Failed to load locations');
+    }
   }
 
-  Widget nameactivity() {
+  @override
+  void initState() {
+    super.initState();
+    fetchLocations();
+  }
+
+  Widget nameActivity() {
     return Container(
       margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
       child: TextFormField(
-        controller: one_value,
+        controller: nameController,
         decoration: InputDecoration(
           contentPadding: EdgeInsets.fromLTRB(0, 15, 0, 0),
           hintText: 'ชื่อกิจกรรม',
@@ -47,11 +57,11 @@ class _createactivitypageState extends State<createactivitypage> {
           filled: true,
           prefixIcon: Icon(
             Icons.add,
-            color: Colors.red, // ตั้งค่าสีของไอคอนเป็นสีแดง
+            color: Colors.red,
           ),
           border: OutlineInputBorder(
             borderSide: BorderSide(color: Colors.black),
-            borderRadius: BorderRadius.circular(30), // ปรับความโค้งของกรอบ
+            borderRadius: BorderRadius.circular(30),
           ),
         ),
       ),
@@ -61,23 +71,34 @@ class _createactivitypageState extends State<createactivitypage> {
   Widget location() {
     return Container(
       margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
-      child: TextFormField(
-        
-        decoration: InputDecoration(
-          contentPadding: EdgeInsets.fromLTRB(0, 15, 0, 0),
-          hintText: 'สถานที่',
-          fillColor: Color.fromARGB(255, 255, 255, 255),
-          filled: true,
-          prefixIcon: Icon(
-            Icons.add,
-            color: Colors.red, // ตั้งค่าสีของไอคอนเป็นสีแดง
-          ),
-          border: OutlineInputBorder(
-            borderSide: BorderSide(color: Colors.black),
-            borderRadius: BorderRadius.circular(30), // ปรับความโค้งของกรอบ
-          ),
-        ),
-      ),
+      child: locations.isNotEmpty
+          ? DropdownButtonFormField<String>(
+              value: selectedLocation,
+              items: locations
+                  .map((location) =>
+                      DropdownMenuItem(value: location, child: Text(location)))
+                  .toList(),
+              onChanged: (value) {
+                setState(() {
+                  selectedLocation = value;
+                });
+              },
+              decoration: InputDecoration(
+                contentPadding: EdgeInsets.fromLTRB(0, 15, 0, 0),
+                hintText: 'สถานที่',
+                fillColor: Color.fromARGB(255, 255, 255, 255),
+                filled: true,
+                prefixIcon: Icon(
+                  Icons.add,
+                  color: Colors.red,
+                ),
+                border: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.black),
+                  borderRadius: BorderRadius.circular(30),
+                ),
+              ),
+            )
+          : CircularProgressIndicator(),
     );
   }
 
@@ -85,7 +106,7 @@ class _createactivitypageState extends State<createactivitypage> {
     return Container(
       margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
       child: TextFormField(
-        controller: three_value,
+        controller: dateController,
         decoration: InputDecoration(
           contentPadding: EdgeInsets.fromLTRB(0, 15, 0, 0),
           hintText: 'วันที่',
@@ -93,13 +114,28 @@ class _createactivitypageState extends State<createactivitypage> {
           filled: true,
           prefixIcon: Icon(
             Icons.add,
-            color: Colors.red, // ตั้งค่าสีของไอคอนเป็นสีแดง
+            color: Colors.red,
           ),
           border: OutlineInputBorder(
             borderSide: BorderSide(color: Colors.black),
-            borderRadius: BorderRadius.circular(30), // ปรับความโค้งของกรอบ
+            borderRadius: BorderRadius.circular(30),
           ),
         ),
+        readOnly: true,
+        onTap: () async {
+          DateTime? pickedDate = await showDatePicker(
+            context: context,
+            initialDate: DateTime.now(),
+            firstDate: DateTime(2000),
+            lastDate: DateTime(2101),
+          );
+
+          if (pickedDate != null) {
+            setState(() {
+              dateController.text = pickedDate.toIso8601String();
+            });
+          }
+        },
       ),
     );
   }
@@ -108,49 +144,20 @@ class _createactivitypageState extends State<createactivitypage> {
     return Container(
       margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
       child: TextFormField(
-        
+        controller: hashtagController,
         decoration: InputDecoration(
           contentPadding: EdgeInsets.fromLTRB(0, 15, 0, 0),
-          hintText: 'แฮชแท็ก',
+          hintText: 'แฮชแท็ก (ไม่เกิน 20 ตัวอักษร, สูงสุด 3 แฮชแท็ก)',
           fillColor: Color.fromARGB(255, 255, 255, 255),
           filled: true,
           prefixIcon: Icon(
             Icons.add,
-            color: Colors.red, // ตั้งค่าสีของไอคอนเป็นสีแดง
+            color: Colors.red,
           ),
           border: OutlineInputBorder(
             borderSide: BorderSide(color: Colors.black),
-            borderRadius: BorderRadius.circular(30), // ปรับความโค้งของกรอบ
+            borderRadius: BorderRadius.circular(30),
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget buttonblack() {
-    return ButtonTheme(
-      minWidth: double.infinity,
-      child: Container(
-        margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
-        child: ElevatedButton(
-          child: Text(
-            "ปุ่มย้อนกลับ",
-            style: TextStyle(
-              color: Colors.white,
-            ),
-          ),
-          style: ElevatedButton.styleFrom(
-            padding: EdgeInsets.fromLTRB(20, 10, 20, 10),
-            backgroundColor: Color.fromARGB(249, 255, 4, 4),
-            shadowColor: Color.fromARGB(255, 255, 255, 255),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(30), // ปรับความโค้งของกรอบ
-              side: BorderSide(color: Colors.black),
-            ),
-          ),
-          onPressed: () {
-            // โค้ดการเข้าสู่ระบบ
-          },
         ),
       ),
     );
@@ -160,7 +167,7 @@ class _createactivitypageState extends State<createactivitypage> {
     return Container(
       margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
       child: TextFormField(
-        controller: two_value,
+        controller: detailsController,
         decoration: InputDecoration(
           contentPadding: EdgeInsets.fromLTRB(0, 15, 0, 0),
           hintText: 'ข้อความขังเขป',
@@ -168,11 +175,11 @@ class _createactivitypageState extends State<createactivitypage> {
           filled: true,
           prefixIcon: Icon(
             Icons.add,
-            color: Colors.red, // ตั้งค่าสีของไอคอนเป็นสีแดง
+            color: Colors.red,
           ),
           border: OutlineInputBorder(
             borderSide: BorderSide(color: Colors.black),
-            borderRadius: BorderRadius.circular(30), // ปรับความโค้งของกรอบ
+            borderRadius: BorderRadius.circular(30),
           ),
         ),
       ),
@@ -183,7 +190,6 @@ class _createactivitypageState extends State<createactivitypage> {
     return Container(
       margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
       child: TextFormField(
-        
         decoration: InputDecoration(
           contentPadding: EdgeInsets.fromLTRB(0, 15, 0, 0),
           hintText: 'แนปรูป',
@@ -191,18 +197,18 @@ class _createactivitypageState extends State<createactivitypage> {
           filled: true,
           prefixIcon: Icon(
             Icons.add,
-            color: Colors.red, // ตั้งค่าสีของไอคอนเป็นสีแดง
+            color: Colors.red,
           ),
           border: OutlineInputBorder(
             borderSide: BorderSide(color: Colors.black),
-            borderRadius: BorderRadius.circular(30), // ปรับความโค้งของกรอบ
+            borderRadius: BorderRadius.circular(30),
           ),
         ),
       ),
     );
   }
 
-  Widget Creategroup() {
+  Widget createGroupButton() {
     return ButtonTheme(
       minWidth: double.infinity,
       child: Container(
@@ -219,7 +225,7 @@ class _createactivitypageState extends State<createactivitypage> {
             backgroundColor: Color.fromARGB(249, 255, 4, 4),
             shadowColor: Color.fromARGB(255, 255, 255, 255),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(30), // ปรับความโค้งของกรอบ
+              borderRadius: BorderRadius.circular(30),
               side: BorderSide(color: Colors.black),
             ),
           ),
@@ -231,28 +237,68 @@ class _createactivitypageState extends State<createactivitypage> {
     );
   }
 
+  Widget backButton() {
+    return IconButton(
+      icon: Icon(Icons.arrow_back, color: Colors.black),
+      onPressed: () {
+        Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (context) => Homepage()));
+      },
+    );
+  }
+
+  Future<void> showSuccessDialog() async {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("สำเร็จ"),
+          content: Text("สร้างกิจกรรมสำเร็จ"),
+          actions: <Widget>[
+            TextButton(
+              child: Text("ตกลง"),
+              onPressed: () {
+                Navigator.of(context).pop(); // ปิด dialog
+                Navigator.of(context).pushReplacement(
+                    MaterialPageRoute(builder: (context) => Homepage()));
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   Future<void> functionCreateActivity() async {
-    print("activity_name: ${one_value.text}");
-    print("activity_details: ${two_value.text}");
-    print("activity_date: ${three_value.text}");
+    String hashtags = hashtagController.text;
+    List<String> hashtagList =
+        hashtags.split(RegExp(r'\s+')).where((tag) => tag.isNotEmpty).toList();
 
+    if (hashtagList.length > 3 || hashtagList.any((tag) => tag.length > 20)) {
+      print("Invalid hashtag input");
+      return;
+    }
 
-    // Prepare data to send
-    Map<String, String> dataPost = {
-      "activity_name": one_value.text,
-      "activity_details": two_value.text,
-      "activity_date": three_value.text,
-   
+    print("activity_name: ${nameController.text}");
+    print("activity_details: ${detailsController.text}");
+    print("activity_date: ${dateController.text}");
+
+    Map<String, dynamic> dataPost = {
+      "activity_name": nameController.text,
+      "activity_details": detailsController.text,
+      "activity_date": dateController.text,
+      "location_name": selectedLocation ?? '',
+      "sport_id": selectedSportId, // Ensure this value is set appropriately
+      "hashtags": hashtagList,
     };
 
-    // Prepare headers
     Map<String, String> headers = {
       "Content-Type": "application/json",
       "Accept": "application/json"
     };
 
-    var url = Uri.parse("http://10.0.2.2/flutter_webservice/get_CreateActivity.php");
+    var url =
+        Uri.parse("http://10.0.2.2/flutter_webservice/get_CreateActivity.php");
 
     try {
       var response = await http.post(
@@ -261,9 +307,15 @@ class _createactivitypageState extends State<createactivitypage> {
         body: json.encode(dataPost),
       );
 
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.body}');
+
       if (response.statusCode == 200) {
         Map<String, dynamic> jsonResponse = json.decode(response.body);
         print(jsonResponse);
+        if (jsonResponse["result"] == 1) {
+          showSuccessDialog(); // แสดง dialog เมื่อสร้างกิจกรรมสำเร็จ
+        }
       } else {
         print("Request failed with status: ${response.statusCode}");
       }
@@ -281,6 +333,7 @@ class _createactivitypageState extends State<createactivitypage> {
             backgroundColor: Color.fromARGB(255, 255, 255, 255),
             appBar: AppBar(
               title: Text("หน้าสร้างกิจกรรม"),
+              leading: backButton(),
             ),
             body: SafeArea(
               child: ListView(
@@ -288,14 +341,13 @@ class _createactivitypageState extends State<createactivitypage> {
                   Center(
                       child:
                           Column(mainAxisSize: MainAxisSize.max, children: [])),
-                  //appLogo(),
-                  nameactivity(),
+                  nameActivity(),
                   location(),
                   date(),
                   hashtag(),
                   message(),
                   picture(),
-                  Creategroup()
+                  createGroupButton()
                 ],
               ),
             ),
