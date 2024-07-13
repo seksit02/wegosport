@@ -17,6 +17,13 @@ class _chatState extends State<chat> {
             backgroundColor: Color.fromARGB(255, 255, 255, 255),
             appBar: AppBar(
               title: Text("หน้าแชท"),
+              leading: IconButton(
+                icon:
+                    Icon(Icons.arrow_back, color: Color.fromARGB(255, 0, 0, 0)),
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+              ),
             ),
             body: SafeArea(
               child: ListView(

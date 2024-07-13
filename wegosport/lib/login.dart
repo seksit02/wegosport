@@ -278,9 +278,6 @@ class _LoginPageState extends State<LoginPage> {
         children: [
           Scaffold(
             backgroundColor: Color.fromARGB(255, 255, 255, 255),
-            appBar: AppBar(
-              title: Text("หน้าล็อกอิน"),
-            ),
             body: SafeArea(
               child: ListView(
                 children: [

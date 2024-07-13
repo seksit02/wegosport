@@ -29,7 +29,7 @@ class _ProfilePageState extends State<ProfilePage> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.black),
+          icon: Icon(Icons.arrow_back, color: Color.fromARGB(255, 0, 0, 0)),
           onPressed: () {
             Navigator.pop(context);
           },
@@ -52,7 +52,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         fit: BoxFit.cover,
                       )
                     : Image.asset(
-                        'images/logo.png',
+                        'images/P001.jpg',
                         height: 120.0,
                         width: 120.0,
                         fit: BoxFit.cover,
@@ -66,8 +66,6 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
             Text('@Amaegmee', style: TextStyle(color: Colors.grey[700])),
             SizedBox(height: 8),
-            Text('เพื่อน 0'),
-            SizedBox(height: 8),
             Text('เต้ สุดหล่อ ยังไม่ได้เขียนอะไรเล้ยยย'),
             SizedBox(height: 16),
             ElevatedButton(
@@ -80,7 +78,10 @@ class _ProfilePageState extends State<ProfilePage> {
                   side: BorderSide(color: Colors.black),
                 ),
               ),
-              onPressed: () {},
+              onPressed: () {
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (context) => ProfilePage()));
+              },
               child: Text('แก้ไขข้อมูล'),
             ),
           ],

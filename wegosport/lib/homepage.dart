@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:wegosport/Addlocation.dart';
 import 'package:wegosport/Createactivity.dart';
+import 'package:wegosport/Profile.dart';
 import 'package:wegosport/groupchat.dart'; // นำเข้าไฟล์ groupchat.dart
 import 'dart:convert';
 import 'package:wegosport/Login.dart';
@@ -94,9 +95,18 @@ class _HomepageState extends State<Homepage> {
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 8.0),
-            child: CircleAvatar(
-              backgroundImage: AssetImage('images/logo.png'), // รูปโปรไฟล์
-              radius: 16, // ปรับขนาดของรูปโปรไฟล์
+            child: GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => ProfilePage()), // โปรไฟล์เพจ
+                );
+              },
+              child: CircleAvatar(
+                backgroundImage: AssetImage('images/P001.jpg'), // รูปโปรไฟล์
+                radius: 16, // ปรับขนาดของรูปโปรไฟล์
+              ),
             ),
           ),
         ],

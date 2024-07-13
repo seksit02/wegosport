@@ -17,6 +17,13 @@ class _groupchatState extends State<groupchat> {
             backgroundColor: Color.fromARGB(255, 255, 255, 255),
             appBar: AppBar(
               title: Text("หน้ากลุ่มแชท"),
+              leading: IconButton(
+                icon:
+                    Icon(Icons.arrow_back, color: Color.fromARGB(255, 0, 0, 0)),
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+              ),
             ),
             body: SafeArea(
               child: ListView(
