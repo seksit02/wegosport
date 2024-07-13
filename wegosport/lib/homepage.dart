@@ -255,9 +255,9 @@ class ActivityCardItem extends StatelessWidget {
             // แถวของสมาชิก
             Row(
               children: [
-                MemberAvatar(),
-                MemberAvatar(),
-                MemberAvatar(),
+                MemberAvatar(imageUrl: '',),
+                MemberAvatar(imageUrl: '',),
+                MemberAvatar(imageUrl: '',),
                 Spacer(),
                 // จำนวนสมาชิก
                 Row(
@@ -282,7 +282,13 @@ class ActivityCardItem extends StatelessWidget {
             Text(activity['activity_details'] ?? ''),
             SizedBox(height: 8),
             // รูปภาพสถานที่
-            Image.asset('images/L001.jpg', height: 200), // ใช้รูปภาพจาก assets
+            // รูปภาพสถานที่
+            activity['location_photo'] != null
+                ? Image.network("https://media.istockphoto.com/id/1011241694/th/%E0%B8%A3%E0%B8%B9%E0%B8%9B%E0%B8%96%E0%B9%88%E0%B8%B2%E0%B8%A2/%E0%B9%80%E0%B8%A3%E0%B8%B7%E0%B8%AD%E0%B8%AB%E0%B8%B2%E0%B8%87%E0%B8%A2%E0%B8%B2%E0%B8%A7%E0%B9%84%E0%B8%A1%E0%B9%89%E0%B9%84%E0%B8%97%E0%B8%A2%E0%B9%81%E0%B8%A5%E0%B8%B0%E0%B8%AB%E0%B8%B2%E0%B8%94%E0%B8%97%E0%B8%A3%E0%B8%B2%E0%B8%A2%E0%B8%97%E0%B8%B5%E0%B9%88%E0%B8%AA%E0%B8%A7%E0%B8%A2%E0%B8%87%E0%B8%B2%E0%B8%A1.jpg?s=612x612&w=0&k=20&c=q7qz0uFc4Zkf5tGxFLNFyg82k_l9YS06nUQ9Ny-RIOo=", height: 200)
+                : SizedBox(
+                    height: 200,
+                    child: Center(child: Text('ไม่มีรูปภาพ')),
+                  ), // ใช้รูปภาพจาก assets
           ],
         ),
       ),
@@ -310,12 +316,16 @@ class TagWidget extends StatelessWidget {
 }
 
 class MemberAvatar extends StatelessWidget {
+  final String imageUrl;
+
+  MemberAvatar({required this.imageUrl});
+
   @override
   Widget build(BuildContext context) {
     return Container(
       margin: EdgeInsets.only(right: 8),
       child: CircleAvatar(
-        backgroundImage: AssetImage('images/P001.jpg'), // ใช้รูปจาก assets
+        backgroundImage: NetworkImage(imageUrl), // ใช้รูปจาก URL
         radius: 16, // ปรับขนาดของรูปโปรไฟล์ในสมาชิก
       ),
     );
