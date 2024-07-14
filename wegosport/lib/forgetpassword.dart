@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:wegosport/Login.dart';
 
 class forgetpasswordpage extends StatefulWidget {
   const forgetpasswordpage({super.key});
@@ -34,6 +35,16 @@ class _forgetpasswordpageState extends State<forgetpasswordpage> {
   }
 
 
+Widget backButton() {
+    return IconButton(
+      icon: Icon(Icons.arrow_back, color: Colors.black),
+      onPressed: () {
+        Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (context) => LoginPage()));
+      },
+    );
+  }
+
 Widget appLogo() {
     return Container(
       width: 100,
@@ -46,7 +57,7 @@ Widget appLogo() {
         borderRadius:
             BorderRadius.circular(10), // ให้ Clip รูปภาพตามรูปร่างของกรอบ
         child: Image.asset(
-          "images/login.png",
+          "images/logo.png",
           fit: BoxFit.cover, // ให้รูปภาพปรับตามขนาดของ Container
         ),
       ),
@@ -122,7 +133,9 @@ functionforget(){
         children: [
           Scaffold(
             backgroundColor: Color.fromARGB(255, 255, 255, 255),
-            appBar: AppBar(title: Text("หน้าลืมรหัสผ่าน"),),
+            appBar: AppBar(title: Text("หน้าลืมรหัสผ่าน"),
+            leading: backButton(),
+            ),
             body: SafeArea(
               child: ListView(
                 children: [

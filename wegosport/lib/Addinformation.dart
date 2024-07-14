@@ -8,11 +8,10 @@ import 'dart:convert';
 import 'package:wegosport/Login.dart';
 
 class editinformation extends StatefulWidget {
-  const editinformation({Key? key,required this.image,required this.name,required this.email,required this.six_value}): super(key: key);
+  const editinformation({Key? key,required this.name,required this.email,required this.six_value}): super(key: key);
 
   @override
   State<editinformation> createState() => _editinformationState();
-  final String image;
   final String name;
   final String email;
   final String six_value;
@@ -353,6 +352,18 @@ class _editinformationState extends State<editinformation> {
     );
   }
 
+Widget backButton() {
+    return IconButton(
+      icon: Icon(Icons.arrow_back, color: Colors.black),
+      onPressed: () {
+        Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (context) => LoginPage()));
+      },
+    );
+  }
+
+
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -362,6 +373,7 @@ class _editinformationState extends State<editinformation> {
             backgroundColor: Color.fromARGB(255, 255, 255, 255),
             appBar: AppBar(
               title: Text("หน้าเพิ่มข้อมูลผู้ใช้"),
+              leading: backButton(),
             ),
             body: SafeArea(
               child: ListView(

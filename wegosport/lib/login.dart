@@ -8,6 +8,8 @@ import 'package:http/http.dart' as http;
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:wegosport/forgetpassword.dart';
+
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
 
@@ -18,7 +20,6 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   TextEditingController inputone = TextEditingController();
   TextEditingController inputtwo = TextEditingController();
-  
 
   Widget appLogo() {
     return Container(
@@ -220,6 +221,40 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
+  Widget buttonforget() {
+    return Container(
+      margin: EdgeInsets.fromLTRB(0, 15, 0, 0),
+      child: ElevatedButton.icon(
+        icon: Icon(
+          Icons.lock_open,
+          color: const Color.fromARGB(255, 0, 0, 0),
+        ),
+        label: Text(
+          "ลืมรหัสผ่าน",
+          style: TextStyle(
+            color: Color.fromARGB(255, 0, 0, 0),
+          ),
+        ),
+        onPressed: () {
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) =>
+                      forgetpasswordpage())); // โค้ดที่ต้องการทำเมื่อกดปุ่ม Facebook
+        },
+        style: ElevatedButton.styleFrom(
+          padding: EdgeInsets.fromLTRB(10, 10, 20, 8),
+          backgroundColor: Color.fromARGB(255, 255, 255, 255),
+          shadowColor: Colors.black,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(30), // ปรับความโค้งของกรอบ
+          ),
+          side: BorderSide(color: Colors.black),
+        ),
+      ),
+    );
+  }
+
   Future<void> facebookLogin(BuildContext context) async {
     try {
       final result = await FacebookAuth.instance.login(
@@ -232,8 +267,6 @@ class _LoginPageState extends State<LoginPage> {
 
         // Extracting only the id from userData
         String userId = userData['id'] ?? 'Unknown ID';
-        String imageUrl = userData['picture']?['data']?['url'] ??
-            'https://via.placeholder.com/150';
         String name = userData['name'] ?? 'Unknown Name';
         String email = userData['email'] ?? 'Unknown Email';
 
@@ -254,7 +287,6 @@ class _LoginPageState extends State<LoginPage> {
               MaterialPageRoute(
                 builder: (context) => editinformation(
                   six_value: userId,
-                  image: imageUrl,
                   name: name,
                   email: email,
                 ),
@@ -287,7 +319,8 @@ class _LoginPageState extends State<LoginPage> {
                     inputOne(),
                     inputTwo(),
                     buttonProcesslogin(),
-                    buttonfacebook()
+                    buttonfacebook(),
+                    buttonforget()
                   ])),
                 ],
               ),

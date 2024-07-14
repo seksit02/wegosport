@@ -8,8 +8,8 @@ import 'package:wegosport/forgetpassword.dart';
 import 'package:wegosport/groupchat.dart';
 import 'package:wegosport/Homepage.dart';
 import 'package:wegosport/Login.dart';
-import 'package:wegosport/Profile.dart';
-import 'package:wegosport/test.dart';
+import 'package:wegosport/Profile.dart' as profile;
+import 'package:wegosport/test.dart' as test;
 
 void main() {
   runApp(MyApp());
@@ -20,7 +20,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: Homepage(),
+      home: LoginPage(),
       routes: {
         '/homepage': (context) => Homepage(),
       },
