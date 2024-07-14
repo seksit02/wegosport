@@ -10,16 +10,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $user_pass = mysqli_real_escape_string($conn, trim($json_data["user_pass"]));
     $user_name = mysqli_real_escape_string($conn, trim($json_data["user_name"]));
     $user_age = mysqli_real_escape_string($conn, trim($json_data["user_age"]));
+    $user_token = mysqli_real_escape_string($conn, trim($json_data["user_token"]));
         
 //4.sql command / process
-    $strSQL = "INSERT INTO user_information (user_id, user_email, user_pass, user_name,user_age) VALUES ('$user_id','$user_email','$user_pass','$user_name','$user_age')";
+    $strSQL = "INSERT INTO user_information (user_id, user_email, user_pass, user_name,user_age,user_token) VALUES ('$user_id','$user_email','$user_pass','$user_name','$user_age','$user_token')";
     $query = @mysqli_query($conn,$strSQL);
     $datalist = array();
     
 if ($query) {
     $result = 1;
     $message = "เพิ่มข้อมูลสำเร็จ";
-    $datalist[] = array("ID" => mysqli_insert_id($conn), "user_id" => $user_id, "user_email" => $user_email, "user_pass" => $user_pass, "user_name" => $user_name,"user_age" => $user_age  );
+    $datalist[] = array("ID" => mysqli_insert_id($conn), "user_id" => $user_id, "user_email" => $user_email, "user_pass" => $user_pass, "user_name" => $user_name,"user_age" => $user_age,"user_token" => $user_token  );
 } else {
     $result = 0;
     $message = "มีข้อมูลซ้ำในระบบ";

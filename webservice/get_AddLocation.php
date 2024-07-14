@@ -1,35 +1,41 @@
 <?php
-require 'Connect.php';
+include 'Connect.php';
 
-//3.request from client
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $content = file_get_contents("php://input"); //plaintext
-    $json_data = json_decode($content, true); // เอา plaintext มาจัดรูปแบบเป็น json (json_decode)
-    $location_name = mysqli_real_escape_string($conn, trim($json_data["location_name"]));
-    $location_time = mysqli_real_escape_string($conn, trim($json_data["location_time"]));
-    $location_rules = mysqli_real_escape_string($conn, trim($json_data["location_rules"]));
-    
-    
-        
-//4.sql command / process
-    $strSQL = "INSERT INTO location (location_name, location_time, location_rules) VALUES ('$location_name','$location_time','$location_rules')";
-    $query = @mysqli_query($conn,$strSQL);
-    $datalist = array();
-    
-if ($query) {
-    $result = 1;
-    $message = "เพิ่มข้อมูลสำเร็จ";
-    $datalist[] = array("ID" => mysqli_insert_id($conn), "location_name" => $location_name, "location_time" => $location_time, "location_rules" => $location_rules );
-} else {
-    $result = 0;
-    $message = "มีข้อมูลซ้ำในระบบ";
-    $datalist[] = null;
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $location_name = isset($_POST['location_name']) ? $_POST['location_name'] : '';
+    $location_time = isset($_POST['location_time']) ? $_POST['location_time'] : '';
+    $location_note = isset($_POST['location_note']) ? $_POST['location_note'] : '';
+
+    // Upload file
+    if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
+        $fileTmpPath = $_FILES['image']['tmp_name'];
+        $fileName = $_FILES['image']['name'];
+        $fileSize = $_FILES['image']['size'];
+        $fileType = $_FILES['image']['type'];
+        $fileNameCmps = explode(".", $fileName);
+        $fileExtension = strtolower(end($fileNameCmps));
+        $newFileName = md5(time() . $fileName) . '.' . $fileExtension;
+        $uploadFileDir = 'C:/xampp/htdocs/flutter_webservice/upload/';
+        $dest_path = $uploadFileDir . $newFileName;
+        $relative_url = '/flutter_webservice/upload/' . $newFileName; // Relative URL for access
+
+        if(move_uploaded_file($fileTmpPath, $dest_path)) {
+            $location_photo = $relative_url;
+
+            // Insert data into database
+            $sql = "INSERT INTO location (location_name, location_time, location_photo, location_map) VALUES ('$location_name', '$location_time', '$location_photo', '$location_note')";
+            if (mysqli_query($conn, $sql)) {
+                $response = array("status" => "success", "message" => "Location added successfully.");
+            } else {
+                $response = array("status" => "error", "message" => "Error: " . mysqli_error($conn));
+            }
+        } else {
+            $response = array("status" => "error", "message" => "There was an error uploading the file.");
+        }
+    } else {
+        $response = array("status" => "error", "message" => "No file uploaded or there was an upload error.");
     }
-    
 
-echo json_encode(array("result"=>@$result,"message"=>@$message,"datalist"=>@$datalist));
-
-mysqli_close($conn);
-exit;
-    }
+    echo json_encode($response);
+}
 ?>
