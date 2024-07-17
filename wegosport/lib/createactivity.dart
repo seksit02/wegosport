@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'dart:async';
 import 'dart:convert';
-
 import 'package:wegosport/Homepage.dart';
 
 class CreateActivityPage extends StatefulWidget {
@@ -17,15 +17,19 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
   TextEditingController detailsController = TextEditingController();
   TextEditingController dateController = TextEditingController();
   TextEditingController hashtagController = TextEditingController();
+  TextEditingController locationController = TextEditingController();
+  TextEditingController sportController = TextEditingController();
 
   String? selectedLocation;
+  String? selectedSport;
   List<String> locations = [];
+  List<String> sport = [];
 
   get selectedSportId => 1;
 
   Future<void> fetchLocations() async {
     final response = await http.get(Uri.parse(
-        'http://10.0.2.2/flutter_webservice/get_ShowDataActivity.php'));
+        'http://10.0.2.2/flutter_webservice/get_ShowDataLocation.php'));
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
@@ -39,10 +43,28 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
     }
   }
 
+Future<void> fetchSport() async {
+    final response = await http.get(
+        Uri.parse('http://10.0.2.2/flutter_webservice/get_ShowDataSport.php'));
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      setState(() {
+        sport =
+            List<String>.from(data.map((item) => item['sport_name']).toSet());
+      });
+    } else {
+      print('Failed to load sport names. Status code: ${response.statusCode}');
+      throw Exception('Failed to load sport names');
+    }
+  }
+
+
   @override
   void initState() {
     super.initState();
     fetchLocations();
+    fetchSport();
   }
 
   Widget nameActivity() {
@@ -71,34 +93,115 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
   Widget location() {
     return Container(
       margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
-      child: locations.isNotEmpty
-          ? DropdownButtonFormField<String>(
-              value: selectedLocation,
-              items: locations
-                  .map((location) =>
-                      DropdownMenuItem(value: location, child: Text(location)))
-                  .toList(),
-              onChanged: (value) {
-                setState(() {
-                  selectedLocation = value;
-                });
-              },
-              decoration: InputDecoration(
-                contentPadding: EdgeInsets.fromLTRB(0, 15, 0, 0),
-                hintText: 'สถานที่',
-                fillColor: Color.fromARGB(255, 255, 255, 255),
-                filled: true,
-                prefixIcon: Icon(
-                  Icons.add,
-                  color: Colors.red,
-                ),
-                border: OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.black),
-                  borderRadius: BorderRadius.circular(30),
-                ),
+      child: TypeAheadFormField(
+        textFieldConfiguration: TextFieldConfiguration(
+          controller: locationController,
+          decoration: InputDecoration(
+            contentPadding: EdgeInsets.fromLTRB(0, 15, 0, 0),
+            hintText: 'สถานที่',
+            hintStyle: TextStyle(fontFamily: 'THSarabunNew'),
+            fillColor: Color.fromARGB(255, 255, 255, 255),
+            filled: true,
+            prefixIcon: Icon(
+              Icons.add,
+              color: Colors.red,
+            ),
+            border: OutlineInputBorder(
+              borderSide: BorderSide(color: Colors.black),
+              borderRadius: BorderRadius.circular(30),
+            ),
+          ),
+          style: TextStyle(fontFamily: 'THSarabunNew'),
+        ),
+        suggestionsCallback: (pattern) {
+          return locations.where((location) =>
+              location.toLowerCase().contains(pattern.toLowerCase()));
+        },
+        itemBuilder: (context, suggestion) {
+          return ListTile(
+            title:
+                Text(suggestion, style: TextStyle(fontFamily: 'THSarabunNew')),
+          );
+        },
+        onSuggestionSelected: (suggestion) {
+          setState(() {
+            locationController.text = suggestion;
+            selectedLocation = suggestion;
+          });
+        },
+        noItemsFoundBuilder: (context) {
+          return Padding(
+            padding: EdgeInsets.all(8.0),
+            child: Text(
+              'ไม่พบสถานที่',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Colors.grey,
+                fontSize: 18.0,
+                fontFamily: 'THSarabunNew',
               ),
-            )
-          : CircularProgressIndicator(),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+
+  Widget field_name() {
+    return Container(
+      margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
+      child: TypeAheadFormField(
+        textFieldConfiguration: TextFieldConfiguration(
+          controller: sportController,
+          decoration: InputDecoration(
+            contentPadding: EdgeInsets.fromLTRB(0, 15, 0, 0),
+            hintText: 'กีฬา',
+            hintStyle: TextStyle(fontFamily: 'THSarabunNew'),
+            fillColor: Color.fromARGB(255, 255, 255, 255),
+            filled: true,
+            prefixIcon: Icon(
+              Icons.add,
+              color: Colors.red,
+            ),
+            border: OutlineInputBorder(
+              borderSide: BorderSide(color: Colors.black),
+              borderRadius: BorderRadius.circular(30),
+            ),
+          ),
+          style: TextStyle(fontFamily: 'THSarabunNew'),
+        ),
+        suggestionsCallback: (pattern) {
+          return sport.where(
+              (sport) => sport.toLowerCase().contains(pattern.toLowerCase()));
+        },
+        itemBuilder: (context, suggestion) {
+          return ListTile(
+            title:
+                Text(suggestion, style: TextStyle(fontFamily: 'THSarabunNew')),
+          );
+        },
+        onSuggestionSelected: (suggestion) {
+          setState(() {
+            sportController.text = suggestion;
+            selectedSport = suggestion;
+          });
+        },
+        noItemsFoundBuilder: (context) {
+          return Padding(
+            padding: EdgeInsets.all(8.0),
+            child: Text(
+              'ไม่พบกีฬา',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Colors.grey,
+                fontSize: 18.0,
+                fontFamily: 'THSarabunNew',
+              ),
+            ),
+          );
+        },
+      ),
     );
   }
 
@@ -109,7 +212,7 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
         controller: dateController,
         decoration: InputDecoration(
           contentPadding: EdgeInsets.fromLTRB(0, 15, 0, 0),
-          hintText: 'วันที่',
+          hintText: 'วันที่และเวลา',
           fillColor: Color.fromARGB(255, 255, 255, 255),
           filled: true,
           prefixIcon: Icon(
@@ -131,9 +234,24 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
           );
 
           if (pickedDate != null) {
-            setState(() {
-              dateController.text = pickedDate.toIso8601String();
-            });
+            TimeOfDay? pickedTime = await showTimePicker(
+              context: context,
+              initialTime: TimeOfDay.now(),
+            );
+
+            if (pickedTime != null) {
+              DateTime finalDateTime = DateTime(
+                pickedDate.year,
+                pickedDate.month,
+                pickedDate.day,
+                pickedTime.hour,
+                pickedTime.minute,
+              );
+
+              setState(() {
+                dateController.text = finalDateTime.toString();
+              });
+            }
           }
         },
       ),
@@ -343,6 +461,7 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
                           Column(mainAxisSize: MainAxisSize.max, children: [])),
                   nameActivity(),
                   location(),
+                  field_name(),
                   date(),
                   hashtag(),
                   message(),
