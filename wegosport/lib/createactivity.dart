@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_typeahead/flutter_typeahead.dart';
+import 'package:flutter_material_pickers/flutter_material_pickers.dart';
+
+
 import 'dart:async';
 import 'dart:convert';
 import 'package:wegosport/Homepage.dart';
@@ -19,6 +22,24 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
   TextEditingController hashtagController = TextEditingController();
   TextEditingController locationController = TextEditingController();
   TextEditingController sportController = TextEditingController();
+
+  
+  final List<String> _selectedTags = [];
+  void _showTagPicker(BuildContext context) {
+    showMaterialCheckboxPicker(
+      context: context,
+      title: 'เลือกแฮชแท็ก',
+      items: ['กีฬา', 'ฟิตเนส', 'สุขภาพ', 'วิ่ง', 'ว่ายน้ำ'],
+      selectedItems: _selectedTags,
+      onChanged: (List<String> value) {
+        setState(() {
+          _selectedTags.clear();
+          _selectedTags.addAll(value);
+        });
+      },
+    );
+  }
+
 
   String? selectedLocation;
   String? selectedSport;
@@ -147,7 +168,6 @@ Future<void> fetchSport() async {
     );
   }
 
-
   Widget field_name() {
     return Container(
       margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
@@ -261,22 +281,32 @@ Future<void> fetchSport() async {
   Widget hashtag() {
     return Container(
       margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
-      child: TextFormField(
-        controller: hashtagController,
-        decoration: InputDecoration(
-          contentPadding: EdgeInsets.fromLTRB(0, 15, 0, 0),
-          hintText: 'แฮชแท็ก (ไม่เกิน 20 ตัวอักษร, สูงสุด 3 แฮชแท็ก)',
-          fillColor: Color.fromARGB(255, 255, 255, 255),
-          filled: true,
-          prefixIcon: Icon(
-            Icons.add,
-            color: Colors.red,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '',
+            style: TextStyle(fontSize: 16, color: Colors.grey[700]),
           ),
-          border: OutlineInputBorder(
-            borderSide: BorderSide(color: Colors.black),
-            borderRadius: BorderRadius.circular(30),
+          SizedBox(height: 10),
+          Wrap(
+            spacing: 8.0,
+            children: _selectedTags
+                .map((tag) => Chip(
+                      label: Text(tag),
+                      onDeleted: () {
+                        setState(() {
+                          _selectedTags.remove(tag);
+                        });
+                      },
+                    ))
+                .toList(),
           ),
-        ),
+          ElevatedButton(
+            onPressed: () => _showTagPicker(context),
+            child: Text('เลือกแฮชแท็ก'),
+          ),
+        ],
       ),
     );
   }
@@ -310,7 +340,7 @@ Future<void> fetchSport() async {
       child: TextFormField(
         decoration: InputDecoration(
           contentPadding: EdgeInsets.fromLTRB(0, 15, 0, 0),
-          hintText: 'แนปรูป',
+          hintText: 'แนปรูปสถานที่',
           fillColor: Color.fromARGB(255, 255, 255, 255),
           filled: true,
           prefixIcon: Icon(

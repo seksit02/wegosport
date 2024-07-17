@@ -4,8 +4,13 @@ import 'dart:io';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:wegosport/EditProfile.dart';
+import 'package:wegosport/Homepage.dart';
+import 'package:wegosport/Login.dart';
 
 class ProfilePage extends StatefulWidget {
+
+  
+
   @override
   _ProfilePageState createState() => _ProfilePageState();
 }
@@ -14,6 +19,7 @@ class _ProfilePageState extends State<ProfilePage> {
   File? _image;
   late Future<List<dynamic>> _userData;
 
+   
   @override
   void initState() {
     super.initState();
@@ -52,7 +58,8 @@ class _ProfilePageState extends State<ProfilePage> {
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: Color.fromARGB(255, 0, 0, 0)),
           onPressed: () {
-            Navigator.pop(context);
+            Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (context) => Homepage()));
           },
         ),
       ),
