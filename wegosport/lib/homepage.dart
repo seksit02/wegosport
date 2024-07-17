@@ -210,8 +210,7 @@ class ActivityCardItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Debug: พิมพ์ URL ของรูปภาพเพื่อตรวจสอบ
-    print('Location photo URL: ${activity['location_photo']}');
+    String status = activity['members'].length > 3 ? "ยอดฮิต" : "มาใหม่";
 
     return Card(
       margin: EdgeInsets.all(10),
@@ -220,10 +219,26 @@ class ActivityCardItem extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // แถบแสดงสถานะ
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 155, vertical: 4),
+              decoration: BoxDecoration(
+                color: Colors.yellow,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                status,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+              ),
+            ),
+            SizedBox(height: 8),
             // แถวของแท็ก
             Wrap(
               children: (activity['hashtags'] as List<dynamic>)
-                  .map((tag) => TagWidget(text: tag['hashtag_message']))
+                  .map((tag) => TagWidget(text: tag['hashtag_message']),)
                   .toList(),
             ),
             SizedBox(height: 8),
@@ -278,7 +293,7 @@ class ActivityCardItem extends StatelessWidget {
             SizedBox(height: 8),
             // ข้อความเข้าร่วม
             Text(
-              '${activity['members'].length}/99 จะไป',
+              '${activity['members'].length}/${activity['members'].length} จะไป',
               style: TextStyle(
                 fontWeight: FontWeight.bold,
               ),
@@ -288,10 +303,8 @@ class ActivityCardItem extends StatelessWidget {
             Text(activity['activity_details'] ?? ''),
             SizedBox(height: 8),
             // รูปภาพสถานที่
-            // รูปภาพสถานที่
             activity['location_photo'] != null
-                ? Image.asset("images/logo.png",
-                    height: 200)
+                ? Image.asset("images/logo.png", height: 200)
                 : SizedBox(
                     height: 200,
                     child: Center(child: Text('ไม่มีรูปภาพ')),
@@ -302,6 +315,7 @@ class ActivityCardItem extends StatelessWidget {
     );
   }
 }
+
 
 class TagWidget extends StatelessWidget {
   final String text;
@@ -314,10 +328,15 @@ class TagWidget extends StatelessWidget {
       margin: EdgeInsets.only(right: 8),
       padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       decoration: BoxDecoration(
-        color: Colors.yellow,
+        color: const Color.fromARGB(255, 168, 168, 168),
         borderRadius: BorderRadius.circular(20),
       ),
-      child: Text(text),
+      child: Text(
+        text,
+        style: TextStyle(
+          color: const Color.fromARGB(255, 0, 0, 0), // เปลี่ยนสีข้อความเป็นสีเทา
+        ),
+      ),
     );
   }
 }
