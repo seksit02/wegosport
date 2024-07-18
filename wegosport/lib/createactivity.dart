@@ -23,8 +23,9 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
   TextEditingController locationController = TextEditingController();
   TextEditingController sportController = TextEditingController();
 
-  
   final List<String> _selectedTags = [];
+
+
   void _showTagPicker(BuildContext context) {
     showMaterialCheckboxPicker(
       context: context,
@@ -285,7 +286,7 @@ Future<void> fetchSport() async {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            '',
+            'ทดสอบ hashtag',
             style: TextStyle(fontSize: 16, color: Colors.grey[700]),
           ),
           SizedBox(height: 10),
@@ -302,9 +303,27 @@ Future<void> fetchSport() async {
                     ))
                 .toList(),
           ),
-          ElevatedButton(
-            onPressed: () => _showTagPicker(context),
-            child: Text('เลือกแฮชแท็ก'),
+          TextField(
+            controller: hashtagController,
+            decoration: InputDecoration(
+              hintText: 'พิมพ์แฮชแท็กที่นี่',
+              suffixIcon: IconButton(
+                icon: Icon(Icons.add),
+                onPressed: () {
+                  if (hashtagController.text.isNotEmpty &&
+                      hashtagController.text.length <= 20 &&
+                      _selectedTags.length < 3) {
+                    setState(() {
+                      _selectedTags.add(hashtagController.text);
+                      hashtagController.clear();
+                    });
+                  }
+                },
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(30),
+              ),
+            ),
           ),
         ],
       ),
@@ -418,7 +437,7 @@ Future<void> fetchSport() async {
   }
 
   Future<void> functionCreateActivity() async {
-    String hashtags = hashtagController.text;
+    String hashtags = _selectedTags.join(" ");
     List<String> hashtagList =
         hashtags.split(RegExp(r'\s+')).where((tag) => tag.isNotEmpty).toList();
 

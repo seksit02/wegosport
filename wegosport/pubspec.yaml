@@ -31,7 +31,7 @@ dependencies:
   flutter:
     sdk: flutter
   http: ^0.13.5
-  flutter_facebook_auth: ^4.2.1 # Use the latest stable version
+  flutter_facebook_auth: ^4.2.1 # facebook
   image_picker: ^0.8.4+4 #รูป
   flutter_typeahead: ^4.0.0 #เลือกสถานที่และกีฬา
   flutter_material_pickers: ^3.0.0 #hashtag

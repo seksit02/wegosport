@@ -183,7 +183,7 @@ class _AddLocationState extends State<AddLocationPage> {
       appBar: AppBar(
         title: Text("เพิ่มสถานที่"),
         leading: backButton(),
-        backgroundColor: Colors.grey[800],
+        backgroundColor: const Color.fromARGB(255, 255, 255, 255),
       ),
       body: SafeArea(
         child: ListView(

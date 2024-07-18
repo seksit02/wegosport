@@ -56,15 +56,39 @@ class _HomepageState extends State<Homepage> {
   }
 
   void _filterActivities(String query) {
+    if (activities == null || query == null) {
+      setState(() {
+        searchQuery = query ?? '';
+        filteredActivities = [
+          {'activity_name': 'ไม่มีกิจกรรม'}
+        ];
+      });
+      return;
+    }
+
     final filtered = activities.where((activity) {
-      final activityName = activity['activity_name'].toLowerCase();
+      final activityName = activity['activity_name']?.toLowerCase() ?? '';
       final searchLower = query.toLowerCase();
       return activityName.contains(searchLower);
     }).toList();
 
     setState(() {
       searchQuery = query;
-      filteredActivities = filtered;
+      if (filtered.isEmpty) {
+        filteredActivities = [
+          {'activity_name': 'ไม่มีกิจกรรม'}
+        ];
+      } else {
+        filteredActivities = filtered.map((activity) {
+          final members = activity['members'];
+          final status =
+              (members != null && members.length > 3) ? "ยอดฮิต" : "มาใหม่";
+          return {
+            ...activity,
+            'status': status,
+          };
+        }).toList();
+      }
     });
   }
 
@@ -210,7 +234,9 @@ class ActivityCardItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    String status = activity['members'].length > 3 ? "ยอดฮิต" : "มาใหม่";
+    final members = activity['members'];
+    String status =
+        (members != null && members.length > 3) ? "ยอดฮิต" : "มาใหม่";
 
     return Card(
       margin: EdgeInsets.all(10),
@@ -237,8 +263,8 @@ class ActivityCardItem extends StatelessWidget {
             SizedBox(height: 8),
             // แถวของแท็ก
             Wrap(
-              children: (activity['hashtags'] as List<dynamic>)
-                  .map((tag) => TagWidget(text: tag['hashtag_message']),)
+              children: (activity['hashtags'] as List<dynamic>? ?? [])
+                  .map((tag) => TagWidget(text: tag['hashtag_message']))
                   .toList(),
             ),
             SizedBox(height: 8),
@@ -285,7 +311,9 @@ class ActivityCardItem extends StatelessWidget {
                   children: [
                     Icon(Icons.person),
                     SizedBox(width: 4),
-                    Text('${activity['members'].length}'),
+                    Text(
+                      '${activity['members'] != null ? activity['members'].length : 0}',
+                    ),
                   ],
                 ),
               ],
@@ -293,7 +321,7 @@ class ActivityCardItem extends StatelessWidget {
             SizedBox(height: 8),
             // ข้อความเข้าร่วม
             Text(
-              '${activity['members'].length}/${activity['members'].length} จะไป',
+              '${activity['members'] != null ? activity['members'].length : 0}/${activity['members'] != null ? activity['members'].length : 0} ลงชื่อเข้าร่วม',
               style: TextStyle(
                 fontWeight: FontWeight.bold,
               ),
@@ -316,7 +344,6 @@ class ActivityCardItem extends StatelessWidget {
   }
 }
 
-
 class TagWidget extends StatelessWidget {
   final String text;
 
@@ -334,7 +361,8 @@ class TagWidget extends StatelessWidget {
       child: Text(
         text,
         style: TextStyle(
-          color: const Color.fromARGB(255, 0, 0, 0), // เปลี่ยนสีข้อความเป็นสีเทา
+          color:
+              const Color.fromARGB(255, 0, 0, 0), // เปลี่ยนสีข้อความเป็นสีเทา
         ),
       ),
     );
