@@ -43,7 +43,7 @@ android {
 
     defaultConfig {
         applicationId "com.example.wegosport"
-        minSdkVersion flutter.minSdkVersion
+        minSdkVersion 20
         targetSdkVersion 34
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName

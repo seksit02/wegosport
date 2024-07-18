@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -17,10 +18,11 @@ class AddLocationPage extends StatefulWidget {
 class _AddLocationState extends State<AddLocationPage> {
   TextEditingController input1 = TextEditingController();
   TextEditingController input2 = TextEditingController();
-  TextEditingController input3 = TextEditingController();
   File? _imageFile;
+  LatLng? _selectedLocation; // Added to store the selected location
 
   final ImagePicker _picker = ImagePicker();
+  GoogleMapController? _mapController;
 
   Future<void> _pickImage() async {
     final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
@@ -83,13 +85,12 @@ class _AddLocationState extends State<AddLocationPage> {
     );
   }
 
-
   Widget addImage() {
     return Container(
       margin: EdgeInsets.fromLTRB(20, 20, 20, 0),
       child: ElevatedButton.icon(
         icon: Icon(Icons.image, color: Colors.white),
-        label: Text("แบบรูป", style: TextStyle(color: Colors.white)),
+        label: Text("เลือกรูปภาพ", style: TextStyle(color: Colors.white)),
         style: ElevatedButton.styleFrom(
           primary: Colors.black,
           padding: EdgeInsets.symmetric(vertical: 15),
@@ -102,25 +103,59 @@ class _AddLocationState extends State<AddLocationPage> {
     );
   }
 
+  Widget map() {
+    return Container(
+      margin: EdgeInsets.fromLTRB(20, 20, 20, 0),
+      width: double.infinity,
+      height: 300,
+      child: GoogleMap(
+        onMapCreated: (GoogleMapController controller) {
+          _mapController = controller;
+        },
+        initialCameraPosition: CameraPosition(
+          target: LatLng(37.7749, -122.4194),
+          zoom: 10,
+        ),
+        onTap: (LatLng location) {
+          setState(() {
+            _selectedLocation = location;
+          });
+        },
+        markers: _selectedLocation != null
+            ? {
+                Marker(
+                  markerId: MarkerId('selected-location'),
+                  position: _selectedLocation!,
+                ),
+              }
+            : {},
+      ),
+    );
+  }
+
   Widget mapImage() {
     return _imageFile == null
         ? Container(
             margin: EdgeInsets.fromLTRB(20, 20, 20, 0),
+            width: 200, // กำหนดความกว้างที่ต้องการ
+            height: 200, // กำหนดความสูงที่ต้องการ
             child: ClipRRect(
               borderRadius: BorderRadius.circular(10),
               child: Image.asset(
                 'images/logo.png', // เปลี่ยนเป็นรูปภาพของแผนที่
-                fit: BoxFit.cover,
+                //fit: BoxFit.cover,
               ),
             ),
           )
         : Container(
             margin: EdgeInsets.fromLTRB(20, 20, 20, 0),
+            width: 200, // กำหนดความกว้างที่ต้องการ
+            height: 200,
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(20),
               child: Image.file(
                 _imageFile!,
-                fit: BoxFit.cover,
+                //fit: BoxFit.cover,
               ),
             ),
           );
@@ -146,8 +181,8 @@ class _AddLocationState extends State<AddLocationPage> {
   }
 
   Future<void> functionAddLocation() async {
-    if (_imageFile == null) {
-      print("No image selected.");
+    if (_imageFile == null || _selectedLocation == null) {
+      print("No image or location selected.");
       return;
     }
 
@@ -158,7 +193,9 @@ class _AddLocationState extends State<AddLocationPage> {
 
     request.fields['location_name'] = input1.text;
     request.fields['location_time'] = input2.text;
-    
+    request.fields['latitude'] = _selectedLocation!.latitude.toString();
+    request.fields['longitude'] = _selectedLocation!.longitude.toString();
+
     request.files
         .add(await http.MultipartFile.fromPath('image', _imageFile!.path));
 
@@ -191,6 +228,7 @@ class _AddLocationState extends State<AddLocationPage> {
             namelocation(),
             time(),
             addImage(),
+            map(), // Added Google Map widget
             mapImage(),
             buttonAddLocation(),
           ],
