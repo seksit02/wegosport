@@ -30,14 +30,18 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  http: ^0.13.5
+  http: ^0.13.3
   flutter_facebook_auth: ^4.2.1 # facebook
   image_picker: ^0.8.4+4 #รูป
   flutter_typeahead: ^4.0.0 #เลือกสถานที่และกีฬา
   flutter_material_pickers: ^3.0.0 #hashtag
+
   google_maps_flutter: ^2.0.6
+  flutter_google_places: ^0.3.0
+  google_maps_webservice: ^0.0.20-nullsafety.5
+  url_launcher: ^6.0.20
 
-
+  dart_jsonwebtoken: ^2.1.1
 
 
   

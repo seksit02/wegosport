@@ -1,157 +1,106 @@
 import 'package:flutter/material.dart';
-import 'package:wegosport/Login.dart';
+import 'package:http/http.dart' as http;
 
-class forgetpasswordpage extends StatefulWidget {
-  const forgetpasswordpage({super.key});
-
+class ForgotPasswordPage extends StatefulWidget {
   @override
-  State<forgetpasswordpage> createState() => _forgetpasswordpageState();
+  _ForgotPasswordPageState createState() => _ForgotPasswordPageState();
 }
 
-class _forgetpasswordpageState extends State<forgetpasswordpage> {
-  TextEditingController inputone = TextEditingController();
+class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
+  final TextEditingController _emailController = TextEditingController();
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
-  Widget inputOne() {
-    return Container(
-      margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
-      child: TextFormField(
-        controller: inputone,
-        decoration: InputDecoration(
-          contentPadding: EdgeInsets.fromLTRB(0, 15, 0, 0),
-          hintText: 'กรอกอีเมล',
-          fillColor: Colors.white, // กำหนดสีพื้นหลังเป็นสีขาว
-          filled: true,
-          prefixIcon: Icon(
-            Icons.person,
-            color: Colors.red, // ตั้งค่าสีของไอคอนเป็นสีแดง
-          ),
-          border: OutlineInputBorder(
-            borderSide: BorderSide(color: Colors.black),
-            borderRadius: BorderRadius.circular(30), // ปรับความโค้งของกรอบ
-          ),
-        ),
-      ),
-    );
+  Future<void> _sendResetLink() async {
+    final email = _emailController.text.trim();
+
+    if (_formKey.currentState!.validate()) {
+      final response = await http.post(
+        Uri.parse('http://192.168.1.41/test6/send_reset_link.php'),
+        body: {'email': email},
+      );
+
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content:
+                  Text('ลิ้งก์รีเซ็ตรหัสผ่านได้ถูกส่งไปที่อีเมลของคุณแล้ว')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง')),
+        );
+      }
+    }
   }
-
-
-Widget backButton() {
-    return IconButton(
-      icon: Icon(Icons.arrow_back, color: Colors.black),
-      onPressed: () {
-        Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => LoginPage()));
-      },
-    );
-  }
-
-Widget appLogo() {
-    return Container(
-      width: 100,
-      height: 100,
-      margin: EdgeInsets.fromLTRB(0, 50, 0, 0),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(50), // กำหนดรูปร่างของกรอบ
-      ),
-      child: ClipRRect(
-        borderRadius:
-            BorderRadius.circular(10), // ให้ Clip รูปภาพตามรูปร่างของกรอบ
-        child: Image.asset(
-          "images/logo.png",
-          fit: BoxFit.cover, // ให้รูปภาพปรับตามขนาดของ Container
-        ),
-      ),
-    );
-  }
-
-Widget buttonProcesslogin() {
-    return ButtonTheme(
-      minWidth: double.infinity,
-      child: Container(
-        margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
-        child: ElevatedButton(
-          child: Text(
-            "ยืนยัน",
-            style: TextStyle(
-              color: Colors.white,
-            ),
-          ),
-          style: ElevatedButton.styleFrom(
-            padding: EdgeInsets.fromLTRB(20, 10, 20, 10),
-            backgroundColor: Color.fromARGB(249, 255, 4, 4),
-            shadowColor: Color.fromARGB(255, 255, 255, 255),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(30), // ปรับความโค้งของกรอบ
-              side: BorderSide(color: Colors.black),
-            ),
-          ),
-          onPressed: () {
-            functionforget();// โค้ดการเข้าสู่ระบบ
-          },
-        ),
-      ),
-    );
-  }
-
-  Widget text1() {
-    return Container(
-      child: Text(
-        "ลืมรหัสผ่าน",
-        style: TextStyle(
-          fontSize: 24,
-          fontWeight: FontWeight.bold,
-          fontStyle: FontStyle.italic,
-          fontFamily: 'YourFontFamily',
-        ),
-      ),
-    );
-  }
-
-  Widget text2() {
-    return Container(
-      child: Text(
-        "กรุณากรอกอีเมลเพื่อตั้งรหัสผ่านใหม่",
-        style: TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.bold,
-          fontStyle: FontStyle.italic,
-          fontFamily: 'YourFontFamily',
-        ),
-      ),
-    );
-  }
-
-functionforget(){
-
-}
-
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home:Stack(
-        children: [
-          Scaffold(
-            backgroundColor: Color.fromARGB(255, 255, 255, 255),
-            appBar: AppBar(title: Text("หน้าลืมรหัสผ่าน"),
-            leading: backButton(),
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('หน้าลืมรหัสผ่าน'),
+        centerTitle: true,
+        backgroundColor: Colors.blue,
+      ),
+      body: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 32.0),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Image.asset(
+                  'images/logo.png', // ใส่ URL โลโก้ของคุณ
+                  height: 100,
+                ),
+                SizedBox(height: 20),
+                Text(
+                  'ลืมรหัสผ่าน',
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                ),
+                SizedBox(height: 10),
+                Text(
+                  'กรุณากรอกอีเมลเพื่อยืนยันรหัสผ่านใหม่',
+                  style: TextStyle(fontSize: 16),
+                  textAlign: TextAlign.center,
+                ),
+                SizedBox(height: 30),
+                TextFormField(
+                  controller: _emailController,
+                  decoration: InputDecoration(
+                    prefixIcon: Icon(Icons.email, color: Colors.red),
+                    labelText: 'กรอกอีเมล',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(30.0),
+                    ),
+                  ),
+                  keyboardType: TextInputType.emailAddress,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'กรุณากรอกอีเมล';
+                    } else if (!RegExp(r'^[^@]+@[^@]+\.[^@]+')
+                        .hasMatch(value)) {
+                      return 'กรุณากรอกอีเมลให้ถูกต้อง';
+                    }
+                    return null;
+                  },
+                ),
+                SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: _sendResetLink,
+                  child: Text('ยืนยัน'),
+                  style: ElevatedButton.styleFrom(
+                    primary: Colors.red,
+                    padding: EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30.0),
+                    ),
+                  ),
+                ),
+              ],
             ),
-            body: SafeArea(
-              child: ListView(
-                children: [
-                  Center(
-                      child: Column(mainAxisSize: MainAxisSize.max, children: [
-                    appLogo(),
-                    text1(),
-                    text2(),
-                    inputOne(),
-                    buttonProcesslogin(),
-                  ])),
-                ],
-              ),
-            ),
-          )
-        ],
+          ),
+        ),
       ),
     );
   }

@@ -1,143 +1,150 @@
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
-import 'dart:io';
-import 'dart:convert';
+
 import 'package:http/http.dart' as http;
-import 'package:wegosport/EditProfile.dart';
+import 'dart:convert';
+
 import 'package:wegosport/Homepage.dart';
-import 'package:wegosport/Login.dart';
 
 class ProfilePage extends StatefulWidget {
 
-  
+  const ProfilePage({super.key, required this.jwt});
+
+  final String jwt;
 
   @override
-  _ProfilePageState createState() => _ProfilePageState();
+  State<ProfilePage> createState() => _ProfilePageState();
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  File? _image;
-  late Future<List<dynamic>> _userData;
 
-   
+  Map<String, dynamic>? userData;
+
   @override
   void initState() {
     super.initState();
-    _userData = fetchUserData();
+    fetchUserData(widget.jwt);
   }
 
-  Future<void> _pickImage() async {
-    final pickedFile =
-        await ImagePicker().pickImage(source: ImageSource.gallery);
 
-    if (pickedFile != null) {
-      setState(() {
-        _image = File(pickedFile.path);
-      });
-    }
-  }
+  Future<void> fetchUserData(String jwt) async {
 
-  Future<List<dynamic>> fetchUserData() async {
-    final response = await http.get(Uri.parse(
-        'http://10.0.2.2/flutter_webservice/get_ShowDataUser.php'));
+    try {
 
-    if (response.statusCode == 200) {
-      return json.decode(response.body);
-    } else {
+      final response = await http.get(
+        Uri.parse('http://10.0.2.2/flutter_webservice/get_ShowDataUser1.php'),
+
+        headers: {
+          'Authorization': 'Bearer $jwt',
+        },
+
+      );
+
+      if (response.statusCode == 200) {
+
+        final data = json.decode(response.body);
+
+        setState(() {
+          userData = data.isNotEmpty ? data[0] : null;
+        });
+
+        print(data);
+
+      } else {
+        print("Failed to load user data: ${response.body}");
+        throw Exception('Failed to load user data');
+      }
+    } catch (error) {
+      print("Error: $error");
+
       throw Exception('Failed to load user data');
     }
   }
 
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[300],
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
+        backgroundColor: Color.fromARGB(255, 255, 0, 0),
+        title: Text("หน้าโปรไฟล์"),
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Color.fromARGB(255, 0, 0, 0)),
+          icon: Icon(Icons.arrow_back,
+              color: const Color.fromARGB(255, 255, 255, 255)),
           onPressed: () {
-            Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (context) => Homepage()));
+
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => Homepage(),
+              ),
+            );
+
           },
         ),
       ),
-      body: FutureBuilder<List<dynamic>>(
-        future: _userData,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text('เกิดข้อผิดพลาด: ${snapshot.error}'));
-          } else if (!snapshot.hasData ||
-              snapshot.data == null ||
-              snapshot.data!.isEmpty) {
-            return Center(child: Text('ไม่พบข้อมูลผู้ใช้'));
-          } else {
-            final userData = snapshot
-                .data![0]; // Assuming you need the first item from the list
-            return Center(
+
+
+      body: userData == null
+          ? Center(child: CircularProgressIndicator())
+          : Center(
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: <Widget>[
-                  SizedBox(height: 50), // ระยะห่างจากด้านบน
-                  GestureDetector(
-                    onTap: _pickImage,
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(16.0),
-                      child: _image != null
-                          ? Image.file(
-                              _image!,
-                              height: 120.0,
-                              width: 120.0,
-                              fit: BoxFit.cover,
-                            )
-                          : Image.asset(
-                              'images/P001.jpg',
-                              height: 120.0,
-                              width: 120.0,
-                              fit: BoxFit.cover,
-                            ),
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+
+                  CircleAvatar(
+                    radius: 50,
+                    backgroundImage: userData!['user_photo'] != null
+                        ? NetworkImage(userData!['user_photo'])
+                        : AssetImage("images/P001.jpg") as ImageProvider,
+                  ),
+
+                  SizedBox(height: 16),
+
+                  Text(
+                    userData!['user_name'] ?? 'ไม่มีข้อมูล',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
-                  SizedBox(height: 16),
+
                   Text(
-                    userData['user_name'] ?? 'ไม่มีชื่อ',
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                    userData!['user_id'] ?? 'ไม่มีข้อมูล',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: const Color.fromARGB(255, 18, 18, 18),
+                    ),
                   ),
-                  Text(
-                    '@${userData['user_id'] ?? 'ไม่มีชื่อผู้ใช้'}',
-                    style: TextStyle(color: Colors.grey[700]),
-                  ),
-                  SizedBox(height: 8),
-                  Text(userData['user_text'] ?? 'ยังไม่ได้เขียนอะไร'),
+
                   SizedBox(height: 16),
+
+                  Text(
+                    userData!['user_text'] ?? 'ไม่มีข้อมูล',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: const Color.fromARGB(255, 0, 0, 0),
+                    ),
+                  ),
+
+                  SizedBox(height: 16),
+
                   ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      primary: Colors.white,
-                      onPrimary: Colors.black,
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 32, vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(24.0),
-                        side: BorderSide(color: Colors.black),
-                      ),
-                    ),
                     onPressed: () {
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => editprofile()));
+
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => Homepage(),
+                        ),
+                      );
+
                     },
                     child: Text('แก้ไขข้อมูล'),
                   ),
                 ],
               ),
-            );
-          }
-        },
-      ),
+            ),
     );
   }
 }
+

@@ -3,7 +3,6 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:flutter_material_pickers/flutter_material_pickers.dart';
 
-
 import 'dart:async';
 import 'dart:convert';
 import 'package:wegosport/Homepage.dart';
@@ -24,7 +23,7 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
   TextEditingController sportController = TextEditingController();
 
   final List<String> _selectedTags = [];
-
+  List<String> _allHashtags = [];
 
   void _showTagPicker(BuildContext context) {
     showMaterialCheckboxPicker(
@@ -40,7 +39,6 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
       },
     );
   }
-
 
   String? selectedLocation;
   String? selectedSport;
@@ -65,7 +63,7 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
     }
   }
 
-Future<void> fetchSport() async {
+  Future<void> fetchSport() async {
     final response = await http.get(
         Uri.parse('http://10.0.2.2/flutter_webservice/get_ShowDataSport.php'));
 
@@ -81,12 +79,30 @@ Future<void> fetchSport() async {
     }
   }
 
+  Future<void> fetchHashtags() async {
+    final response = await http.get(Uri.parse(
+        'http://10.0.2.2/flutter_webservice/get_ShowDataHashtag.php'));
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      setState(() {
+        _allHashtags = List<String>.from(data
+            .map((item) => item['hashtag_message'])
+            .where((item) => item != null)
+            .toSet());
+      });
+    } else {
+      print('Failed to load hashtags. Status code: ${response.statusCode}');
+      throw Exception('Failed to load hashtags');
+    }
+  }
 
   @override
   void initState() {
     super.initState();
     fetchLocations();
     fetchSport();
+    fetchHashtags();
   }
 
   Widget nameActivity() {
@@ -285,11 +301,6 @@ Future<void> fetchSport() async {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'ทดสอบ hashtag',
-            style: TextStyle(fontSize: 16, color: Colors.grey[700]),
-          ),
-          SizedBox(height: 10),
           Wrap(
             spacing: 8.0,
             children: _selectedTags
@@ -303,27 +314,61 @@ Future<void> fetchSport() async {
                     ))
                 .toList(),
           ),
-          TextField(
-            controller: hashtagController,
-            decoration: InputDecoration(
-              hintText: 'พิมพ์แฮชแท็กที่นี่',
-              suffixIcon: IconButton(
-                icon: Icon(Icons.add),
-                onPressed: () {
-                  if (hashtagController.text.isNotEmpty &&
-                      hashtagController.text.length <= 20 &&
-                      _selectedTags.length < 3) {
-                    setState(() {
-                      _selectedTags.add(hashtagController.text);
-                      hashtagController.clear();
-                    });
-                  }
-                },
-              ),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(30),
+          TypeAheadFormField<String>(
+            textFieldConfiguration: TextFieldConfiguration(
+              controller: hashtagController,
+              decoration: InputDecoration(
+                hintText: 'พิมพ์แฮชแท็กที่นี่',
+                suffixIcon: IconButton(
+                  icon: Icon(Icons.add),
+                  onPressed: () {
+                    if (hashtagController.text.isNotEmpty &&
+                        hashtagController.text.length <= 20 &&
+                        _selectedTags.length < 3 &&
+                        !_selectedTags.contains(hashtagController.text)) {
+                      setState(() {
+                        _selectedTags.add(hashtagController.text);
+                        hashtagController.clear();
+                      });
+                    }
+                  },
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(30),
+                ),
               ),
             ),
+            suggestionsCallback: (pattern) {
+              return _allHashtags.where((hashtag) =>
+                  hashtag.toLowerCase().contains(pattern.toLowerCase()));
+            },
+            itemBuilder: (context, suggestion) {
+              return ListTile(
+                title: Text(suggestion),
+              );
+            },
+            onSuggestionSelected: (suggestion) {
+              if (_selectedTags.length < 3 &&
+                  !_selectedTags.contains(suggestion)) {
+                setState(() {
+                  _selectedTags.add(suggestion);
+                  hashtagController.clear();
+                });
+              }
+            },
+            noItemsFoundBuilder: (context) {
+              return Padding(
+                padding: EdgeInsets.all(8.0),
+                child: Text(
+                  'ไม่พบแฮชแท็ก',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.grey,
+                    fontSize: 18.0,
+                  ),
+                ),
+              );
+            },
           ),
         ],
       ),
@@ -338,28 +383,6 @@ Future<void> fetchSport() async {
         decoration: InputDecoration(
           contentPadding: EdgeInsets.fromLTRB(0, 15, 0, 0),
           hintText: 'ข้อความขังเขป',
-          fillColor: Color.fromARGB(255, 255, 255, 255),
-          filled: true,
-          prefixIcon: Icon(
-            Icons.add,
-            color: Colors.red,
-          ),
-          border: OutlineInputBorder(
-            borderSide: BorderSide(color: Colors.black),
-            borderRadius: BorderRadius.circular(30),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget picture() {
-    return Container(
-      margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
-      child: TextFormField(
-        decoration: InputDecoration(
-          contentPadding: EdgeInsets.fromLTRB(0, 15, 0, 0),
-          hintText: 'แนปรูปสถานที่',
           fillColor: Color.fromARGB(255, 255, 255, 255),
           filled: true,
           prefixIcon: Icon(
@@ -406,7 +429,8 @@ Future<void> fetchSport() async {
 
   Widget backButton() {
     return IconButton(
-      icon: Icon(Icons.arrow_back, color: Colors.black),
+      icon: Icon(Icons.arrow_back,
+          color: const Color.fromARGB(255, 255, 255, 255)),
       onPressed: () {
         Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (context) => Homepage()));
@@ -501,6 +525,7 @@ Future<void> fetchSport() async {
             appBar: AppBar(
               title: Text("หน้าสร้างกิจกรรม"),
               leading: backButton(),
+              backgroundColor: Color.fromARGB(255, 255, 0, 0),
             ),
             body: SafeArea(
               child: ListView(
@@ -514,7 +539,6 @@ Future<void> fetchSport() async {
                   date(),
                   hashtag(),
                   message(),
-                  picture(),
                   createGroupButton()
                 ],
               ),

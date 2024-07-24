@@ -16,10 +16,11 @@ class _groupchatState extends State<groupchat> {
           Scaffold(
             backgroundColor: Color.fromARGB(255, 255, 255, 255),
             appBar: AppBar(
+              backgroundColor: Color.fromARGB(255, 255, 0, 0),
               title: Text("หน้ากลุ่มแชท"),
               leading: IconButton(
-                icon:
-                    Icon(Icons.arrow_back, color: Color.fromARGB(255, 0, 0, 0)),
+                icon: Icon(Icons.arrow_back,
+                    color: Color.fromARGB(255, 255, 255, 255)),
                 onPressed: () {
                   Navigator.pop(context);
                 },
