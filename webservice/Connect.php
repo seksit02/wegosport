@@ -3,6 +3,8 @@
 @header('Content-Type: application/json');
 @header("Access-Control-Allow-Origin: *");
 @header('Access-Control-Allow-Headers: X-Requested-With, content-type, access-control-allow-origin, access-control-allow-methods, access-control-allow-headers');
+@header('Content-Type: application/json; charset=utf-8');
+
 
 // ตั้งค่าการเชื่อมต่อฐานข้อมูล
 $servername = "localhost"; // ชื่อ server

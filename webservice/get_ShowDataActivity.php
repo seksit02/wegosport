@@ -9,7 +9,9 @@ $sql = "SELECT
             l.location_id,
             l.location_name,
             l.location_time,
-            l.location_photo
+            l.location_photo,
+            l.latitude,  
+            l.longitude
         FROM 
             activity a
         JOIN 
@@ -21,6 +23,8 @@ $activities = array();
 if ($result->num_rows > 0) {
     while($row = $result->fetch_assoc()) {
         $location_photo_url = 'http://wegosport.dev/flutter_webservice/' . $row["location_photo"]; // Full URL
+        
+        
         $activity = array(
             "activity_id" => $row["activity_id"],
             "activity_name" => $row["activity_name"],
@@ -28,7 +32,9 @@ if ($result->num_rows > 0) {
             "activity_date" => $row["activity_date"],
             "location_name" => $row["location_name"],
             "location_time" => $row["location_time"],
-            "location_photo" => $location_photo_url // Use Full URL
+            "location_photo" => $location_photo_url,
+            "latitude" => $row["latitude"],
+            "longitude" => $row["longitude"] 
         );
 
         // ดึงข้อมูลสมาชิกในกิจกรรม

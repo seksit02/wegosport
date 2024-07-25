@@ -1,70 +1,82 @@
 <?php
 require 'Connect.php';
 
-//3. request from client
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $content = file_get_contents("php://input"); // plaintext
-    $json_data = json_decode($content, true); // เอา plaintext มาจัดรูปแบบเป็น json (json_decode)
+    $content = file_get_contents("php://input");
+    $json_data = json_decode($content, true);
 
     if ($json_data === null) {
-        // JSON decode failed
         echo json_encode(array("result" => 0, "message" => "Invalid JSON input", "datalist" => null));
         http_response_code(400);
         exit;
     }
 
-    $activity_name = mysqli_real_escape_string($conn, trim($json_data["activity_name"]));
-    $activity_details = mysqli_real_escape_string($conn, trim($json_data["activity_details"]));
-    $activity_date = mysqli_real_escape_string($conn, trim($json_data["activity_date"]));
-    $location_name = mysqli_real_escape_string($conn, trim($json_data["location_name"]));
-    $sport_id = mysqli_real_escape_string($conn, trim($json_data["sport_id"]));
-    $hashtags = $json_data["hashtags"]; // this should be an array
+    $activity_name = trim($json_data["activity_name"]);
+    $activity_details = trim($json_data["activity_details"]);
+    $activity_date = trim($json_data["activity_date"]);
+    $location_name = trim($json_data["location_name"]);
+    $sport_id = trim($json_data["sport_id"]);
+    $hashtags = $json_data["hashtags"];
+
+    if ($conn->connect_error) {
+        echo json_encode(array("result" => 0, "message" => "Database connection failed", "datalist" => null));
+        http_response_code(500);
+        exit;
+    }
 
     // Get location_id from location_name
-    $location_query = "SELECT location_id FROM location WHERE location_name = '$location_name'";
-    $location_result = mysqli_query($conn, $location_query);
-    if (mysqli_num_rows($location_result) > 0) {
-        $location_row = mysqli_fetch_assoc($location_result);
-        $location_id = $location_row['location_id'];
+    $stmt = $conn->prepare("SELECT location_id FROM location WHERE location_name = ?");
+    $stmt->bind_param("s", $location_name);
+    $stmt->execute();
+    $stmt->store_result();
+    if ($stmt->num_rows > 0) {
+        $stmt->bind_result($location_id);
+        $stmt->fetch();
     } else {
-        // If location not found, return error
         echo json_encode(array("result" => 0, "message" => "Invalid location", "datalist" => null));
         http_response_code(400);
         exit;
     }
+    $stmt->close();
 
-    //4. sql command / process
-    $strSQL = "INSERT INTO activity (activity_name, activity_details, activity_date, location_id, sport_id) VALUES ('$activity_name','$activity_details','$activity_date', '$location_id', '$sport_id')";
-    $query = @mysqli_query($conn, $strSQL);
+    // Insert activity
+    $stmt = $conn->prepare("INSERT INTO activity (activity_name, activity_details, activity_date, location_id, sport_id) VALUES (?, ?, ?, ?, ?)");
+    $stmt->bind_param("sssii", $activity_name, $activity_details, $activity_date, $location_id, $sport_id);
+    $query = $stmt->execute();
     $datalist = array();
 
     if ($query) {
-        $activity_id = mysqli_insert_id($conn);
+        $activity_id = $stmt->insert_id;
         $result = 1;
         $message = "เพิ่มข้อมูลสำเร็จ";
-        $datalist[] = array("ID" => $activity_id, "activity_name" => $activity_name, "activity_details" => $activity_details, "activity_date" => $activity_date );
+        $datalist[] = array("ID" => $activity_id, "activity_name" => $activity_name, "activity_details" => $activity_details, "activity_date" => $activity_date);
 
-        // Insert hashtags into hashtags_in_activities table
+        // Insert hashtags
         foreach ($hashtags as $hashtag_message) {
-            $hashtag_message = mysqli_real_escape_string($conn, trim($hashtag_message));
-            
+            $hashtag_message = trim($hashtag_message);
+
             // Check if hashtag exists
-            $hashtag_query = "SELECT hashtag_id FROM hashtag WHERE hashtag_message = '$hashtag_message'";
-            $hashtag_result = mysqli_query($conn, $hashtag_query);
-            if (mysqli_num_rows($hashtag_result) > 0) {
-                // Hashtag exists, get its ID
-                $hashtag_row = mysqli_fetch_assoc($hashtag_result);
-                $hashtag_id = $hashtag_row['hashtag_id'];
+            $stmt = $conn->prepare("SELECT hashtag_id FROM hashtag WHERE hashtag_message = ?");
+            $stmt->bind_param("s", $hashtag_message);
+            $stmt->execute();
+            $stmt->store_result();
+            if ($stmt->num_rows > 0) {
+                $stmt->bind_result($hashtag_id);
+                $stmt->fetch();
             } else {
-                // Hashtag does not exist, insert it
-                $insert_hashtag_query = "INSERT INTO hashtag (hashtag_message) VALUES ('$hashtag_message')";
-                mysqli_query($conn, $insert_hashtag_query);
-                $hashtag_id = mysqli_insert_id($conn);
+                $stmt->close();
+                $stmt = $conn->prepare("INSERT INTO hashtag (hashtag_message) VALUES (?)");
+                $stmt->bind_param("s", $hashtag_message);
+                $stmt->execute();
+                $hashtag_id = $stmt->insert_id;
             }
+            $stmt->close();
 
             // Insert into hashtags_in_activities table
-            $insert_hashtag_activity_query = "INSERT INTO hashtags_in_activities (activity_id, hashtag_id) VALUES ('$activity_id', '$hashtag_id')";
-            mysqli_query($conn, $insert_hashtag_activity_query);
+            $stmt = $conn->prepare("INSERT INTO hashtags_in_activities (activity_id, hashtag_id) VALUES (?, ?)");
+            $stmt->bind_param("ii", $activity_id, $hashtag_id);
+            $stmt->execute();
+            $stmt->close();
         }
     } else {
         $result = 0;
@@ -73,7 +85,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
     echo json_encode(array("result" => $result, "message" => $message, "datalist" => $datalist));
-    mysqli_close($conn);
+    $conn->close();
     exit;
 }
 ?>

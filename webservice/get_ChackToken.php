@@ -1,8 +1,6 @@
 <?php
 require 'Connect.php';
 
-header('Content-Type: application/json');
-
 // รับข้อมูลจาก POST request
 $input = file_get_contents('php://input');
 $data = json_decode($input, true);
@@ -25,3 +23,4 @@ echo json_encode($response);
 
 $conn->close();
 ?>
+
