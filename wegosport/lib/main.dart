@@ -21,7 +21,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: Homepage(),
+      home: CreateActivityPage(),
       routes: {
         '/Profile': (context) => ProfilePage( jwt: '',),
       },

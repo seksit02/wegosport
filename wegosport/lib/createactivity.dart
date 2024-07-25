@@ -272,10 +272,11 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
         ),
         readOnly: true,
         onTap: () async {
+          DateTime now = DateTime.now();
           DateTime? pickedDate = await showDatePicker(
             context: context,
-            initialDate: DateTime.now(),
-            firstDate: DateTime(2000),
+            initialDate: now,
+            firstDate: now,
             lastDate: DateTime(2101),
           );
 
@@ -283,6 +284,14 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
             TimeOfDay? pickedTime = await showTimePicker(
               context: context,
               initialTime: TimeOfDay.now(),
+              builder: (context, child) {
+                return MediaQuery(
+                  data: MediaQuery.of(context).copyWith(
+                    alwaysUse24HourFormat: true,
+                  ),
+                  child: child!,
+                );
+              },
             );
 
             if (pickedTime != null) {
@@ -294,15 +303,38 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
                 pickedTime.minute,
               );
 
-              setState(() {
-                dateController.text = finalDateTime.toString();
-              });
+              if (finalDateTime.isAfter(now)) {
+                setState(() {
+                  dateController.text = finalDateTime.toString();
+                });
+              } else {
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                      title: Text('ข้อผิดพลาด'),
+                      content: Text('ไม่สามารถเลือกเวลาที่ผ่านมาแล้วได้'),
+                      actions: <Widget>[
+                        TextButton(
+                          child: Text('ตกลง'),
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                        ),
+                      ],
+                    );
+                  },
+                );
+              }
             }
           }
         },
       ),
     );
   }
+
+
+
 
 
   Widget hashtag() {
