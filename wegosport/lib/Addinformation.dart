@@ -354,7 +354,7 @@ class _editinformationState extends State<editinformation> {
 
 Widget backButton() {
     return IconButton(
-      icon: Icon(Icons.arrow_back, color: Colors.black),
+      icon: Icon(Icons.arrow_back, color: const Color.fromARGB(255, 255, 255, 255)),
       onPressed: () {
         Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (context) => LoginPage()));

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:wegosport/activity.dart';
+import 'package:wegosport/Activity.dart';
 import 'package:wegosport/Addlocation.dart';
 import 'package:wegosport/chat.dart';
 import 'package:wegosport/Createactivity.dart';

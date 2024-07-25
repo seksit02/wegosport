@@ -6,6 +6,7 @@ import 'package:wegosport/Homepage.dart';
 import 'package:wegosport/forgetpassword.dart';
 
 import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
+
 import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:http/http.dart' as http;
 import 'dart:async';
@@ -147,20 +148,20 @@ class _LoginPageState extends State<LoginPage> {
   }
 
 
-  // คีย์ jwt
   String generateJwt(String userId) {
-
-    var jwt = JWT(
+    final jwt = JWT(
       {
         'id': userId,
       },
     );
 
-    var token = jwt.sign(SecretKey('your_secret_key'));
+    final secretKey = 'your_secret_key';
+    final token = jwt.sign(SecretKey(secretKey), algorithm: JWTAlgorithm.HS256);
+
+    print("Generated JWT: $token"); // สำหรับการดีบัก
 
     return token;
   }
-
 
   Future<bool> FunctionLogin() async {
 
@@ -188,7 +189,7 @@ class _LoginPageState extends State<LoginPage> {
         body: json.encode(dataPost),
       );
 
-      print("Response body1 : ${response.body}");
+      print("Response.body Login : ${response.body}");
 
       if (response.statusCode == 200) {
 
@@ -310,6 +311,41 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
+  Widget buttonregister() {
+    return Container(
+      margin: EdgeInsets.fromLTRB(0, 15, 0, 0),
+      child: ElevatedButton.icon(
+        icon: Icon(
+          Icons.people,
+          color: const Color.fromARGB(255, 0, 0, 0),
+        ),
+        label: Text(
+          "สมัครสมาชิก",
+          style: TextStyle(
+            color: Color.fromARGB(255, 0, 0, 0),
+          ),
+        ),
+        onPressed: () {
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) =>
+                      editinformation(name: '', six_value: '', email: '',))); // โค้ดที่ต้องการทำเมื่อกดปุ่ม Facebook
+        },
+        style: ElevatedButton.styleFrom(
+          padding: EdgeInsets.fromLTRB(10, 10, 20, 8),
+          backgroundColor: Color.fromARGB(255, 255, 255, 255),
+          shadowColor: Colors.black,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(30), // ปรับความโค้งของกรอบ
+          ),
+          side: BorderSide(color: Colors.black),
+        ),
+      ),
+    );
+  }
+
+
   Future<void> facebookLogin(BuildContext context) async {
     try {
 
@@ -418,7 +454,9 @@ class _LoginPageState extends State<LoginPage> {
                     inputTwo(),
                     buttonProcesslogin(),
                     buttonfacebook(),
-                    buttonforget()
+                    buttonregister(),
+                    buttonforget(),
+                    SizedBox(height:10)
                   ])),
                 ],
               ),

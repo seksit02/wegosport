@@ -15,7 +15,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
 
     if (_formKey.currentState!.validate()) {
       final response = await http.post(
-        Uri.parse('http://192.168.1.41/test6/send_reset_link.php'),
+        Uri.parse('http://10.0.2.2/flutter_webservice/send_reset_link.php'),
         body: {'email': email},
       );
 

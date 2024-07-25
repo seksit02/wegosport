@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class ActivityPage extends StatelessWidget {
+  
   final dynamic activity;
 
   ActivityPage({super.key, required this.activity});

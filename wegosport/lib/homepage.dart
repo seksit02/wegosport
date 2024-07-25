@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:wegosport/Addlocation.dart';
 import 'package:wegosport/Createactivity.dart';
 import 'package:wegosport/Profile.dart';
-import 'package:wegosport/activity.dart';
+import 'package:wegosport/Activity.dart';
 import 'package:wegosport/groupchat.dart';
 import 'dart:convert';
 import 'package:wegosport/Login.dart';
@@ -34,6 +34,13 @@ class _HomepageState extends State<Homepage> {
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
+
+      // Sort activities by creation date (assuming 'activity_date' contains the date)
+      data.sort((a, b) {
+        final dateA = DateTime.parse(a['activity_date']);
+        final dateB = DateTime.parse(b['activity_date']);
+        return dateB.compareTo(dateA); // Sort in descending order
+      });
 
       setState(() {
         activities = data;
@@ -68,10 +75,17 @@ class _HomepageState extends State<Homepage> {
       return;
     }
 
+    final searchLower = query.toLowerCase();
+
     final filtered = activities.where((activity) {
       final activityName = activity['activity_name']?.toLowerCase() ?? '';
-      final searchLower = query.toLowerCase();
-      return activityName.contains(searchLower);
+      final hashtags = activity['hashtags'] as List<dynamic>? ?? [];
+      final hashtagMessages = hashtags
+          .map((tag) => tag['hashtag_message']?.toLowerCase() ?? '')
+          .toList();
+
+      return activityName.contains(searchLower) ||
+          hashtagMessages.any((hashtag) => hashtag.contains(searchLower));
     }).toList();
 
     setState(() {
@@ -93,6 +107,7 @@ class _HomepageState extends State<Homepage> {
       }
     });
   }
+
 
   void _logout() {
     Navigator.of(context).pushReplacement(

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-
+import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
 import 'package:wegosport/Homepage.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -50,13 +50,13 @@ class _ProfilePageState extends State<ProfilePage> {
         print(data);
 
       } else {
-        print("Failed to load user data: ${response.body}");
-        throw Exception('Failed to load user data');
+        print("Failed to load user data1 : ${response.body}");
+        throw Exception('Failed to load user data2 : ${userData}');
       }
     } catch (error) {
       print("Error: $error");
 
-      throw Exception('Failed to load user data');
+      throw Exception('Failed to load user data3');
     }
   }
 

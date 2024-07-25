@@ -105,6 +105,7 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
     fetchHashtags();
   }
 
+
   Widget nameActivity() {
     return Container(
       margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
@@ -112,12 +113,19 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
         controller: nameController,
         decoration: InputDecoration(
           contentPadding: EdgeInsets.fromLTRB(0, 15, 0, 0),
-          hintText: 'ชื่อกิจกรรม',
+          hintText: 'เพิ่มชื่อกิจกรรม',
           fillColor: Color.fromARGB(255, 255, 255, 255),
           filled: true,
-          prefixIcon: Icon(
-            Icons.add,
-            color: Colors.red,
+          prefixIcon: Padding(
+            padding: const EdgeInsets.all(15.0), // เพิ่ม padding ให้ตัวอักษร
+            child: Text(
+              'A',
+              style: TextStyle(
+                color: Colors.red,
+                fontSize: 18.0, // ขนาดตัวอักษร
+                fontWeight: FontWeight.bold, // ทำให้ตัวอักษรหนา
+              ),
+            ),
           ),
           border: OutlineInputBorder(
             borderSide: BorderSide(color: Colors.black),
@@ -136,12 +144,12 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
           controller: locationController,
           decoration: InputDecoration(
             contentPadding: EdgeInsets.fromLTRB(0, 15, 0, 0),
-            hintText: 'สถานที่',
+            hintText: 'เพิ่มสถานที่',
             hintStyle: TextStyle(fontFamily: 'THSarabunNew'),
             fillColor: Color.fromARGB(255, 255, 255, 255),
             filled: true,
             prefixIcon: Icon(
-              Icons.add,
+              Icons.location_on,
               color: Colors.red,
             ),
             border: OutlineInputBorder(
@@ -193,12 +201,12 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
           controller: sportController,
           decoration: InputDecoration(
             contentPadding: EdgeInsets.fromLTRB(0, 15, 0, 0),
-            hintText: 'กีฬา',
+            hintText: 'เพิ่มกีฬา',
             hintStyle: TextStyle(fontFamily: 'THSarabunNew'),
             fillColor: Color.fromARGB(255, 255, 255, 255),
             filled: true,
             prefixIcon: Icon(
-              Icons.add,
+              Icons.sports_soccer,
               color: Colors.red,
             ),
             border: OutlineInputBorder(
@@ -242,6 +250,7 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
     );
   }
 
+
   Widget date() {
     return Container(
       margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
@@ -249,11 +258,11 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
         controller: dateController,
         decoration: InputDecoration(
           contentPadding: EdgeInsets.fromLTRB(0, 15, 0, 0),
-          hintText: 'วันที่และเวลา',
+          hintText: 'เพิ่มวันที่และเวลา',
           fillColor: Color.fromARGB(255, 255, 255, 255),
           filled: true,
           prefixIcon: Icon(
-            Icons.add,
+            Icons.calendar_today,
             color: Colors.red,
           ),
           border: OutlineInputBorder(
@@ -295,6 +304,7 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
     );
   }
 
+
   Widget hashtag() {
     return Container(
       margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
@@ -318,20 +328,23 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
             textFieldConfiguration: TextFieldConfiguration(
               controller: hashtagController,
               decoration: InputDecoration(
-                hintText: 'พิมพ์แฮชแท็กที่นี่',
-                suffixIcon: IconButton(
-                  icon: Icon(Icons.add),
-                  onPressed: () {
-                    if (hashtagController.text.isNotEmpty &&
-                        hashtagController.text.length <= 20 &&
-                        _selectedTags.length < 3 &&
-                        !_selectedTags.contains(hashtagController.text)) {
-                      setState(() {
-                        _selectedTags.add(hashtagController.text);
-                        hashtagController.clear();
-                      });
-                    }
-                  },
+                hintText: 'เพิ่มแฮชแท็กที่ต้องการ',
+                suffixIcon: Padding(
+                  padding: const EdgeInsets.only(right: 8.0),
+                  child: TextButton(
+                    onPressed: () {
+                      if (hashtagController.text.isNotEmpty &&
+                          hashtagController.text.length <= 20 &&
+                          _selectedTags.length < 3 &&
+                          !_selectedTags.contains(hashtagController.text)) {
+                        setState(() {
+                          _selectedTags.add(hashtagController.text);
+                          hashtagController.clear();
+                        });
+                      }
+                    },
+                    child: Text('เพิ่ม'),
+                  ),
                 ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(30),
@@ -375,6 +388,7 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
     );
   }
 
+
   Widget message() {
     return Container(
       margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
@@ -382,11 +396,11 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
         controller: detailsController,
         decoration: InputDecoration(
           contentPadding: EdgeInsets.fromLTRB(0, 15, 0, 0),
-          hintText: 'ข้อความขังเขป',
+          hintText: 'เพิ่มรายละเอียดกิจกรรม',
           fillColor: Color.fromARGB(255, 255, 255, 255),
           filled: true,
           prefixIcon: Icon(
-            Icons.add,
+            Icons.mail,
             color: Colors.red,
           ),
           border: OutlineInputBorder(
@@ -398,11 +412,12 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
     );
   }
 
+
   Widget createGroupButton() {
-    return ButtonTheme(
-      minWidth: double.infinity,
-      child: Container(
-        margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
+    return Container(
+      margin: EdgeInsets.fromLTRB(10, 20, 10, 0),
+      child: SizedBox(
+        width: 200, // กำหนดความกว้างของปุ่มตามที่ต้องการ
         child: ElevatedButton(
           child: Text(
             "สร้างกิจกรรม",
@@ -426,6 +441,7 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
       ),
     );
   }
+
 
   Widget backButton() {
     return IconButton(
