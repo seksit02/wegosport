@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:wegosport/Login.dart';
 
 class ForgotPasswordPage extends StatefulWidget {
   @override
@@ -36,11 +37,24 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color.fromARGB(255, 255, 255, 255),
       appBar: AppBar(
-        title: Text('หน้าลืมรหัสผ่าน'),
+        title: Text(
+          'หน้าลืมรหัสผ่าน',
+          style: TextStyle(color: Color.fromARGB(255, 255, 255, 255)),
+        ),
         centerTitle: true,
-        backgroundColor: Colors.blue,
-      ),
+        backgroundColor: Color.fromARGB(255, 255, 0, 0),
+        leading: IconButton(
+            icon: Icon(Icons.arrow_back,color: Color.fromARGB(255, 255, 255, 255),),
+            onPressed: () {
+             Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => LoginPage())); // Handle back navigation
+            },
+          ),
+        ),
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 32.0),
@@ -88,9 +102,10 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                 SizedBox(height: 20),
                 ElevatedButton(
                   onPressed: _sendResetLink,
-                  child: Text('ยืนยัน'),
+                  child: Text('ยืนยัน',
+                  style : TextStyle(color: const Color.fromARGB(255, 255, 255, 255)),),
                   style: ElevatedButton.styleFrom(
-                    primary: Colors.red,
+                    backgroundColor: Color.fromARGB(255, 255, 0, 0),
                     padding: EdgeInsets.symmetric(horizontal: 40, vertical: 15),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(30.0),

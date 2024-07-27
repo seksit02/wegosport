@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:wegosport/Homepage.dart';
 
 class ActivityPage extends StatelessWidget {
   
@@ -32,10 +33,10 @@ class ActivityPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: Icon(Icons.arrow_back),
+          icon: Icon(Icons.arrow_back,color: const Color.fromARGB(255, 255, 255, 255),),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: Text('หน้ากิจกรรมที่เข้าร่วม'),
+        title: Text('หน้ากิจกรรมที่เข้าร่วม',style: TextStyle(color: const Color.fromARGB(255, 255, 255, 255))),
         backgroundColor: const Color.fromARGB(255, 255, 0, 0),
         elevation: 0,
       ),
@@ -45,16 +46,14 @@ class ActivityPage extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Wrap(
-              spacing: 8.0,
-              children: [
-                Chip(label: Text('ตีแบด')),
-                Chip(label: Text('สนามกลาง')),
-                Chip(label: Text('คิวบ์')),
-              ],
+              runSpacing: 5.0,
+              children: (activity['hashtags'] as List<dynamic>? ?? [])
+                  .map((tag) => TagWidget(text: tag['hashtag_message']))
+                  .toList(),
             ),
             SizedBox(height: 8),
             Text(
-              'วันที่, ${activity['activity_date'] ?? 'ไม่ระบุวันที่'}',
+              'วันที่นัดหมาย ${activity['activity_date']+" น." ?? 'ไม่ระบุวันที่'}',
               style: TextStyle(color: Colors.grey),
             ),
             SizedBox(height: 8),
@@ -108,7 +107,7 @@ class ActivityPage extends StatelessWidget {
               ),
             ),
             SizedBox(height: 16),
-            Text('สมัครเข้ากลุ่ม',
+            Text('สมาชิกในกลุ่ม',
                 style: TextStyle(fontWeight: FontWeight.bold)),
             SizedBox(height: 8),
             Row(
@@ -137,11 +136,10 @@ class ActivityPage extends StatelessWidget {
                   // Add action for joining chat
                 },
                 style: ElevatedButton.styleFrom(
-                  primary: Colors.yellow,
-                  onPrimary: Colors.black,
+                  foregroundColor: const Color.fromARGB(255, 255, 255, 255), backgroundColor: Color.fromARGB(255, 255, 0, 0),
                   minimumSize: Size(double.infinity, 50), // ปรับขนาดของปุ่ม
                 ),
-                child: Text('แชท'),
+                child: Text('เข้าร่วมกิจกรรม'),
               ),
             ),
           ],

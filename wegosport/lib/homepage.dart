@@ -8,6 +8,9 @@ import 'package:wegosport/groupchat.dart';
 import 'dart:convert';
 import 'package:wegosport/Login.dart';
 import 'dart:ui';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:intl/intl.dart';
+
 
 class Homepage extends StatefulWidget {
   const Homepage({super.key});
@@ -107,7 +110,6 @@ class _HomepageState extends State<Homepage> {
       }
     });
   }
-
 
   void _logout() {
     Navigator.of(context).pushReplacement(
@@ -240,8 +242,8 @@ class _HomepageState extends State<Homepage> {
                       );
                     },
                     style: ElevatedButton.styleFrom(
-                      primary: Color.fromARGB(255, 255, 0, 0),
-                      onPrimary: const Color.fromARGB(255, 255, 255, 255),
+                      foregroundColor: const Color.fromARGB(255, 255, 255, 255),
+                      backgroundColor: Color.fromARGB(255, 255, 0, 0),
                       minimumSize: Size(double.infinity, 30), // ปรับขนาดของปุ่ม
                     ),
                     child: Text('สร้างกิจกรรม'),
@@ -254,8 +256,8 @@ class _HomepageState extends State<Homepage> {
                       );
                     },
                     style: ElevatedButton.styleFrom(
-                      primary: Color.fromARGB(255, 255, 0, 0),
-                      onPrimary: Color.fromARGB(255, 255, 255, 255),
+                      foregroundColor: Color.fromARGB(255, 255, 255, 255),
+                      backgroundColor: Color.fromARGB(255, 255, 0, 0),
                       minimumSize: Size(double.infinity, 30), // ปรับขนาดของปุ่ม
                     ),
                     child: Text('เพิ่มสถานที่'),
@@ -286,8 +288,15 @@ class ActivityCardItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final members = activity['members'];
-    String status =
-        (members != null && members.length > 3) ? "ยอดฮิต" : "มาใหม่";
+    bool isPopular = (members != null && members.length > 3);
+    String statusText = isPopular ? "ยอดฮิต" : "มาใหม่";
+    Icon statusIcon = isPopular
+        ? Icon(Icons.star, color: Color.fromARGB(255, 255, 0, 0))
+        : Icon(Icons.local_fire_department, color: Colors.red);
+
+    DateTime activityDate =
+        DateFormat('yyyy-MM-dd HH:mm:ss').parse(activity['activity_date']);
+    bool isPast = DateTime.now().isAfter(activityDate);
 
     return Card(
       color: backgroundColor,
@@ -299,22 +308,31 @@ class ActivityCardItem extends StatelessWidget {
           children: [
             // แถบแสดงสถานะ
             Container(
-              padding: EdgeInsets.symmetric(horizontal: 155, vertical: 4),
+              padding: EdgeInsets.symmetric(horizontal: 130, vertical: 1),
               decoration: BoxDecoration(
                 color: statusColor,
                 borderRadius: BorderRadius.circular(20),
               ),
-              child: Text(
-                status,
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: textColor,
-                ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    statusText,
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: textColor,
+                    ),
+                  ),
+                  SizedBox(width: 5),
+                  statusIcon,
+                ],
               ),
             ),
             SizedBox(height: 8),
             // แถวของแท็ก
             Wrap(
+              runSpacing: 5.0,
               children: (activity['hashtags'] as List<dynamic>? ?? [])
                   .map((tag) => TagWidget(text: tag['hashtag_message']))
                   .toList(),
@@ -324,7 +342,7 @@ class ActivityCardItem extends StatelessWidget {
             Text(
               activity['activity_date'] ?? '',
               style: TextStyle(
-                color: Colors.grey,
+                color: isPast ? Colors.grey : Colors.black,
               ),
             ),
             SizedBox(height: 8),
@@ -405,6 +423,7 @@ class ActivityCardItem extends StatelessWidget {
     );
   }
 }
+
 
 class TagWidget extends StatelessWidget {
   final String text;

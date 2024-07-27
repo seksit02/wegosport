@@ -5,6 +5,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:flutter_google_places/flutter_google_places.dart';
 import 'package:google_maps_webservice/places.dart';
+import 'package:permission_handler/permission_handler.dart';
+
 
 import 'dart:async';
 import 'dart:convert';
@@ -23,11 +25,11 @@ class AddLocationPage extends StatefulWidget {
 }
 
 class _AddLocationState extends State<AddLocationPage> {
+
   TextEditingController input1 = TextEditingController();
   TextEditingController input2 = TextEditingController();
 
-  TextEditingController typeController =
-      TextEditingController(); // เพิ่ม TextEditingController สำหรับประเภทสนาม
+  TextEditingController typeController = TextEditingController();
   List<String> selectedTypes = [];
   List<Map<String, dynamic>> fieldTypes = [];
 
@@ -35,6 +37,19 @@ class _AddLocationState extends State<AddLocationPage> {
   LatLng? _selectedLocation; // Added to store the selected location
   final ImagePicker _picker = ImagePicker();
   GoogleMapController? _mapController;
+
+  Future<void> _requestLocationPermission() async {
+    var status = await Permission.locationWhenInUse.status;
+    if (!status.isGranted) {
+      status = await Permission.locationWhenInUse.request();
+      if (!status.isGranted) {
+        // Handle the case where the user denies the permission
+        print('Location permission not granted');
+        return;
+      }
+    }
+    print('Location permission granted');
+  }
 
   Future<void> fetchType() async {
     final response = await http.get(
@@ -55,6 +70,7 @@ class _AddLocationState extends State<AddLocationPage> {
   void initState() {
     super.initState();
     fetchType();
+    _requestLocationPermission();
   }
 
   Future<void> _pickImage() async {
@@ -69,31 +85,45 @@ class _AddLocationState extends State<AddLocationPage> {
   }
 
   Future<void> _handlePressButton() async {
-    Prediction? p = await PlacesAutocomplete.show(
+    try {
+      print('Showing PlacesAutocomplete');
+      Prediction? p = await PlacesAutocomplete.show(
         context: context,
         apiKey: kGoogleApiKey,
         mode: Mode.overlay, // Mode.fullscreen
         language: "th",
-        components: [Component(Component.country, "th")]);
-    displayPrediction(p);
+        components: [Component(Component.country, "th")],
+      );
+      print('Prediction: ${p?.description}');
+      displayPrediction(p);
+    } catch (error) {
+      print('Error in _handlePressButton: $error');
+    }
   }
 
   Future<void> displayPrediction(Prediction? p) async {
-    if (p != null) {
-      // get detail (lat/lng)
-      GoogleMapsPlaces _places = GoogleMapsPlaces(apiKey: kGoogleApiKey);
-      PlacesDetailsResponse detail =
-          await _places.getDetailsByPlaceId(p.placeId!);
-      final lat = detail.result.geometry!.location.lat;
-      final lng = detail.result.geometry!.location.lng;
+    try {
+      if (p != null) {
+        print('Displaying prediction: ${p.description}');
+        GoogleMapsPlaces _places = GoogleMapsPlaces(apiKey: kGoogleApiKey);
+        PlacesDetailsResponse detail =
+            await _places.getDetailsByPlaceId(p.placeId!);
+        print('Place Details: $detail');
+        final lat = detail.result.geometry!.location.lat;
+        final lng = detail.result.geometry!.location.lng;
+        print('Location: ($lat, $lng)');
 
-      setState(() {
-        _selectedLocation = LatLng(lat, lng);
-        _mapController
-            ?.animateCamera(CameraUpdate.newLatLng(_selectedLocation!));
-      });
+        setState(() {
+          _selectedLocation = LatLng(lat, lng);
+          _mapController
+              ?.animateCamera(CameraUpdate.newLatLng(_selectedLocation!));
+        });
+      }
+    } catch (error) {
+      print('Error in displayPrediction: $error');
     }
   }
+
 
   void _showFullScreenMap() {
     showModalBottomSheet(
@@ -198,7 +228,7 @@ class _AddLocationState extends State<AddLocationPage> {
         label: Text("เลือกรูปภาพ",
             style: TextStyle(color: const Color.fromARGB(255, 29, 29, 29))),
         style: ElevatedButton.styleFrom(
-          primary: const Color.fromARGB(255, 255, 255, 255),
+          backgroundColor: const Color.fromARGB(255, 255, 255, 255),
           padding: EdgeInsets.symmetric(vertical: 15),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(40),
@@ -215,13 +245,16 @@ class _AddLocationState extends State<AddLocationPage> {
       child: ElevatedButton(
         child: Text("ค้นหาสถานที่", style: TextStyle(color: Colors.white)),
         style: ElevatedButton.styleFrom(
-          primary: Colors.blue,
+          backgroundColor: Colors.blue,
           padding: EdgeInsets.symmetric(vertical: 15),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
           ),
         ),
-        onPressed: _handlePressButton,
+        onPressed: () {
+          print('Search button pressed');
+          _handlePressButton();
+        },
       ),
     );
   }
@@ -252,6 +285,8 @@ class _AddLocationState extends State<AddLocationPage> {
                 ),
               }
             : {},
+        myLocationEnabled: true,
+        myLocationButtonEnabled: true,
       ),
     );
   }
@@ -352,7 +387,7 @@ class _AddLocationState extends State<AddLocationPage> {
       child: ElevatedButton(
         child: Text("เพิ่มสถานที่", style: TextStyle(color: Colors.white)),
         style: ElevatedButton.styleFrom(
-          primary: Color.fromARGB(255, 255, 0, 0),
+          backgroundColor: Color.fromARGB(255, 255, 0, 0),
           padding: EdgeInsets.symmetric(vertical: 15),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(40),
@@ -441,7 +476,7 @@ class _AddLocationState extends State<AddLocationPage> {
     return Scaffold(
       backgroundColor: Color.fromARGB(255, 222, 222, 222),
       appBar: AppBar(
-        title: Text("เพิ่มสถานที่"),
+        title: Text("เพิ่มสถานที่",style: TextStyle(color: const Color.fromARGB(255, 255, 255, 255))),
         leading: backButton(),
         backgroundColor: Color.fromARGB(255, 255, 0, 0),
       ),
@@ -453,6 +488,7 @@ class _AddLocationState extends State<AddLocationPage> {
             type(),
             addImage(),
             mapImage(),
+            //searchBar(),
             map(),
             buttonAddLocation(context),
             SizedBox(height: 20)

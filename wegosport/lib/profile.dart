@@ -1,12 +1,12 @@
+
+
 import 'package:flutter/material.dart';
 
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
 import 'package:wegosport/Homepage.dart';
 
 class ProfilePage extends StatefulWidget {
-
   const ProfilePage({super.key, required this.jwt});
 
   final String jwt;
@@ -16,7 +16,6 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-
   Map<String, dynamic>? userData;
 
   @override
@@ -25,40 +24,41 @@ class _ProfilePageState extends State<ProfilePage> {
     fetchUserData(widget.jwt);
   }
 
-
   Future<void> fetchUserData(String jwt) async {
+    var url =
+        Uri.parse('http://10.0.2.2/flutter_webservice/get_ShowDataUser.php');
+
+    Map<String, String> headers = {
+      'Authorization': 'Bearer $jwt',
+    };
 
     try {
-
-      final response = await http.get(
-        Uri.parse('http://10.0.2.2/flutter_webservice/get_ShowDataUser1.php'),
-
-        headers: {
-          'Authorization': 'Bearer $jwt',
-        },
-
+      var response = await http.post(
+        url,
+        headers: headers,
       );
 
-      if (response.statusCode == 200) {
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.body}');
 
+      if (response.statusCode == 200) {
         final data = json.decode(response.body);
 
         setState(() {
-          userData = data.isNotEmpty ? data[0] : null;
+          userData = data;
         });
 
-        print(data);
-
+        print('User data: $userData');
       } else {
-        print("Failed to load user data1 : ${response.body}");
-        throw Exception('Failed to load user data2 : ${userData}');
+        print("Failed to load user data: ${response.body}");
+        throw Exception('Failed to load user data');
       }
     } catch (error) {
       print("Error: $error");
-
-      throw Exception('Failed to load user data3');
+      throw Exception('Failed to load user data');
     }
   }
+
 
 
   @override
@@ -66,40 +66,33 @@ class _ProfilePageState extends State<ProfilePage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Color.fromARGB(255, 255, 0, 0),
-        title: Text("หน้าโปรไฟล์"),
+        title: Text("หน้าโปรไฟล์",style: TextStyle(color: Colors.white),),
         leading: IconButton(
           icon: Icon(Icons.arrow_back,
               color: const Color.fromARGB(255, 255, 255, 255)),
           onPressed: () {
-
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
                 builder: (context) => Homepage(),
               ),
             );
-
           },
         ),
       ),
-
-
       body: userData == null
           ? Center(child: CircularProgressIndicator())
           : Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-
                   CircleAvatar(
                     radius: 50,
                     backgroundImage: userData!['user_photo'] != null
                         ? NetworkImage(userData!['user_photo'])
                         : AssetImage("images/P001.jpg") as ImageProvider,
                   ),
-
                   SizedBox(height: 16),
-
                   Text(
                     userData!['user_name'] ?? 'ไม่มีข้อมูล',
                     style: TextStyle(
@@ -107,7 +100,6 @@ class _ProfilePageState extends State<ProfilePage> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-
                   Text(
                     userData!['user_id'] ?? 'ไม่มีข้อมูล',
                     style: TextStyle(
@@ -115,9 +107,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       color: const Color.fromARGB(255, 18, 18, 18),
                     ),
                   ),
-
                   SizedBox(height: 16),
-
                   Text(
                     userData!['user_text'] ?? 'ไม่มีข้อมูล',
                     style: TextStyle(
@@ -125,19 +115,15 @@ class _ProfilePageState extends State<ProfilePage> {
                       color: const Color.fromARGB(255, 0, 0, 0),
                     ),
                   ),
-
                   SizedBox(height: 16),
-
                   ElevatedButton(
                     onPressed: () {
-
                       Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(
                           builder: (context) => Homepage(),
                         ),
                       );
-
                     },
                     child: Text('แก้ไขข้อมูล'),
                   ),
@@ -146,5 +132,4 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
     );
   }
-}
-
+} //แก้ไข

@@ -8,7 +8,12 @@ import 'dart:convert';
 import 'package:wegosport/Login.dart';
 
 class editinformation extends StatefulWidget {
-  const editinformation({Key? key,required this.name,required this.email,required this.six_value}): super(key: key);
+  const editinformation(
+      {Key? key,
+      required this.name,
+      required this.email,
+      required this.six_value})
+      : super(key: key);
 
   @override
   State<editinformation> createState() => _editinformationState();
@@ -230,7 +235,7 @@ class _editinformationState extends State<editinformation> {
             shadowColor: Color.fromARGB(255, 255, 255, 255),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(30),
-              side: BorderSide(color: Colors.black),
+              side: BorderSide(color: const Color.fromARGB(255, 255, 0, 0)),
             ),
           ),
           onPressed: () {
@@ -352,17 +357,16 @@ class _editinformationState extends State<editinformation> {
     );
   }
 
-Widget backButton() {
+  Widget backButton() {
     return IconButton(
-      icon: Icon(Icons.arrow_back, color: const Color.fromARGB(255, 255, 255, 255)),
+      icon: Icon(Icons.arrow_back,
+          color: const Color.fromARGB(255, 255, 255, 255)),
       onPressed: () {
         Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (context) => LoginPage()));
       },
     );
   }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -372,7 +376,9 @@ Widget backButton() {
           Scaffold(
             backgroundColor: Color.fromARGB(255, 255, 255, 255),
             appBar: AppBar(
-              title: Text("หน้าเพิ่มข้อมูลผู้ใช้"),
+              backgroundColor: Color.fromARGB(255, 255, 0, 0),
+              title: Text("หน้าเพิ่มข้อมูลผู้ใช้",
+                  style: TextStyle(color: Colors.white)),
               leading: backButton(),
             ),
             body: SafeArea(

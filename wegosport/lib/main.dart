@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:wegosport/Activity.dart';
 import 'package:wegosport/Addlocation.dart';
+import 'package:wegosport/EditProfile.dart';
 import 'package:wegosport/chat.dart';
 import 'package:wegosport/Createactivity.dart';
 import 'package:wegosport/Addinformation.dart';
@@ -21,7 +22,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: CreateActivityPage(),
+      home: LoginPage(),
       routes: {
         '/Profile': (context) => ProfilePage( jwt: '',),
       },

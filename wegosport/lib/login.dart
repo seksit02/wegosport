@@ -147,11 +147,11 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-
+  // ฟังก์ชันสร้าง JWT
   String generateJwt(String userId) {
     final jwt = JWT(
       {
-        'id': userId,
+        'user_id': userId,
       },
     );
 
@@ -163,8 +163,8 @@ class _LoginPageState extends State<LoginPage> {
     return token;
   }
 
+  // ฟังก์ชันล็อกอิน
   Future<bool> FunctionLogin() async {
-
     print("user_id: ${inputone.text}");
     print("user_pass: ${inputtwo.text}");
 
@@ -192,20 +192,20 @@ class _LoginPageState extends State<LoginPage> {
       print("Response.body Login : ${response.body}");
 
       if (response.statusCode == 200) {
-
         Map<String, dynamic> jsonResponse = json.decode(response.body);
 
         // ตรวจสอบว่าการเข้าสู่ระบบสำเร็จหรือไม่
         if (jsonResponse['result'] == "1") {
-
-          String jwt = jsonResponse['jwt'];
+          
+          String userId = jsonResponse['user_id'];
+          String jwt = jsonResponse['jwt']; // ใช้ JWT ที่ได้รับจากเซิร์ฟเวอร์
 
           // เก็บ JWT ลงในฐานข้อมูล
           var saveJwtResponse = await http.post(
             Uri.parse('http://10.0.2.2/flutter_webservice/get_Savejwt.php'),
             headers: headers,
             body: json.encode({
-              "user_id": inputone.text,
+              "user_id": userId,
               "jwt": jwt,
             }),
           );
@@ -215,28 +215,23 @@ class _LoginPageState extends State<LoginPage> {
                 json.decode(saveJwtResponse.body);
 
             if (saveJwtJsonResponse['result'] == "1") {
-
               Navigator.of(context).pushReplacement(
                 MaterialPageRoute(
                   builder: (context) => ProfilePage(jwt: jwt),
                 ),
               );
               return true;
-
             } else {
               _showErrorDialog("การเก็บ JWT ล้มเหลว");
               return false;
             }
-
           } else {
             _showErrorDialog("การเก็บ JWT ล้มเหลว");
             return false;
           }
-
         } else {
           return false;
         }
-
       } else {
         print("Request failed with status: ${response.statusCode}");
         return false;
@@ -246,6 +241,10 @@ class _LoginPageState extends State<LoginPage> {
       return false;
     }
   }
+
+
+
+
 
   Widget buttonfacebook() {
     return Container(

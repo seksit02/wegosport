@@ -250,7 +250,6 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
     );
   }
 
-
   Widget date() {
     return Container(
       margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
@@ -332,10 +331,6 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
       ),
     );
   }
-
-
-
-
 
   Widget hashtag() {
     return Container(
@@ -420,7 +415,6 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
     );
   }
 
-
   Widget message() {
     return Container(
       margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
@@ -443,7 +437,6 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
       ),
     );
   }
-
 
   Widget createGroupButton() {
     return Container(
@@ -473,7 +466,6 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
       ),
     );
   }
-
 
   Widget backButton() {
     return IconButton(
@@ -571,7 +563,7 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
           Scaffold(
             backgroundColor: Color.fromARGB(255, 255, 255, 255),
             appBar: AppBar(
-              title: Text("หน้าสร้างกิจกรรม"),
+              title: Text("หน้าสร้างกิจกรรม",style: TextStyle(color: const Color.fromARGB(255, 255, 255, 255)),),
               leading: backButton(),
               backgroundColor: Color.fromARGB(255, 255, 0, 0),
             ),
