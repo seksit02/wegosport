@@ -22,7 +22,7 @@ class _TestState extends State<Test> {
   Future<void> fetchPhoto(String userId) async {
     final response = await http.get(
       Uri.parse(
-          'http://10.0.2.2/flutter_webservice/get_TestAPI.php?user_id=$userId'),
+          'http://10.0.2.2/flutter_webservice/get_TestPhoto.php?user_id=$userId'),
     );
 
     if (response.statusCode == 200) {
@@ -44,6 +44,7 @@ class _TestState extends State<Test> {
 
   @override
   Widget build(BuildContext context) {
+    print(photoUrl);
     return Scaffold(
       appBar: AppBar(
         title: Text('ทดสอบดึงรูปด้วย API'),

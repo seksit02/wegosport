@@ -8,7 +8,6 @@ import 'package:wegosport/groupchat.dart';
 import 'dart:convert';
 import 'package:wegosport/Login.dart';
 import 'dart:ui';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
 
 
@@ -160,7 +159,7 @@ class _HomepageState extends State<Homepage> {
           preferredSize: Size.fromHeight(50.0),
           child: Container(
             color:
-                Color.fromARGB(255, 255, 255, 255), // กำหนดสีพื้นหลังที่ต้องการ
+                Color.fromARGB(255, 148, 148, 148), // กำหนดสีพื้นหลังที่ต้องการ
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: <Widget>[
@@ -169,18 +168,18 @@ class _HomepageState extends State<Homepage> {
                   child: Text(
                     'หน้าหลัก',
                     style: TextStyle(
-                      color: _selectedIndex == 0 ? Colors.blue : Colors.black,
+                      color: _selectedIndex == 0 ? const Color.fromARGB(255, 241, 241, 241) : Colors.black,
                     ),
                   ),
                 ),
                 VerticalDivider(
-                    thickness: 1, color: Color.fromARGB(255, 50, 50, 50)),
+                    thickness: 1, color: Color.fromARGB(255, 146, 146, 146)),
                 TextButton(
                   onPressed: () => _onItemTapped(1),
                   child: Text(
                     'แชท',
                     style: TextStyle(
-                      color: _selectedIndex == 1 ? Colors.blue : Colors.black,
+                      color: _selectedIndex == 1 ? const Color.fromARGB(255, 255, 255, 255) : Colors.black,
                     ),
                   ),
                 ),
@@ -287,6 +286,8 @@ class ActivityCardItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    print(activity['location_photo']);
+
     final members = activity['members'];
     bool isPopular = (members != null && members.length > 3);
     String statusText = isPopular ? "ยอดฮิต" : "มาใหม่";
@@ -412,11 +413,23 @@ class ActivityCardItem extends StatelessWidget {
             SizedBox(height: 8),
             // รูปภาพสถานที่
             activity['location_photo'] != null
-                ? Image.asset("images/logo.png", height: 200)
+                ? Image.network(
+                    activity['location_photo'],
+                    height: 200,
+                    errorBuilder: (BuildContext context, Object exception,
+                        StackTrace? stackTrace) {
+                      return Container(
+                        height: 200,
+                        child: Center(
+                          child: Text('เกิดข้อผิดพลาดในการโหลดรูปภาพ'),
+                        ),
+                      );
+                    },
+                  ) // แสดงผลรูปจาก URL
                 : SizedBox(
                     height: 200,
                     child: Center(child: Text('ไม่มีรูปภาพ')),
-                  ), // ใช้รูปภาพจาก assets
+                  ),
           ],
         ),
       ),
