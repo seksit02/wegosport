@@ -12,7 +12,9 @@ import 'package:intl/intl.dart';
 
 
 class Homepage extends StatefulWidget {
-  const Homepage({super.key});
+  final String jwt;
+
+  const Homepage({Key? key, required this.jwt}) : super(key: key);
 
   @override
   State<Homepage> createState() => _HomepageState();
@@ -116,6 +118,17 @@ class _HomepageState extends State<Homepage> {
     );
   }
 
+  void _navigateToProfile() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ProfilePage(
+          jwt: widget.jwt,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -138,16 +151,7 @@ class _HomepageState extends State<Homepage> {
           Padding(
             padding: const EdgeInsets.only(right: 8.0),
             child: GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => ProfilePage(
-                      jwt: '',
-                    ), // โปรไฟล์เพจ
-                  ),
-                );
-              },
+              onTap: _navigateToProfile,
               child: CircleAvatar(
                 backgroundImage: AssetImage('images/P001.jpg'), // รูปโปรไฟล์
                 radius: 16, // ปรับขนาดของรูปโปรไฟล์
@@ -168,7 +172,9 @@ class _HomepageState extends State<Homepage> {
                   child: Text(
                     'หน้าหลัก',
                     style: TextStyle(
-                      color: _selectedIndex == 0 ? const Color.fromARGB(255, 241, 241, 241) : Colors.black,
+                      color: _selectedIndex == 0
+                          ? const Color.fromARGB(255, 241, 241, 241)
+                          : Colors.black,
                     ),
                   ),
                 ),
@@ -179,7 +185,9 @@ class _HomepageState extends State<Homepage> {
                   child: Text(
                     'แชท',
                     style: TextStyle(
-                      color: _selectedIndex == 1 ? const Color.fromARGB(255, 255, 255, 255) : Colors.black,
+                      color: _selectedIndex == 1
+                          ? const Color.fromARGB(255, 255, 255, 255)
+                          : Colors.black,
                     ),
                   ),
                 ),

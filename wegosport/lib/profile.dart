@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:wegosport/Homepage.dart';
@@ -30,6 +29,8 @@ class _ProfilePageState extends State<ProfilePage> {
       'Authorization': 'Bearer $jwt',
     };
 
+    print('Headers: $headers'); // พิมพ์ headers เพื่อการตรวจสอบ
+
     try {
       var response = await http.post(
         url,
@@ -42,11 +43,18 @@ class _ProfilePageState extends State<ProfilePage> {
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
 
-        setState(() {
-          userData = data;
-        });
-
-        print('User data: $userData');
+        if (data is List<dynamic> &&
+            data.isNotEmpty &&
+            data[0] is Map<String, dynamic> &&
+            data[0].containsKey('user_id')) {
+          setState(() {
+            userData = data[0];
+          });
+          print('User data: $userData');
+        } else {
+          print("No user data found");
+          throw Exception('Failed to load user data');
+        }
       } else {
         print("Failed to load user data: ${response.body}");
         throw Exception('Failed to load user data');
@@ -57,14 +65,15 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
-
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Color.fromARGB(255, 255, 0, 0),
-        title: Text("หน้าโปรไฟล์",style: TextStyle(color: Colors.white),),
+        title: Text(
+          "หน้าโปรไฟล์",
+          style: TextStyle(color: Colors.white),
+        ),
         leading: IconButton(
           icon: Icon(Icons.arrow_back,
               color: const Color.fromARGB(255, 255, 255, 255)),
@@ -72,7 +81,8 @@ class _ProfilePageState extends State<ProfilePage> {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
-                builder: (context) => Homepage(),
+                builder: (context) =>
+                    Homepage(jwt: widget.jwt), // ส่ง jwt กลับไปยัง Homepage
               ),
             );
           },
@@ -119,7 +129,8 @@ class _ProfilePageState extends State<ProfilePage> {
                       Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => Homepage(),
+                          builder: (context) => Homepage(
+                              jwt: widget.jwt), // ส่ง jwt กลับไปยัง Homepage
                         ),
                       );
                     },
@@ -130,4 +141,4 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
     );
   }
-} //แก้ไข
+}

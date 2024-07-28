@@ -7,7 +7,6 @@ import 'package:flutter_google_places/flutter_google_places.dart';
 import 'package:google_maps_webservice/places.dart';
 import 'package:permission_handler/permission_handler.dart';
 
-
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -103,26 +102,31 @@ class _AddLocationState extends State<AddLocationPage> {
 
   Future<void> displayPrediction(Prediction? p) async {
     try {
-      if (p != null) {
+      if (p != null && p.placeId != null) {
         print('Displaying prediction: ${p.description}');
         GoogleMapsPlaces _places = GoogleMapsPlaces(apiKey: kGoogleApiKey);
         PlacesDetailsResponse detail =
             await _places.getDetailsByPlaceId(p.placeId!);
-        print('Place Details: $detail');
+        print('Place Details: ${detail.result.geometry}');
         final lat = detail.result.geometry!.location.lat;
         final lng = detail.result.geometry!.location.lng;
         print('Location: ($lat, $lng)');
 
         setState(() {
           _selectedLocation = LatLng(lat, lng);
-          _mapController
-              ?.animateCamera(CameraUpdate.newLatLng(_selectedLocation!));
+          if (_selectedLocation != null) {
+            _mapController
+                ?.animateCamera(CameraUpdate.newLatLng(_selectedLocation!));
+          }
         });
       }
     } catch (error) {
       print('Error in displayPrediction: $error');
     }
   }
+
+
+  
 
 
   void _showFullScreenMap() {
@@ -150,7 +154,7 @@ class _AddLocationState extends State<AddLocationPage> {
           color: const Color.fromARGB(255, 255, 255, 255)),
       onPressed: () {
         Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => Homepage()));
+            MaterialPageRoute(builder: (context) => Homepage(jwt: '',)));
       },
     );
   }
@@ -243,12 +247,12 @@ class _AddLocationState extends State<AddLocationPage> {
     return Container(
       margin: EdgeInsets.fromLTRB(20, 20, 20, 0),
       child: ElevatedButton(
-        child: Text("ค้นหาสถานที่", style: TextStyle(color: Colors.white)),
+        child: Text("ค้นหาสถานที่", style: TextStyle(color: const Color.fromARGB(255, 0, 0, 0))),
         style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.blue,
+          backgroundColor: const Color.fromARGB(255, 255, 255, 255),
           padding: EdgeInsets.symmetric(vertical: 15),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(40),
           ),
         ),
         onPressed: () {
@@ -455,7 +459,7 @@ class _AddLocationState extends State<AddLocationPage> {
                     Navigator.of(context).pop();
                     Navigator.pushReplacement(
                       context,
-                      MaterialPageRoute(builder: (context) => Homepage()),
+                      MaterialPageRoute(builder: (context) => Homepage(jwt: '',)),
                     );
                   },
                 ),

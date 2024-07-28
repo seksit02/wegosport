@@ -473,7 +473,7 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
           color: const Color.fromARGB(255, 255, 255, 255)),
       onPressed: () {
         Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => Homepage()));
+            MaterialPageRoute(builder: (context) => Homepage(jwt: '',)));
       },
     );
   }
@@ -491,7 +491,7 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
               onPressed: () {
                 Navigator.of(context).pop(); // ปิด dialog
                 Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(builder: (context) => Homepage()));
+                    MaterialPageRoute(builder: (context) => Homepage(jwt: '',)));
               },
             ),
           ],

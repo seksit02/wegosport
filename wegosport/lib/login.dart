@@ -106,7 +106,7 @@ class _LoginPageState extends State<LoginPage> {
             backgroundColor: Color.fromARGB(249, 255, 4, 4),
             shadowColor: Color.fromARGB(255, 255, 255, 255),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(30), // ปรับความโค้งของกรอบ
+              borderRadius: BorderRadius.circular(30),
               side: BorderSide(color: Colors.black),
             ),
           ),
@@ -114,10 +114,15 @@ class _LoginPageState extends State<LoginPage> {
             if (inputone.text.isEmpty || inputtwo.text.isEmpty) {
               _showErrorDialog("กรุณากรอกข้อมูล");
             } else {
-              bool loginSuccess = await FunctionLogin();
+              var loginResult = await FunctionLogin();
+              bool loginSuccess = loginResult['success'];
+              String jwt = loginResult['jwt'];
+
               if (loginSuccess) {
                 Navigator.of(context).pushReplacement(
-                  MaterialPageRoute(builder: (context) => Homepage()),
+                  MaterialPageRoute(
+                      builder: (context) => Homepage(
+                          jwt: jwt)), // ส่งค่า jwt ที่ได้รับจากฟังก์ชัน
                 );
               } else {
                 _showErrorDialog("การเข้าสู่ระบบล้มเหลว");
@@ -128,6 +133,7 @@ class _LoginPageState extends State<LoginPage> {
       ),
     );
   }
+
 
   void _showErrorDialog(String message) {
     showDialog(
@@ -164,7 +170,7 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   // ฟังก์ชันล็อกอิน
-  Future<bool> FunctionLogin() async {
+  Future<Map<String, dynamic>> FunctionLogin() async {
     print("user_id: ${inputone.text}");
     print("user_pass: ${inputtwo.text}");
 
@@ -196,7 +202,6 @@ class _LoginPageState extends State<LoginPage> {
 
         // ตรวจสอบว่าการเข้าสู่ระบบสำเร็จหรือไม่
         if (jsonResponse['result'] == "1") {
-          
           String userId = jsonResponse['user_id'];
           String jwt = jsonResponse['jwt']; // ใช้ JWT ที่ได้รับจากเซิร์ฟเวอร์
 
@@ -215,35 +220,27 @@ class _LoginPageState extends State<LoginPage> {
                 json.decode(saveJwtResponse.body);
 
             if (saveJwtJsonResponse['result'] == "1") {
-              Navigator.of(context).pushReplacement(
-                MaterialPageRoute(
-                  builder: (context) => ProfilePage(jwt: jwt),
-                ),
-              );
-              return true;
+              return {'success': true, 'jwt': jwt};
             } else {
               _showErrorDialog("การเก็บ JWT ล้มเหลว");
-              return false;
+              return {'success': false};
             }
           } else {
             _showErrorDialog("การเก็บ JWT ล้มเหลว");
-            return false;
+            return {'success': false};
           }
         } else {
-          return false;
+          return {'success': false};
         }
       } else {
         print("Request failed with status: ${response.statusCode}");
-        return false;
+        return {'success': false};
       }
     } catch (error) {
       print("Error: $error");
-      return false;
+      return {'success': false};
     }
   }
-
-
-
 
 
   Widget buttonfacebook() {
@@ -347,13 +344,11 @@ class _LoginPageState extends State<LoginPage> {
 
   Future<void> facebookLogin(BuildContext context) async {
     try {
-
       final result = await FacebookAuth.instance.login(
         permissions: ['public_profile', 'email'],
       );
 
       if (result.status == LoginStatus.success) {
-
         final userData = await FacebookAuth.instance.getUserData();
 
         print('facebook_login_data:-');
@@ -372,11 +367,9 @@ class _LoginPageState extends State<LoginPage> {
         );
 
         if (response.statusCode == 200) {
-
           var jsonResponse = jsonDecode(response.body);
 
           if (jsonResponse['exists']) {
-
             // สร้าง JWT สำหรับผู้ใช้ที่มีอยู่แล้ว
             String jwt = generateJwt(facebookUserId);
 
@@ -391,28 +384,22 @@ class _LoginPageState extends State<LoginPage> {
             );
 
             if (saveJwtResponse.statusCode == 200) {
-
               var saveJwtJsonResponse = jsonDecode(saveJwtResponse.body);
 
               if (saveJwtJsonResponse['result'] == "1") {
-
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => Homepage(),
+                    builder: (context) => Homepage(jwt: jwt),
                   ),
                 );
-
               } else {
                 _showErrorDialog("การเก็บ JWT ล้มเหลว");
               }
-
             } else {
               _showErrorDialog("การเก็บ JWT ล้มเหลว");
             }
-
           } else {
-
             Navigator.push(
               context,
               MaterialPageRoute(
@@ -424,7 +411,6 @@ class _LoginPageState extends State<LoginPage> {
               ),
             );
           }
-
         } else {
           // จัดการข้อผิดพลาดของเซิร์ฟเวอร์
           print('Server error: ${response.statusCode}');
