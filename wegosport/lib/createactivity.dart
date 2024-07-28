@@ -8,8 +8,11 @@ import 'dart:convert';
 import 'package:wegosport/Homepage.dart';
 
 class CreateActivityPage extends StatefulWidget {
-  const CreateActivityPage({super.key});
+  
+  const CreateActivityPage({Key? key, required this.jwt}) : super(key: key);
+  final String jwt;
 
+  
   @override
   State<CreateActivityPage> createState() => _CreateActivityPageState();
 }
@@ -21,7 +24,7 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
   TextEditingController hashtagController = TextEditingController();
   TextEditingController locationController = TextEditingController();
   TextEditingController sportController = TextEditingController();
-
+  Map<String, dynamic>? userData;
   final List<String> _selectedTags = [];
   List<String> _allHashtags = [];
 
@@ -97,12 +100,59 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
     }
   }
 
+
+  Future<void> fetchUserData(String jwt) async {
+    var url =
+        Uri.parse('http://10.0.2.2/flutter_webservice/get_ShowDataUser.php');
+
+    Map<String, String> headers = {
+      'Authorization': 'Bearer $jwt',
+    };
+
+    print('Headers: $headers'); // พิมพ์ headers เพื่อการตรวจสอบ
+
+    try {
+      var response = await http.post(
+        url,
+        headers: headers,
+      );
+
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+
+        if (data is List<dynamic> &&
+            data.isNotEmpty &&
+            data[0] is Map<String, dynamic> &&
+            data[0].containsKey('user_id')) {
+          setState(() {
+            userData = data[0];
+          });
+          print('User data: $userData');
+        } else {
+          print("No user data found");
+          throw Exception('Failed to load user data');
+        }
+      } else {
+        print("Failed to load user data: ${response.body}");
+        throw Exception('Failed to load user data');
+      }
+    } catch (error) {
+      print("Error: $error");
+      throw Exception('Failed to load user data');
+    }
+  }
+
+  
   @override
   void initState() {
     super.initState();
     fetchLocations();
     fetchSport();
     fetchHashtags();
+    fetchUserData(widget.jwt);
   }
 
 
@@ -473,7 +523,9 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
           color: const Color.fromARGB(255, 255, 255, 255)),
       onPressed: () {
         Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => Homepage(jwt: '',)));
+          MaterialPageRoute(
+              builder: (context) => Homepage(jwt: widget.jwt)), // แก้ไขตรงนี้
+        );
       },
     );
   }
@@ -491,7 +543,10 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
               onPressed: () {
                 Navigator.of(context).pop(); // ปิด dialog
                 Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(builder: (context) => Homepage(jwt: '',)));
+                  MaterialPageRoute(
+                      builder: (context) =>
+                          Homepage(jwt: widget.jwt)), // แก้ไขตรงนี้
+                );
               },
             ),
           ],
@@ -501,6 +556,11 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
   }
 
   Future<void> functionCreateActivity() async {
+    if (userData == null) {
+      print("User data not loaded");
+      return;
+    }
+
     String hashtags = _selectedTags.join(" ");
     List<String> hashtagList =
         hashtags.split(RegExp(r'\s+')).where((tag) => tag.isNotEmpty).toList();
@@ -514,6 +574,13 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
     print("activity_details: ${detailsController.text}");
     print("activity_date: ${dateController.text}");
 
+    // เพิ่มข้อมูลผู้สร้างกิจกรรม
+    Map<String, dynamic> creator = {
+      "user_id": userData!['user_id'],
+      "user_name": userData!['user_name'],
+      "user_photo": userData!['user_photo']
+    };
+
     Map<String, dynamic> dataPost = {
       "activity_name": nameController.text,
       "activity_details": detailsController.text,
@@ -521,11 +588,13 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
       "location_name": selectedLocation ?? '',
       "sport_id": selectedSportId, // Ensure this value is set appropriately
       "hashtags": hashtagList,
+      "creator": creator, // เพิ่มข้อมูลผู้สร้างกิจกรรม
     };
 
     Map<String, String> headers = {
       "Content-Type": "application/json",
-      "Accept": "application/json"
+      "Accept": "application/json",
+      "Authorization": "Bearer ${widget.jwt}" // เพิ่ม jwt ที่นี่
     };
 
     var url =
@@ -554,6 +623,7 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
       print("Error: $error");
     }
   }
+
 
   @override
   Widget build(BuildContext context) {

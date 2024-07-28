@@ -10,7 +10,6 @@ import 'package:wegosport/Login.dart';
 import 'dart:ui';
 import 'package:intl/intl.dart';
 
-
 class Homepage extends StatefulWidget {
   final String jwt;
 
@@ -25,11 +24,13 @@ class _HomepageState extends State<Homepage> {
   List<dynamic> filteredActivities = [];
   int _selectedIndex = 0;
   String searchQuery = "";
+  Map<String, dynamic>? userData;
 
   @override
   void initState() {
     super.initState();
     fetchActivities();
+    fetchUserData(widget.jwt);
   }
 
   Future<void> fetchActivities() async {
@@ -53,6 +54,50 @@ class _HomepageState extends State<Homepage> {
       });
     } else {
       throw Exception('Failed to load activities');
+    }
+  }
+
+  Future<void> fetchUserData(String jwt) async {
+    var url =
+        Uri.parse('http://10.0.2.2/flutter_webservice/get_ShowDataUser.php');
+
+    Map<String, String> headers = {
+      'Authorization': 'Bearer $jwt',
+    };
+
+    print('Headers: $headers'); // พิมพ์ headers เพื่อการตรวจสอบ
+
+    try {
+      var response = await http.post(
+        url,
+        headers: headers,
+      );
+
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+
+        if (data is List<dynamic> &&
+            data.isNotEmpty &&
+            data[0] is Map<String, dynamic> &&
+            data[0].containsKey('user_id')) {
+          setState(() {
+            userData = data[0];
+          });
+          print('User data: $userData');
+        } else {
+          print("No user data found");
+          throw Exception('Failed to load user data');
+        }
+      } else {
+        print("Failed to load user data: ${response.body}");
+        throw Exception('Failed to load user data');
+      }
+    } catch (error) {
+      print("Error: $error");
+      throw Exception('Failed to load user data');
     }
   }
 
@@ -153,7 +198,10 @@ class _HomepageState extends State<Homepage> {
             child: GestureDetector(
               onTap: _navigateToProfile,
               child: CircleAvatar(
-                backgroundImage: AssetImage('images/P001.jpg'), // รูปโปรไฟล์
+                backgroundImage:
+                    userData != null && userData!['user_photo'] != null
+                        ? NetworkImage(userData!['user_photo'])
+                        : AssetImage('images/P001.jpg') as ImageProvider,
                 radius: 16, // ปรับขนาดของรูปโปรไฟล์
               ),
             ),
@@ -243,9 +291,12 @@ class _HomepageState extends State<Homepage> {
                 children: [
                   ElevatedButton(
                     onPressed: () {
-                      Navigator.of(context).pushReplacement(
+                      Navigator.of(context).push(
                         MaterialPageRoute(
-                            builder: (context) => CreateActivityPage()),
+                          builder: (context) => CreateActivityPage(
+                            jwt: widget.jwt, // ส่งค่า jwt ที่ได้รับจากฟังก์ชัน
+                          ),
+                        ),
                       );
                     },
                     style: ElevatedButton.styleFrom(
@@ -257,9 +308,12 @@ class _HomepageState extends State<Homepage> {
                   ),
                   ElevatedButton(
                     onPressed: () {
-                      Navigator.of(context).pushReplacement(
+                      Navigator.of(context).push(
                         MaterialPageRoute(
-                            builder: (context) => AddLocationPage()),
+                          builder: (context) => AddLocationPage(
+                            jwt: widget.jwt, // ส่งค่า jwt ที่ได้รับจากฟังก์ชัน
+                          ),
+                        ),
                       );
                     },
                     style: ElevatedButton.styleFrom(
@@ -376,15 +430,13 @@ class ActivityCardItem extends StatelessWidget {
             // แถวของสมาชิก
             Row(
               children: [
-                MemberAvatar(
-                  imageUrl: '',
-                ),
-                MemberAvatar(
-                  imageUrl: '',
-                ),
-                MemberAvatar(
-                  imageUrl: '',
-                ),
+                if (members.isNotEmpty)
+                  ...members.map((member) {
+                    String imageUrl = member['user_photo'] ?? 'images/logo.png';
+                    return MemberAvatar(imageUrl: imageUrl);
+                  }).toList()
+                else
+                  Text('ไม่มีสมาชิก', style: TextStyle(color: Colors.grey)),
                 Spacer(),
                 // จำนวนสมาชิก
                 Row(
@@ -433,7 +485,7 @@ class ActivityCardItem extends StatelessWidget {
                         ),
                       );
                     },
-                  ) // แสดงผลรูปจาก URL
+                  )
                 : SizedBox(
                     height: 200,
                     child: Center(child: Text('ไม่มีรูปภาพ')),
@@ -444,7 +496,6 @@ class ActivityCardItem extends StatelessWidget {
     );
   }
 }
-
 
 class TagWidget extends StatelessWidget {
   final String text;
@@ -478,12 +529,17 @@ class MemberAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    bool isNetworkImage = imageUrl.startsWith('http');
+
     return Container(
       margin: EdgeInsets.only(right: 8),
       child: CircleAvatar(
-        backgroundImage: AssetImage('images/P001.jpg'), // ใช้รูปจาก URL
-        radius: 16, // ปรับขนาดของรูปโปรไฟล์ในสมาชิก
+        backgroundImage: isNetworkImage
+            ? NetworkImage(imageUrl)
+            : AssetImage(imageUrl) as ImageProvider,
+        radius: 16,
       ),
     );
   }
 }
+

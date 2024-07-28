@@ -17,8 +17,10 @@ const kGoogleApiKey =
     "AIzaSyC_RzmlxLOESG1-JwwSddFSijV11HUVHJk"; // แทนที่ด้วย API Key ของคุณ
 
 class AddLocationPage extends StatefulWidget {
-  const AddLocationPage({super.key});
+  const AddLocationPage({Key? key, required this.jwt}) : super(key: key);
+  final String jwt;
 
+ 
   @override
   State<AddLocationPage> createState() => _AddLocationState();
 }
@@ -154,7 +156,9 @@ class _AddLocationState extends State<AddLocationPage> {
           color: const Color.fromARGB(255, 255, 255, 255)),
       onPressed: () {
         Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => Homepage(jwt: '',)));
+          MaterialPageRoute(
+              builder: (context) => Homepage(jwt: widget.jwt)), // แก้ไขตรงนี้
+        );
       },
     );
   }
@@ -437,7 +441,7 @@ class _AddLocationState extends State<AddLocationPage> {
 
     request.files
         .add(await http.MultipartFile.fromPath('image', _imageFile!.path));
-    
+
     print(request.fields);
     try {
       var response = await request.send();
@@ -459,7 +463,9 @@ class _AddLocationState extends State<AddLocationPage> {
                     Navigator.of(context).pop();
                     Navigator.pushReplacement(
                       context,
-                      MaterialPageRoute(builder: (context) => Homepage(jwt: '',)),
+                      MaterialPageRoute(
+                          builder: (context) =>
+                              Homepage(jwt: widget.jwt)), // แก้ไขตรงนี้
                     );
                   },
                 ),
