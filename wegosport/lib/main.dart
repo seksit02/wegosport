@@ -10,8 +10,7 @@ import 'package:wegosport/groupchat.dart';
 import 'package:wegosport/Homepage.dart';
 import 'package:wegosport/Login.dart';
 import 'package:wegosport/Profile.dart';
-import 'package:wegosport/TestPhoto.dart';
-import 'package:wegosport/TestProfile.dart';
+
 
 void main() {
   runApp(MyApp());
@@ -22,7 +21,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: LoginPage(),
+      home: AddLocationPage(jwt: '',),
       routes: {
         '/Profile': (context) => ProfilePage( jwt: '',),
       },

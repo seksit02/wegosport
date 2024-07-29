@@ -5,51 +5,55 @@ import 'package:image_picker/image_picker.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:flutter_google_places/flutter_google_places.dart';
 import 'package:google_maps_webservice/places.dart';
-import 'package:permission_handler/permission_handler.dart';
 
+import 'package:permission_handler/permission_handler.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-
 import 'package:wegosport/Homepage.dart';
 
 const kGoogleApiKey =
-    "AIzaSyC_RzmlxLOESG1-JwwSddFSijV11HUVHJk"; // แทนที่ด้วย API Key ของคุณ
+    "AIzaSyD7Okt5SymXMu3nocso2FJb5_2dSgGhL-s"; // แทนที่ด้วย API Key ของคุณ
 
 class AddLocationPage extends StatefulWidget {
   const AddLocationPage({Key? key, required this.jwt}) : super(key: key);
   final String jwt;
 
- 
   @override
   State<AddLocationPage> createState() => _AddLocationState();
 }
 
 class _AddLocationState extends State<AddLocationPage> {
-
   TextEditingController input1 = TextEditingController();
   TextEditingController input2 = TextEditingController();
-
+  TextEditingController searchController = TextEditingController();
   TextEditingController typeController = TextEditingController();
   List<String> selectedTypes = [];
   List<Map<String, dynamic>> fieldTypes = [];
 
   File? _imageFile;
-  LatLng? _selectedLocation; // Added to store the selected location
+  LatLng? _selectedLocation;
   final ImagePicker _picker = ImagePicker();
   GoogleMapController? _mapController;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchType();
+    _requestLocationPermission();
+  }
 
   Future<void> _requestLocationPermission() async {
     var status = await Permission.locationWhenInUse.status;
     if (!status.isGranted) {
       status = await Permission.locationWhenInUse.request();
       if (!status.isGranted) {
-        // Handle the case where the user denies the permission
-        print('Location permission not granted');
+        // จัดการกรณีที่ผู้ใช้ปฏิเสธการอนุญาต
+        print('ไม่ได้รับอนุญาติให้ระบุตำแหน่ง');
         return;
       }
     }
-    print('Location permission granted');
+    print('ได้รับอนุญาติให้จัดสถานที่แล้ว');
   }
 
   Future<void> fetchType() async {
@@ -67,13 +71,6 @@ class _AddLocationState extends State<AddLocationPage> {
     }
   }
 
-  @override
-  void initState() {
-    super.initState();
-    fetchType();
-    _requestLocationPermission();
-  }
-
   Future<void> _pickImage() async {
     final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
     setState(() {
@@ -87,31 +84,45 @@ class _AddLocationState extends State<AddLocationPage> {
 
   Future<void> _handlePressButton() async {
     try {
+      String searchQuery = searchController.text;
+      if (searchQuery.isEmpty) {
+        print('Search query is empty.');
+        return;
+      }
+
       print('Showing PlacesAutocomplete');
-      Prediction? p = await PlacesAutocomplete.show(
-        context: context,
-        apiKey: kGoogleApiKey,
-        mode: Mode.overlay, // Mode.fullscreen
-        language: "th",
-        components: [Component(Component.country, "th")],
-      );
-      print('Prediction: ${p?.description}');
-      displayPrediction(p);
+      final response = await http.get(Uri.parse(
+          'https://maps.googleapis.com/maps/api/place/autocomplete/json?input=$searchQuery&key=$kGoogleApiKey&components=country:th'));
+
+      if (response.statusCode == 200) {
+        final predictions = json.decode(response.body)['predictions'];
+        if (predictions.isNotEmpty) {
+          final place = predictions[0];
+          final placeId = place['place_id'];
+          final description = place['description'];
+          print('Prediction: $description');
+          displayPrediction(placeId);
+        } else {
+          print('No predictions found.');
+        }
+      } else {
+        print(
+            'Failed to load predictions. Status code: ${response.statusCode}');
+      }
     } catch (error) {
       print('Error in _handlePressButton: $error');
     }
   }
 
-  Future<void> displayPrediction(Prediction? p) async {
+  Future<void> displayPrediction(String placeId) async {
     try {
-      if (p != null && p.placeId != null) {
-        print('Displaying prediction: ${p.description}');
-        GoogleMapsPlaces _places = GoogleMapsPlaces(apiKey: kGoogleApiKey);
-        PlacesDetailsResponse detail =
-            await _places.getDetailsByPlaceId(p.placeId!);
-        print('Place Details: ${detail.result.geometry}');
-        final lat = detail.result.geometry!.location.lat;
-        final lng = detail.result.geometry!.location.lng;
+      final response = await http.get(Uri.parse(
+          'https://maps.googleapis.com/maps/api/place/details/json?place_id=$placeId&key=$kGoogleApiKey'));
+
+      if (response.statusCode == 200) {
+        final details = json.decode(response.body)['result'];
+        final lat = details['geometry']['location']['lat'];
+        final lng = details['geometry']['location']['lng'];
         print('Location: ($lat, $lng)');
 
         setState(() {
@@ -121,15 +132,14 @@ class _AddLocationState extends State<AddLocationPage> {
                 ?.animateCamera(CameraUpdate.newLatLng(_selectedLocation!));
           }
         });
+      } else {
+        print(
+            'Failed to load place details. Status code: ${response.statusCode}');
       }
     } catch (error) {
       print('Error in displayPrediction: $error');
     }
   }
-
-
-  
-
 
   void _showFullScreenMap() {
     showModalBottomSheet(
@@ -250,19 +260,41 @@ class _AddLocationState extends State<AddLocationPage> {
   Widget searchBar() {
     return Container(
       margin: EdgeInsets.fromLTRB(20, 20, 20, 0),
-      child: ElevatedButton(
-        child: Text("ค้นหาสถานที่", style: TextStyle(color: const Color.fromARGB(255, 0, 0, 0))),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: const Color.fromARGB(255, 255, 255, 255),
-          padding: EdgeInsets.symmetric(vertical: 15),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(40),
+      child: Column(
+        children: [
+          TextFormField(
+            controller: searchController,
+            decoration: InputDecoration(
+              contentPadding: EdgeInsets.fromLTRB(15, 10, 15, 10),
+              hintText: 'ค้นหาสถานที่',
+              fillColor: const Color.fromARGB(255, 255, 255, 255),
+              filled: true,
+              hintStyle: TextStyle(color: Color.fromARGB(255, 102, 102, 102)),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(40),
+              ),
+              prefixIcon:
+                  Icon(Icons.search, color: Color.fromARGB(255, 255, 0, 0)),
+            ),
+            style: TextStyle(color: const Color.fromARGB(255, 0, 0, 0)),
           ),
-        ),
-        onPressed: () {
-          print('Search button pressed');
-          _handlePressButton();
-        },
+          SizedBox(height: 10),
+          ElevatedButton(
+            child: Text("ค้นหาสถานที่",
+                style: TextStyle(color: const Color.fromARGB(255, 0, 0, 0))),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+              padding: EdgeInsets.symmetric(vertical: 15),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(40),
+              ),
+            ),
+            onPressed: () {
+              print('Search button pressed');
+              _handlePressButton();
+            },
+          ),
+        ],
       ),
     );
   }
@@ -348,6 +380,7 @@ class _AddLocationState extends State<AddLocationPage> {
   }
 
   void _showTypeDialog() {
+    //เลือกประเภทสนาม
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -486,7 +519,8 @@ class _AddLocationState extends State<AddLocationPage> {
     return Scaffold(
       backgroundColor: Color.fromARGB(255, 222, 222, 222),
       appBar: AppBar(
-        title: Text("เพิ่มสถานที่",style: TextStyle(color: const Color.fromARGB(255, 255, 255, 255))),
+        title: Text("เพิ่มสถานที่",
+            style: TextStyle(color: const Color.fromARGB(255, 255, 255, 255))),
         leading: backButton(),
         backgroundColor: Color.fromARGB(255, 255, 0, 0),
       ),
@@ -498,7 +532,7 @@ class _AddLocationState extends State<AddLocationPage> {
             type(),
             addImage(),
             mapImage(),
-            //searchBar(),
+            searchBar(),
             map(),
             buttonAddLocation(context),
             SizedBox(height: 20)

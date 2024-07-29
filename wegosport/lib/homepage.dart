@@ -158,8 +158,31 @@ class _HomepageState extends State<Homepage> {
   }
 
   void _logout() {
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (context) => LoginPage()),
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('ออกจากระบบ'),
+          content: Text('คุณต้องการจะออกจากระบบหรือไม่?'),
+          actions: [
+            TextButton(
+              child: Text('ยกเลิก'),
+              onPressed: () {
+                Navigator.of(context).pop(); // ปิดกล่องข้อความ
+              },
+            ),
+            TextButton(
+              child: Text('ตกลง'),
+              onPressed: () {
+                Navigator.of(context).pop(); // ปิดกล่องข้อความ
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(builder: (context) => LoginPage()),
+                );
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 

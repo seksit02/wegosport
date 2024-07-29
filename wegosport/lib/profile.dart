@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:wegosport/Homepage.dart';
+import 'package:wegosport/EditProfile.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key, required this.jwt});
@@ -13,6 +14,7 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
+  
   Map<String, dynamic>? userData;
 
   @override
@@ -126,11 +128,10 @@ class _ProfilePageState extends State<ProfilePage> {
                   SizedBox(height: 16),
                   ElevatedButton(
                     onPressed: () {
-                      Navigator.pushReplacement(
+                      Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => Homepage(
-                              jwt: widget.jwt), // ส่ง jwt กลับไปยัง Homepage
+                          builder: (context) => EditProfile(jwt: widget.jwt),
                         ),
                       );
                     },

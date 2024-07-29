@@ -31,38 +31,28 @@ dependencies:
   flutter:
     sdk: flutter
 
-  http: ^0.13.3
+  http: ^0.13.3 # ใช้สำหรับการทำ HTTP requests
+  flutter_facebook_auth: ^4.2.1 # ใช้สำหรับการเข้าสู่ระบบด้วย Facebook
+  image_picker: ^0.8.4+4 # ใช้สำหรับการเลือกรูปภาพจากอุปกรณ์
+  flutter_typeahead: ^4.0.0 # ใช้สำหรับการแนะนำสถานที่และกีฬา
+  flutter_material_pickers: ^3.0.0 # ใช้สำหรับการเลือกแฮชแท็ก (hashtag)
 
-  flutter_facebook_auth: ^4.2.1 # facebook
-
-  image_picker: ^0.8.4+4 #เลือกรูป
-
-  flutter_typeahead: ^4.0.0 #เลือกสถานที่และกีฬา
-
-  flutter_material_pickers: ^3.0.0 #hashtag
-
-  google_maps_flutter: ^2.0.6
-  flutter_google_places: ^0.3.0
-  google_maps_webservice: ^0.0.20-nullsafety.5
-  permission_handler: ^11.0.1
-  url_launcher: ^6.0.20
-
-  dart_jsonwebtoken: ^2.1.1
+  flutter_google_places: ^0.3.0 
+  google_maps_flutter: ^2.0.6 # ใช้สำหรับแสดงแผนที่ Google Maps ใน Flutter
+  google_maps_webservice: ^0.0.20-nullsafety.5 # ใช้สำหรับการเรียกใช้บริการ Google Maps API
   
-  cupertino_icons: ^1.0.2
-  cached_network_image: ^3.3.1
-
-  path_provider: ^2.0.7
-  flutter_cache_manager: ^3.3.0
+  permission_handler: ^11.0.1 # ใช้สำหรับการจัดการการอนุญาต (permissions) ของแอป
   
-  font_awesome_flutter: ^10.1.0 # Icon
+  url_launcher: ^6.0.20 # ใช้สำหรับการเปิด URL ในเบราว์เซอร์หรือแอปอื่นๆ
 
-  dio: ^4.0.0 #ส่ง request
-  
-  shared_preferences: ^2.2.3
-
- 
-  
+  dart_jsonwebtoken: ^2.1.1 # ใช้สำหรับการจัดการ JSON Web Tokens (JWT)
+  cupertino_icons: ^1.0.2 # ใช้สำหรับไอคอนสไตล์ Cupertino ใน iOS
+  cached_network_image: ^3.3.1 # ใช้สำหรับการแสดงรูปภาพจากเครือข่ายพร้อมแคช
+  path_provider: ^2.0.7 # ใช้สำหรับการเข้าถึงระบบไฟล์ในอุปกรณ์
+  flutter_cache_manager: ^3.3.0 # ใช้สำหรับการจัดการแคชของไฟล์
+  font_awesome_flutter: ^10.1.0 # ใช้สำหรับไอคอนจาก Font Awesome
+  dio: ^4.0.0 # ใช้สำหรับการส่ง HTTP requests อย่างสะดวกและมีประสิทธิภาพ
+  shared_preferences: ^2.2.3 # ใช้สำหรับการจัดเก็บข้อมูลแบบ key-value ในอุปกรณ์
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
