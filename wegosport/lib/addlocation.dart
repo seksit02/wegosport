@@ -1,25 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
-
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:flutter_google_places/flutter_google_places.dart';
 import 'package:google_maps_webservice/places.dart';
-
 import 'package:permission_handler/permission_handler.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image/image.dart' as img;
-
-
 import 'package:wegosport/Homepage.dart';
 
 const kGoogleApiKey =
     "AIzaSyD7Okt5SymXMu3nocso2FJb5_2dSgGhL-s"; // แทนที่ด้วย API Key ของคุณ
 
+// หน้าจอเพิ่มสถานที่
 class AddLocationPage extends StatefulWidget {
   const AddLocationPage({Key? key, required this.jwt}) : super(key: key);
   final String jwt;
@@ -29,17 +25,21 @@ class AddLocationPage extends StatefulWidget {
 }
 
 class _AddLocationState extends State<AddLocationPage> {
-  TextEditingController input1 = TextEditingController();
-  TextEditingController input2 = TextEditingController();
-  TextEditingController searchController = TextEditingController();
-  TextEditingController typeController = TextEditingController();
-  List<String> selectedTypes = [];
-  List<Map<String, dynamic>> fieldTypes = [];
+  TextEditingController input1 =
+      TextEditingController(); // ตัวควบคุมสำหรับชื่อสถานที่
+  TextEditingController input2 =
+      TextEditingController(); // ตัวควบคุมสำหรับเวลาเปิด-ปิด
+  TextEditingController searchController =
+      TextEditingController(); // ตัวควบคุมสำหรับค้นหาสถานที่
+  TextEditingController typeController =
+      TextEditingController(); // ตัวควบคุมสำหรับประเภทสนาม
+  List<String> selectedTypes = []; // ประเภทสนามที่เลือก
+  List<Map<String, dynamic>> fieldTypes = []; // ประเภทสนามทั้งหมด
 
-  File? _imageFile;
-  LatLng? _selectedLocation;
-  final ImagePicker _picker = ImagePicker();
-  GoogleMapController? _mapController;
+  File? _imageFile; // ไฟล์รูปภาพที่เลือก
+  LatLng? _selectedLocation; // ตำแหน่งที่เลือกบนแผนที่
+  final ImagePicker _picker = ImagePicker(); // ตัวเลือกภาพ
+  GoogleMapController? _mapController; // ควบคุมแผนที่
 
   @override
   void initState() {
@@ -48,6 +48,7 @@ class _AddLocationState extends State<AddLocationPage> {
     _requestLocationPermission();
   }
 
+  // ขออนุญาตการเข้าถึงตำแหน่ง
   Future<void> _requestLocationPermission() async {
     var status = await Permission.locationWhenInUse.status;
     if (!status.isGranted) {
@@ -61,6 +62,7 @@ class _AddLocationState extends State<AddLocationPage> {
     print('ได้รับอนุญาติให้จัดสถานที่แล้ว');
   }
 
+  // ดึงข้อมูลประเภทสนามจากเซิร์ฟเวอร์
   Future<void> fetchType() async {
     final response = await http.get(
         Uri.parse('http://10.0.2.2/flutter_webservice/get_ShowDataType.php'));
@@ -76,6 +78,7 @@ class _AddLocationState extends State<AddLocationPage> {
     }
   }
 
+  // เลือกรูปภาพ
   Future<void> _pickImage() async {
     final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
@@ -96,7 +99,7 @@ class _AddLocationState extends State<AddLocationPage> {
     }
   }
 
-
+  // ค้นหาสถานที่โดยใช้ Google Places API
   Future<void> _handlePressButton() async {
     try {
       String searchQuery = searchController.text;
@@ -129,6 +132,7 @@ class _AddLocationState extends State<AddLocationPage> {
     }
   }
 
+  // แสดงตำแหน่งที่เลือกจาก Google Places API
   Future<void> displayPrediction(String placeId) async {
     try {
       final response = await http.get(Uri.parse(
@@ -156,6 +160,7 @@ class _AddLocationState extends State<AddLocationPage> {
     }
   }
 
+  // แสดงแผนที่ในโหมดเต็มหน้าจอ
   void _showFullScreenMap() {
     showModalBottomSheet(
       context: context,
@@ -175,6 +180,7 @@ class _AddLocationState extends State<AddLocationPage> {
     );
   }
 
+  // วิดเจ็ตปุ่มกลับไปหน้าหลัก
   Widget backButton() {
     return IconButton(
       icon: Icon(Icons.arrow_back,
@@ -188,6 +194,7 @@ class _AddLocationState extends State<AddLocationPage> {
     );
   }
 
+  // วิดเจ็ตฟิลด์ชื่อสถานที่
   Widget namelocation() {
     return Container(
       margin: EdgeInsets.fromLTRB(20, 20, 20, 0),
@@ -209,6 +216,7 @@ class _AddLocationState extends State<AddLocationPage> {
     );
   }
 
+  // วิดเจ็ตฟิลด์เวลาเปิด-ปิด
   Widget time() {
     return Container(
       margin: EdgeInsets.fromLTRB(20, 20, 20, 0),
@@ -231,6 +239,7 @@ class _AddLocationState extends State<AddLocationPage> {
     );
   }
 
+  // วิดเจ็ตฟิลด์ประเภทสนาม
   Widget type() {
     return Container(
       margin: EdgeInsets.fromLTRB(20, 20, 20, 0),
@@ -254,6 +263,7 @@ class _AddLocationState extends State<AddLocationPage> {
     );
   }
 
+  // วิดเจ็ตปุ่มเลือกรูปภาพ
   Widget addImage() {
     return Container(
       margin: EdgeInsets.fromLTRB(20, 20, 20, 0),
@@ -273,6 +283,7 @@ class _AddLocationState extends State<AddLocationPage> {
     );
   }
 
+  // วิดเจ็ตแถบค้นหาสถานที่
   Widget searchBar() {
     return Container(
       margin: EdgeInsets.fromLTRB(20, 20, 20, 0),
@@ -300,7 +311,7 @@ class _AddLocationState extends State<AddLocationPage> {
                 style: TextStyle(color: const Color.fromARGB(255, 0, 0, 0))),
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color.fromARGB(255, 255, 255, 255),
-              padding: EdgeInsets.symmetric(horizontal: 10 , vertical: 0  ),
+              padding: EdgeInsets.symmetric(horizontal: 10, vertical: 0),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
               ),
@@ -315,6 +326,7 @@ class _AddLocationState extends State<AddLocationPage> {
     );
   }
 
+  // วิดเจ็ตแผนที่
   Widget map() {
     return Container(
       margin: EdgeInsets.fromLTRB(20, 20, 20, 0),
@@ -347,6 +359,7 @@ class _AddLocationState extends State<AddLocationPage> {
     );
   }
 
+  // วิดเจ็ตแสดงรูปภาพที่เลือกหรือโลโก้
   Widget mapImage() {
     return _imageFile == null
         ? Container(
@@ -374,7 +387,7 @@ class _AddLocationState extends State<AddLocationPage> {
           );
   }
 
-
+  // ฟังก์ชันแสดง dialog ข้อผิดพลาด
   void showErrorDialog(BuildContext context, String message) {
     showDialog(
       context: context,
@@ -395,6 +408,7 @@ class _AddLocationState extends State<AddLocationPage> {
     );
   }
 
+  // ฟังก์ชันแสดง dialog เลือกประเภทสนาม
   void _showTypeDialog() {
     //เลือกประเภทสนาม
     showDialog(
@@ -438,6 +452,7 @@ class _AddLocationState extends State<AddLocationPage> {
     );
   }
 
+  // วิดเจ็ตปุ่มเพิ่มสถานที่
   Widget buttonAddLocation(BuildContext context) {
     return Container(
       margin: EdgeInsets.fromLTRB(20, 20, 20, 0),
@@ -465,6 +480,7 @@ class _AddLocationState extends State<AddLocationPage> {
     );
   }
 
+  // ฟังก์ชันเพิ่มสถานที่
   Future<void> functionAddLocation() async {
     if (_imageFile == null || _selectedLocation == null) {
       print("No image or location selected.");

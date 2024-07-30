@@ -10,8 +10,9 @@ import 'package:wegosport/Login.dart';
 import 'dart:ui';
 import 'package:intl/intl.dart';
 
+// หน้าจอ Homepage
 class Homepage extends StatefulWidget {
-  final String jwt;
+  final String jwt; // รับค่า JWT สำหรับการตรวจสอบสิทธิ์
 
   const Homepage({Key? key, required this.jwt}) : super(key: key);
 
@@ -20,19 +21,20 @@ class Homepage extends StatefulWidget {
 }
 
 class _HomepageState extends State<Homepage> {
-  List<dynamic> activities = [];
-  List<dynamic> filteredActivities = [];
-  int _selectedIndex = 0;
-  String searchQuery = "";
-  Map<String, dynamic>? userData;
+  List<dynamic> activities = []; // เก็บข้อมูลกิจกรรมทั้งหมด
+  List<dynamic> filteredActivities = []; // เก็บข้อมูลกิจกรรมที่กรองแล้ว
+  int _selectedIndex = 0; // เก็บค่าดัชนีของแท็บที่เลือก
+  String searchQuery = ""; // เก็บข้อความที่ค้นหา
+  Map<String, dynamic>? userData; // เก็บข้อมูลผู้ใช้
 
   @override
   void initState() {
     super.initState();
-    fetchActivities();
-    fetchUserData(widget.jwt);
+    fetchActivities(); // ดึงข้อมูลกิจกรรมเมื่อเริ่มต้น
+    fetchUserData(widget.jwt); // ดึงข้อมูลผู้ใช้เมื่อเริ่มต้น
   }
 
+  // ฟังก์ชันดึงข้อมูลกิจกรรมจากเซิร์ฟเวอร์
   Future<void> fetchActivities() async {
     final response = await http.get(Uri.parse(
         'http://10.0.2.2/flutter_webservice/get_ShowDataActivity.php'));
@@ -40,7 +42,7 @@ class _HomepageState extends State<Homepage> {
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
 
-      // Sort activities by creation date (assuming 'activity_date' contains the date)
+      // จัดเรียงกิจกรรมตามวันที่สร้าง (assuming 'activity_date' contains the date)
       data.sort((a, b) {
         final dateA = DateTime.parse(a['activity_date']);
         final dateB = DateTime.parse(b['activity_date']);
@@ -57,6 +59,7 @@ class _HomepageState extends State<Homepage> {
     }
   }
 
+  // ฟังก์ชันดึงข้อมูลผู้ใช้จากเซิร์ฟเวอร์
   Future<void> fetchUserData(String jwt) async {
     var url =
         Uri.parse('http://10.0.2.2/flutter_webservice/get_ShowDataUser.php');
@@ -101,6 +104,7 @@ class _HomepageState extends State<Homepage> {
     }
   }
 
+  // ฟังก์ชันเปลี่ยนแท็บ
   void _onItemTapped(int index) {
     if (index == 0) {
       setState(() {
@@ -113,6 +117,7 @@ class _HomepageState extends State<Homepage> {
     }
   }
 
+  // ฟังก์ชันกรองกิจกรรม
   void _filterActivities(String query) {
     if (activities == null || query == null) {
       setState(() {
@@ -157,6 +162,7 @@ class _HomepageState extends State<Homepage> {
     });
   }
 
+  // ฟังก์ชันออกจากระบบ
   void _logout() {
     showDialog(
       context: context,
@@ -186,6 +192,7 @@ class _HomepageState extends State<Homepage> {
     );
   }
 
+  // ฟังก์ชันไปยังหน้าโปรไฟล์
   void _navigateToProfile() {
     Navigator.push(
       context,
@@ -356,6 +363,7 @@ class _HomepageState extends State<Homepage> {
   }
 }
 
+// วิดเจ็ตแสดงกิจกรรม
 class ActivityCardItem extends StatelessWidget {
   final dynamic activity;
   final Color backgroundColor;
@@ -428,7 +436,9 @@ class ActivityCardItem extends StatelessWidget {
             Text(
               activity['activity_date'] ?? '',
               style: TextStyle(
-                color: isPast ? const Color.fromARGB(255, 180, 180, 180) : Colors.black,
+                color: isPast
+                    ? const Color.fromARGB(255, 180, 180, 180)
+                    : Colors.black,
               ),
             ),
             SizedBox(height: 8),
@@ -520,6 +530,7 @@ class ActivityCardItem extends StatelessWidget {
   }
 }
 
+// วิดเจ็ตแสดงแท็ก
 class TagWidget extends StatelessWidget {
   final String text;
 
@@ -545,6 +556,7 @@ class TagWidget extends StatelessWidget {
   }
 }
 
+// วิดเจ็ตแสดงรูปภาพของสมาชิก
 class MemberAvatar extends StatelessWidget {
   final String imageUrl;
 
@@ -565,4 +577,3 @@ class MemberAvatar extends StatelessWidget {
     );
   }
 }
-

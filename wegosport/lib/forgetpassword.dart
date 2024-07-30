@@ -2,17 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:wegosport/Login.dart';
 
+// หน้าจอลืมรหัสผ่าน
 class ForgotPasswordPage extends StatefulWidget {
   @override
   _ForgotPasswordPageState createState() => _ForgotPasswordPageState();
 }
 
 class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
-  final TextEditingController _emailController = TextEditingController();
-  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final TextEditingController _emailController =
+      TextEditingController(); // ตัวควบคุมสำหรับฟิลด์อีเมล
+  final GlobalKey<FormState> _formKey =
+      GlobalKey<FormState>(); // กุญแจสำหรับฟอร์ม
 
+  // ฟังก์ชันส่งลิ้งก์รีเซ็ตรหัสผ่าน
   Future<void> _sendResetLink() async {
-    
     final email = _emailController.text.trim();
 
     if (_formKey.currentState!.validate()) {
@@ -47,15 +50,18 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
         centerTitle: true,
         backgroundColor: Color.fromARGB(255, 255, 0, 0),
         leading: IconButton(
-            icon: Icon(Icons.arrow_back,color: Color.fromARGB(255, 255, 255, 255),),
-            onPressed: () {
-             Navigator.pushReplacement(
+          icon:
+              Icon(Icons.arrow_back, color: Color.fromARGB(255, 255, 255, 255)),
+          onPressed: () {
+            Navigator.pushReplacement(
               context,
               MaterialPageRoute(
-                builder: (context) => LoginPage())); // Handle back navigation
-            },
-          ),
+                builder: (context) => LoginPage(),
+              ),
+            ); // กลับไปยังหน้า Login
+          },
         ),
+      ),
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 32.0),
@@ -102,9 +108,13 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                 ),
                 SizedBox(height: 20),
                 ElevatedButton(
-                  onPressed: _sendResetLink,
-                  child: Text('ยืนยัน',
-                  style : TextStyle(color: const Color.fromARGB(255, 255, 255, 255)),),
+                  onPressed:
+                      _sendResetLink, // เรียกใช้ฟังก์ชัน _sendResetLink เมื่อกดปุ่ม
+                  child: Text(
+                    'ยืนยัน',
+                    style: TextStyle(
+                        color: const Color.fromARGB(255, 255, 255, 255)),
+                  ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Color.fromARGB(255, 255, 0, 0),
                     padding: EdgeInsets.symmetric(horizontal: 40, vertical: 15),

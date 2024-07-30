@@ -1,32 +1,37 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:flutter_typeahead/flutter_typeahead.dart';
-import 'package:flutter_material_pickers/flutter_material_pickers.dart';
+import 'package:flutter_typeahead/flutter_typeahead.dart'; // ใช้สำหรับแสดงรายการที่แนะนำ
+import 'package:flutter_material_pickers/flutter_material_pickers.dart'; // ใช้สำหรับการเลือกแบบรายการ
 
 import 'dart:async';
 import 'dart:convert';
 import 'package:wegosport/Homepage.dart';
 
+// หน้าจอสร้างกิจกรรม
 class CreateActivityPage extends StatefulWidget {
-  
   const CreateActivityPage({Key? key, required this.jwt}) : super(key: key);
-  final String jwt;
+  final String jwt; // รับค่า JWT สำหรับการตรวจสอบสิทธิ์
 
-  
   @override
   State<CreateActivityPage> createState() => _CreateActivityPageState();
 }
 
 class _CreateActivityPageState extends State<CreateActivityPage> {
-  TextEditingController nameController = TextEditingController();
-  TextEditingController detailsController = TextEditingController();
-  TextEditingController dateController = TextEditingController();
-  TextEditingController hashtagController = TextEditingController();
-  TextEditingController locationController = TextEditingController();
-  TextEditingController sportController = TextEditingController();
-  Map<String, dynamic>? userData;
-  final List<String> _selectedTags = [];
-  List<String> _allHashtags = [];
+  TextEditingController nameController =
+      TextEditingController(); // ตัวควบคุมสำหรับชื่อกิจกรรม
+  TextEditingController detailsController =
+      TextEditingController(); // ตัวควบคุมสำหรับรายละเอียดกิจกรรม
+  TextEditingController dateController =
+      TextEditingController(); // ตัวควบคุมสำหรับวันที่และเวลา
+  TextEditingController hashtagController =
+      TextEditingController(); // ตัวควบคุมสำหรับแฮชแท็ก
+  TextEditingController locationController =
+      TextEditingController(); // ตัวควบคุมสำหรับสถานที่
+  TextEditingController sportController =
+      TextEditingController(); // ตัวควบคุมสำหรับกีฬา
+  Map<String, dynamic>? userData; // เก็บข้อมูลผู้ใช้
+  final List<String> _selectedTags = []; // เก็บแฮชแท็กที่เลือก
+  List<String> _allHashtags = []; // เก็บแฮชแท็กทั้งหมด
 
   void _showTagPicker(BuildContext context) {
     showMaterialCheckboxPicker(
@@ -43,13 +48,14 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
     );
   }
 
-  String? selectedLocation;
-  String? selectedSport;
-  List<String> locations = [];
-  List<String> sport = [];
+  String? selectedLocation; // สถานที่ที่เลือก
+  String? selectedSport; // กีฬาที่เลือก
+  List<String> locations = []; // เก็บสถานที่ทั้งหมด
+  List<String> sport = []; // เก็บกีฬาทั้งหมด
 
-  get selectedSportId => 1;
+  get selectedSportId => 1; // ID ของกีฬาที่เลือก (แก้ไขตามความเหมาะสม)
 
+  // ฟังก์ชันดึงข้อมูลสถานที่จากเซิร์ฟเวอร์
   Future<void> fetchLocations() async {
     final response = await http.get(Uri.parse(
         'http://10.0.2.2/flutter_webservice/get_ShowDataLocation.php'));
@@ -66,6 +72,7 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
     }
   }
 
+  // ฟังก์ชันดึงข้อมูลกีฬาจากเซิร์ฟเวอร์
   Future<void> fetchSport() async {
     final response = await http.get(
         Uri.parse('http://10.0.2.2/flutter_webservice/get_ShowDataSport.php'));
@@ -82,6 +89,7 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
     }
   }
 
+  // ฟังก์ชันดึงข้อมูลแฮชแท็กจากเซิร์ฟเวอร์
   Future<void> fetchHashtags() async {
     final response = await http.get(Uri.parse(
         'http://10.0.2.2/flutter_webservice/get_ShowDataHashtag.php'));
@@ -100,7 +108,7 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
     }
   }
 
-
+  // ฟังก์ชันดึงข้อมูลผู้ใช้จากเซิร์ฟเวอร์
   Future<void> fetchUserData(String jwt) async {
     var url =
         Uri.parse('http://10.0.2.2/flutter_webservice/get_ShowDataUser.php');
@@ -145,7 +153,6 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
     }
   }
 
-  
   @override
   void initState() {
     super.initState();
@@ -155,7 +162,7 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
     fetchUserData(widget.jwt);
   }
 
-
+  // วิดเจ็ตฟิลด์ชื่อกิจกรรม
   Widget nameActivity() {
     return Container(
       margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
@@ -186,6 +193,7 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
     );
   }
 
+  // วิดเจ็ตฟิลด์สถานที่
   Widget location() {
     return Container(
       margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
@@ -243,6 +251,7 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
     );
   }
 
+  // วิดเจ็ตฟิลด์กีฬา
   Widget field_name() {
     return Container(
       margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
@@ -300,6 +309,7 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
     );
   }
 
+  // วิดเจ็ตฟิลด์วันที่และเวลา
   Widget date() {
     return Container(
       margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
@@ -382,6 +392,7 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
     );
   }
 
+  // วิดเจ็ตฟิลด์แฮชแท็ก
   Widget hashtag() {
     return Container(
       margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
@@ -465,6 +476,7 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
     );
   }
 
+  // วิดเจ็ตฟิลด์รายละเอียดกิจกรรม
   Widget message() {
     return Container(
       margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
@@ -495,7 +507,7 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
     );
   }
 
-
+  // วิดเจ็ตปุ่มสร้างกิจกรรม
   Widget createGroupButton() {
     return Container(
       margin: EdgeInsets.fromLTRB(10, 20, 10, 0),
@@ -525,6 +537,7 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
     );
   }
 
+  // วิดเจ็ตปุ่มกลับไปหน้าหลัก
   Widget backButton() {
     return IconButton(
       icon: Icon(Icons.arrow_back,
@@ -538,6 +551,7 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
     );
   }
 
+  // ฟังก์ชันแสดง dialog เมื่อสร้างกิจกรรมสำเร็จ
   Future<void> showSuccessDialog() async {
     showDialog(
       context: context,
@@ -563,6 +577,7 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
     );
   }
 
+  // ฟังก์ชันสร้างกิจกรรม
   Future<void> functionCreateActivity() async {
     if (userData == null) {
       print("User data not loaded");
@@ -632,7 +647,6 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -641,7 +655,11 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
           Scaffold(
             backgroundColor: Color.fromARGB(255, 255, 255, 255),
             appBar: AppBar(
-              title: Text("หน้าสร้างกิจกรรม",style: TextStyle(color: const Color.fromARGB(255, 255, 255, 255)),),
+              title: Text(
+                "หน้าสร้างกิจกรรม",
+                style:
+                    TextStyle(color: const Color.fromARGB(255, 255, 255, 255)),
+              ),
               leading: backButton(),
               backgroundColor: Color.fromARGB(255, 255, 0, 0),
             ),
@@ -651,13 +669,13 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
                   Center(
                       child:
                           Column(mainAxisSize: MainAxisSize.max, children: [])),
-                  nameActivity(),
-                  location(),
-                  field_name(),
-                  date(),
-                  hashtag(),
-                  message(),
-                  createGroupButton()
+                  nameActivity(), // แสดงฟิลด์ชื่อกิจกรรม
+                  location(), // แสดงฟิลด์สถานที่
+                  field_name(), // แสดงฟิลด์กีฬา
+                  date(), // แสดงฟิลด์วันที่และเวลา
+                  hashtag(), // แสดงฟิลด์แฮชแท็ก
+                  message(), // แสดงฟิลด์รายละเอียดกิจกรรม
+                  createGroupButton() // แสดงปุ่มสร้างกิจกรรม
                 ],
               ),
             ),

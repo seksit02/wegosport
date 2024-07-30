@@ -7,6 +7,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:wegosport/Login.dart';
 
+// หน้าแก้ไขข้อมูลผู้ใช้
 class editinformation extends StatefulWidget {
   const editinformation(
       {Key? key,
@@ -23,11 +24,16 @@ class editinformation extends StatefulWidget {
 }
 
 class _editinformationState extends State<editinformation> {
-  TextEditingController one_value = TextEditingController();
-  TextEditingController two_value = TextEditingController();
-  TextEditingController three_value = TextEditingController();
-  TextEditingController four_value = TextEditingController();
-  TextEditingController five_value = TextEditingController();
+  TextEditingController one_value =
+      TextEditingController(); // ตัวควบคุมสำหรับชื่อผู้ใช้
+  TextEditingController two_value =
+      TextEditingController(); // ตัวควบคุมสำหรับอีเมล
+  TextEditingController three_value =
+      TextEditingController(); // ตัวควบคุมสำหรับรหัสผ่าน
+  TextEditingController four_value =
+      TextEditingController(); // ตัวควบคุมสำหรับชื่อ-สกุล
+  TextEditingController five_value =
+      TextEditingController(); // ตัวควบคุมสำหรับอายุ
 
   @override
   void initState() {
@@ -41,7 +47,8 @@ class _editinformationState extends State<editinformation> {
 
   String? six_value;
 
-    Widget inputOne() {
+  // วิดเจ็ตฟิลด์ชื่อผู้ใช้งาน
+  Widget inputOne() {
     return Container(
       margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
       child: TextFormField(
@@ -52,7 +59,7 @@ class _editinformationState extends State<editinformation> {
           fillColor: Colors.white,
           filled: true,
           prefixIcon: Icon(
-            Icons.create, // เปลี่ยนไอคอนเป็นดินสอ
+            Icons.create,
             color: Colors.red,
           ),
           border: OutlineInputBorder(
@@ -76,6 +83,7 @@ class _editinformationState extends State<editinformation> {
     );
   }
 
+  // วิดเจ็ตฟิลด์อีเมล
   Widget inputTwo() {
     return Container(
       margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
@@ -84,21 +92,22 @@ class _editinformationState extends State<editinformation> {
         decoration: InputDecoration(
           contentPadding: EdgeInsets.fromLTRB(0, 15, 0, 0),
           hintText: 'อีเมล "ใช้อีเมลที่ติดต่อได้เท่านั้น"',
-          fillColor: Colors.white, // กำหนดสีพื้นหลังเป็นสีขาว
+          fillColor: Colors.white,
           filled: true,
           prefixIcon: Icon(
             Icons.edit,
-            color: Colors.red, // ตั้งค่าสีของไอคอนเป็นสีแดง
+            color: Colors.red,
           ),
           border: OutlineInputBorder(
             borderSide: BorderSide(color: Colors.black),
-            borderRadius: BorderRadius.circular(30), // ปรับความโค้งของกรอบ
+            borderRadius: BorderRadius.circular(30),
           ),
         ),
       ),
     );
   }
 
+  // วิดเจ็ตฟิลด์รหัสผ่าน
   Widget inputthree() {
     return Container(
       margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
@@ -113,7 +122,6 @@ class _editinformationState extends State<editinformation> {
           if (value.length <= 6) {
             return 'รหัสผ่านควรมีอย่างน้อย 6 ตัว';
           }
-          // ตรวจสอบว่ามีตัวเลขและตัวอักษรประกอบอยู่
           bool hasDigits = value.contains(RegExp(r'\d'));
           bool hasLetters = value.contains(RegExp(r'[a-zA-Z]'));
           if (!hasDigits || !hasLetters) {
@@ -127,7 +135,7 @@ class _editinformationState extends State<editinformation> {
           fillColor: Colors.white,
           filled: true,
           prefixIcon: Icon(
-            Icons.edit, // เปลี่ยนไอคอนเป็นจดหมาย
+            Icons.edit,
             color: Colors.red,
           ),
           border: OutlineInputBorder(
@@ -143,6 +151,7 @@ class _editinformationState extends State<editinformation> {
     );
   }
 
+  // วิดเจ็ตฟิลด์ชื่อ-สกุล
   Widget inputfour() {
     return Container(
       margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
@@ -159,7 +168,7 @@ class _editinformationState extends State<editinformation> {
           fillColor: Colors.white,
           filled: true,
           prefixIcon: Icon(
-            Icons.edit, // เปลี่ยนไอคอนเป็นกุญแจ
+            Icons.edit,
             color: Colors.red,
           ),
           border: OutlineInputBorder(
@@ -171,6 +180,7 @@ class _editinformationState extends State<editinformation> {
     );
   }
 
+  // วิดเจ็ตฟิลด์อายุ
   Widget inputfive() {
     return Container(
       margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
@@ -198,25 +208,26 @@ class _editinformationState extends State<editinformation> {
     );
   }
 
+  // วิดเจ็ตแสดงโลโก้
   Widget appLogo() {
     return Container(
       width: 100,
       height: 100,
       margin: EdgeInsets.fromLTRB(0, 50, 0, 0),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(50), // กำหนดรูปร่างของกรอบ
+        borderRadius: BorderRadius.circular(50),
       ),
       child: ClipRRect(
-        borderRadius:
-            BorderRadius.circular(10), // ให้ Clip รูปภาพตามรูปร่างของกรอบ
+        borderRadius: BorderRadius.circular(10),
         child: Image.asset(
           "images/logo.png",
-          fit: BoxFit.cover, // ให้รูปภาพปรับตามขนาดของ Container
+          fit: BoxFit.cover,
         ),
       ),
     );
   }
 
+  // วิดเจ็ตปุ่มยืนยันข้อมูล
   Widget buttonProcesslogin(BuildContext context) {
     return ButtonTheme(
       minWidth: double.infinity,
@@ -240,7 +251,7 @@ class _editinformationState extends State<editinformation> {
           ),
           onPressed: () {
             if (_validateInputs()) {
-              functionregister(context); // เรียกใช้งานฟังก์ชันสำหรับส่งข้อมูล
+              functionregister(context);
               showDialog(
                 context: context,
                 builder: (BuildContext context) {
@@ -283,6 +294,7 @@ class _editinformationState extends State<editinformation> {
     );
   }
 
+  // ฟังก์ชันตรวจสอบข้อมูล
   bool _validateInputs() {
     return one_value.text.isNotEmpty &&
         one_value.text.length >= 6 &&
@@ -299,6 +311,7 @@ class _editinformationState extends State<editinformation> {
         int.parse(five_value.text) > 0;
   }
 
+  // ฟังก์ชันส่งข้อมูลการลงทะเบียน
   Future<void> functionregister(BuildContext context) async {
     print("user_id: ${one_value.text}");
     print("user_email: ${two_value.text}");
@@ -307,7 +320,7 @@ class _editinformationState extends State<editinformation> {
     print("user_age: ${five_value.text}");
     print("user_token: ${six_value}");
 
-    // Prepare data to send
+    // เตรียมข้อมูลที่จะส่ง
     Map<String, String> dataPost = {
       "user_id": one_value.text,
       "user_email": two_value.text,
@@ -317,7 +330,7 @@ class _editinformationState extends State<editinformation> {
       "user_token": six_value.toString()
     };
 
-    // Prepare headers
+    // เตรียมหัวเรื่อง
     Map<String, String> headers = {
       "Content-Type": "application/json",
       "Accept": "application/json"
@@ -343,6 +356,7 @@ class _editinformationState extends State<editinformation> {
     }
   }
 
+  // วิดเจ็ตข้อความหัวข้อ
   Widget text1() {
     return Container(
       child: Text(
@@ -357,6 +371,7 @@ class _editinformationState extends State<editinformation> {
     );
   }
 
+  // วิดเจ็ตปุ่มย้อนกลับ
   Widget backButton() {
     return IconButton(
       icon: Icon(Icons.arrow_back,

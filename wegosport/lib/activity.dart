@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:wegosport/Homepage.dart';
 
+// หน้ากิจกรรม
 class ActivityPage extends StatelessWidget {
-  
   final dynamic activity;
 
   ActivityPage({super.key, required this.activity});
@@ -33,10 +33,12 @@ class ActivityPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: Icon(Icons.arrow_back,color: const Color.fromARGB(255, 255, 255, 255),),
+          icon: Icon(Icons.arrow_back,
+              color: const Color.fromARGB(255, 255, 255, 255)),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: Text('หน้ากิจกรรมที่เข้าร่วม',style: TextStyle(color: const Color.fromARGB(255, 255, 255, 255))),
+        title: Text('หน้ากิจกรรมที่เข้าร่วม',
+            style: TextStyle(color: const Color.fromARGB(255, 255, 255, 255))),
         backgroundColor: const Color.fromARGB(255, 255, 0, 0),
         elevation: 0,
       ),
@@ -45,6 +47,7 @@ class ActivityPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // แท็ก
             Wrap(
               runSpacing: 5.0,
               children: (activity['hashtags'] as List<dynamic>? ?? [])
@@ -52,18 +55,22 @@ class ActivityPage extends StatelessWidget {
                   .toList(),
             ),
             SizedBox(height: 8),
+            // วันที่นัดหมาย
             Text(
-              'วันที่นัดหมาย ${activity['activity_date']+" น." ?? 'ไม่ระบุวันที่'}',
+              'วันที่นัดหมาย ${activity['activity_date'] + " น." ?? 'ไม่ระบุวันที่'}',
               style: TextStyle(color: Colors.grey),
             ),
             SizedBox(height: 8),
+            // ชื่อกิจกรรม
             Text(
               activity['activity_name'] ?? 'ไม่ระบุชื่อกิจกรรม',
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
             ),
             SizedBox(height: 8),
+            // สถานที่
             Text(activity['location_name'] ?? 'ไม่ระบุสถานที่'),
             SizedBox(height: 8),
+            // ผู้ใช้
             Row(
               children: [
                 CircleAvatar(
@@ -77,10 +84,10 @@ class ActivityPage extends StatelessWidget {
                         .map((member) => member['user_id'])
                         .join(', ')
                     : 'ไม่ระบุชื่อ'),
-
               ],
             ),
             SizedBox(height: 16),
+            // แผนที่
             Center(
               child: GestureDetector(
                 onTap: _openMap,
@@ -98,15 +105,16 @@ class ActivityPage extends StatelessWidget {
                         height: 200,
                         color: Colors.white,
                         child: Center(
-                          child:Image.asset("images/logo.png", height: 200),
-                          ),
+                          child: Image.asset("images/logo.png", height: 200),
                         ),
+                      ),
                     ],
                   ),
                 ),
               ),
             ),
             SizedBox(height: 16),
+            // สมาชิกในกลุ่ม
             Text('สมาชิกในกลุ่ม',
                 style: TextStyle(fontWeight: FontWeight.bold)),
             SizedBox(height: 8),
@@ -130,19 +138,46 @@ class ActivityPage extends StatelessWidget {
               ],
             ),
             SizedBox(height: 16),
+            // ปุ่มเข้าร่วมกิจกรรม
             Center(
               child: ElevatedButton(
                 onPressed: () {
                   // Add action for joining chat
                 },
                 style: ElevatedButton.styleFrom(
-                  foregroundColor: const Color.fromARGB(255, 255, 255, 255), backgroundColor: Color.fromARGB(255, 255, 0, 0),
-                  minimumSize: Size(double.infinity, 50), // ปรับขนาดของปุ่ม
+                  foregroundColor: const Color.fromARGB(255, 255, 255, 255),
+                  backgroundColor: Color.fromARGB(255, 255, 0, 0),
+                  minimumSize: Size(double.infinity, 50),
                 ),
                 child: Text('เข้าร่วมกิจกรรม'),
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+// วิดเจ็ตแสดงแท็ก
+class TagWidget extends StatelessWidget {
+  final String text;
+
+  TagWidget({required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: EdgeInsets.only(right: 8),
+      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      decoration: BoxDecoration(
+        color: Color.fromARGB(255, 175, 175, 175),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          color: const Color.fromARGB(255, 0, 0, 0),
         ),
       ),
     );

@@ -5,13 +5,14 @@ import 'package:wegosport/Addinformation.dart';
 import 'package:wegosport/Homepage.dart';
 import 'package:wegosport/forgetpassword.dart';
 
-import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
+import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart'; // ใช้สำหรับการสร้าง JWT
 
-import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
-import 'package:http/http.dart' as http;
-import 'dart:async';
-import 'dart:convert';
+import 'package:flutter_facebook_auth/flutter_facebook_auth.dart'; // ใช้สำหรับการเข้าสู่ระบบด้วย Facebook
+import 'package:http/http.dart' as http; // ใช้สำหรับการเรียก HTTP
+import 'dart:async'; // ใช้สำหรับการทำงานแบบ asynchronous
+import 'dart:convert'; // ใช้สำหรับการแปลง JSON
 
+// หน้าจอล็อกอิน
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
 
@@ -20,10 +21,12 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+  TextEditingController inputone =
+      TextEditingController(); // ตัวควบคุมสำหรับฟิลด์ชื่อผู้ใช้
+  TextEditingController inputtwo =
+      TextEditingController(); // ตัวควบคุมสำหรับฟิลด์รหัสผ่าน
 
-  TextEditingController inputone = TextEditingController();
-  TextEditingController inputtwo = TextEditingController();
-
+  // วิดเจ็ตแสดงโลโก้
   Widget appLogo() {
     return Container(
       width: 300,
@@ -43,6 +46,7 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
+  // วิดเจ็ตฟิลด์ชื่อผู้ใช้
   Widget inputOne() {
     return Container(
       margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
@@ -66,6 +70,7 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
+  // วิดเจ็ตฟิลด์รหัสผ่าน
   Widget inputTwo() {
     return Container(
       margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
@@ -89,6 +94,7 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
+  // วิดเจ็ตปุ่มเข้าสู่ระบบ
   Widget buttonProcesslogin() {
     return ButtonTheme(
       minWidth: double.infinity,
@@ -112,9 +118,11 @@ class _LoginPageState extends State<LoginPage> {
           ),
           onPressed: () async {
             if (inputone.text.isEmpty || inputtwo.text.isEmpty) {
-              _showErrorDialog("กรุณากรอกข้อมูล");
+              _showErrorDialog(
+                  "กรุณากรอกข้อมูล"); // แสดงกล่องข้อความแจ้งเตือนหากยังไม่ได้กรอกข้อมูล
             } else {
-              var loginResult = await FunctionLogin();
+              var loginResult =
+                  await FunctionLogin(); // เรียกใช้ฟังก์ชันล็อกอิน
               bool loginSuccess = loginResult['success'];
               String jwt = loginResult['jwt'];
 
@@ -122,10 +130,12 @@ class _LoginPageState extends State<LoginPage> {
                 Navigator.of(context).pushReplacement(
                   MaterialPageRoute(
                       builder: (context) => Homepage(
-                          jwt: jwt)), // ส่งค่า jwt ที่ได้รับจากฟังก์ชัน
+                          jwt:
+                              jwt)), // ส่งค่า jwt ที่ได้รับจากฟังก์ชันไปยังหน้า Homepage
                 );
               } else {
-                _showErrorDialog("การเข้าสู่ระบบล้มเหลว");
+                _showErrorDialog(
+                    "การเข้าสู่ระบบล้มเหลว"); // แสดงข้อความแจ้งเตือนหากการเข้าสู่ระบบล้มเหลว
               }
             }
           },
@@ -134,7 +144,7 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-
+  // ฟังก์ชันแสดงกล่องข้อความแจ้งเตือน
   void _showErrorDialog(String message) {
     showDialog(
       context: context,
@@ -220,7 +230,10 @@ class _LoginPageState extends State<LoginPage> {
                 json.decode(saveJwtResponse.body);
 
             if (saveJwtJsonResponse['result'] == "1") {
-              return {'success': true, 'jwt': jwt};
+              return {
+                'success': true,
+                'jwt': jwt
+              }; // ส่งค่าผลลัพธ์การเข้าสู่ระบบและ JWT กลับ
             } else {
               _showErrorDialog("การเก็บ JWT ล้มเหลว");
               return {'success': false};
@@ -242,7 +255,7 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-
+  // วิดเจ็ตปุ่มล็อกอินด้วย Facebook
   Widget buttonfacebook() {
     return Container(
       margin: EdgeInsets.fromLTRB(0, 15, 0, 0),
@@ -273,6 +286,7 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
+  // วิดเจ็ตปุ่มลืมรหัสผ่าน
   Widget buttonforget() {
     return Container(
       margin: EdgeInsets.fromLTRB(0, 15, 0, 0),
@@ -292,7 +306,7 @@ class _LoginPageState extends State<LoginPage> {
               context,
               MaterialPageRoute(
                   builder: (context) =>
-                      ForgotPasswordPage())); // โค้ดที่ต้องการทำเมื่อกดปุ่ม Facebook
+                      ForgotPasswordPage())); // ไปยังหน้าลืมรหัสผ่านเมื่อกดปุ่ม
         },
         style: ElevatedButton.styleFrom(
           padding: EdgeInsets.fromLTRB(10, 10, 20, 8),
@@ -307,6 +321,7 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
+  // วิดเจ็ตปุ่มสมัครสมาชิก
   Widget buttonregister() {
     return Container(
       margin: EdgeInsets.fromLTRB(0, 15, 0, 0),
@@ -325,8 +340,11 @@ class _LoginPageState extends State<LoginPage> {
           Navigator.push(
               context,
               MaterialPageRoute(
-                  builder: (context) =>
-                      editinformation(name: '', six_value: '', email: '',))); // โค้ดที่ต้องการทำเมื่อกดปุ่ม Facebook
+                  builder: (context) => editinformation(
+                        name: '',
+                        six_value: '',
+                        email: '',
+                      ))); // ไปยังหน้าสมัครสมาชิกเมื่อกดปุ่ม
         },
         style: ElevatedButton.styleFrom(
           padding: EdgeInsets.fromLTRB(10, 10, 20, 8),
@@ -341,7 +359,7 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-
+  // ฟังก์ชันล็อกอินด้วย Facebook
   Future<void> facebookLogin(BuildContext context) async {
     try {
       final result = await FacebookAuth.instance.login(
@@ -421,7 +439,7 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-
+  // การสร้าง UI ของหน้าจอล็อกอิน
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -434,14 +452,14 @@ class _LoginPageState extends State<LoginPage> {
                 children: [
                   Center(
                       child: Column(mainAxisSize: MainAxisSize.max, children: [
-                    appLogo(),
-                    inputOne(),
-                    inputTwo(),
-                    buttonProcesslogin(),
-                    buttonfacebook(),
-                    buttonregister(),
-                    buttonforget(),
-                    SizedBox(height:10)
+                    appLogo(), // แสดงโลโก้
+                    inputOne(), // ฟิลด์ชื่อผู้ใช้
+                    inputTwo(), // ฟิลด์รหัสผ่าน
+                    buttonProcesslogin(), // ปุ่มเข้าสู่ระบบ
+                    buttonfacebook(), // ปุ่มเข้าสู่ระบบด้วย Facebook
+                    buttonregister(), // ปุ่มสมัครสมาชิก
+                    buttonforget(), // ปุ่มลืมรหัสผ่าน
+                    SizedBox(height: 10)
                   ])),
                 ],
               ),

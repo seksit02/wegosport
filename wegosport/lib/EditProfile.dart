@@ -3,28 +3,33 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:wegosport/Profile.dart';
 
+// หน้าจอแก้ไขโปรไฟล์
 class EditProfile extends StatefulWidget {
   const EditProfile({super.key, required this.jwt});
 
-  final String jwt;
+  final String jwt; // รับค่า JWT สำหรับการตรวจสอบสิทธิ์
 
   @override
   State<EditProfile> createState() => _EditProfileState();
 }
 
 class _EditProfileState extends State<EditProfile> {
-  Map<String, dynamic>? userData;
+  Map<String, dynamic>? userData; // เก็บข้อมูลผู้ใช้
 
-  final TextEditingController _userIdController = TextEditingController();
-  final TextEditingController _userNameController = TextEditingController();
-  final TextEditingController _userTextController = TextEditingController();
+  final TextEditingController _userIdController =
+      TextEditingController(); // ตัวควบคุมสำหรับฟิลด์ user_id
+  final TextEditingController _userNameController =
+      TextEditingController(); // ตัวควบคุมสำหรับฟิลด์ user_name
+  final TextEditingController _userTextController =
+      TextEditingController(); // ตัวควบคุมสำหรับฟิลด์ user_text
 
   @override
   void initState() {
     super.initState();
-    fetchUserData(widget.jwt);
+    fetchUserData(widget.jwt); // ดึงข้อมูลผู้ใช้เมื่อเริ่มต้น
   }
 
+  // ฟังก์ชันดึงข้อมูลผู้ใช้จากเซิร์ฟเวอร์
   Future<void> fetchUserData(String jwt) async {
     var url =
         Uri.parse('http://10.0.2.2/flutter_webservice/get_ShowDataUser.php');
@@ -63,6 +68,7 @@ class _EditProfileState extends State<EditProfile> {
     }
   }
 
+  // ฟังก์ชันอัปเดตโปรไฟล์ผู้ใช้
   Future<void> updateUserProfile() async {
     var url =
         Uri.parse('http://10.0.2.2/flutter_webservice/get_UpdateProfile.php');
@@ -139,7 +145,7 @@ class _EditProfileState extends State<EditProfile> {
                 decoration: InputDecoration(
                   labelText: 'ชื่อผู้ใช้',
                 ),
-                enabled: false,
+                enabled: false, // ปิดการแก้ไขฟิลด์ user_id
                 style: TextStyle(
                   color: Colors.grey, // แสดงข้อความเป็นสีจาง
                 ),
@@ -154,7 +160,8 @@ class _EditProfileState extends State<EditProfile> {
               ),
               SizedBox(height: 20),
               ElevatedButton(
-                onPressed: updateUserProfile,
+                onPressed:
+                    updateUserProfile, // เรียกใช้ฟังก์ชัน updateUserProfile เมื่อกดปุ่ม
                 child: Text('อัปเดตข้อมูล'),
               ),
             ],
