@@ -10,6 +10,11 @@ import 'package:permission_handler/permission_handler.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+
+import 'package:image_cropper/image_cropper.dart';
+import 'package:image/image.dart' as img;
+
+
 import 'package:wegosport/Homepage.dart';
 
 const kGoogleApiKey =
@@ -73,14 +78,24 @@ class _AddLocationState extends State<AddLocationPage> {
 
   Future<void> _pickImage() async {
     final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
-    setState(() {
-      if (pickedFile != null) {
-        _imageFile = File(pickedFile.path);
-      } else {
-        print('No image selected.');
+    if (pickedFile != null) {
+      File? croppedFile = await ImageCropper().cropImage(
+        sourcePath: pickedFile.path,
+        aspectRatio: CropAspectRatio(ratioX: 1.0, ratioY: 1.0),
+        compressFormat: ImageCompressFormat.jpg,
+        compressQuality: 70,
+      );
+
+      if (croppedFile != null) {
+        setState(() {
+          _imageFile = croppedFile;
+        });
       }
-    });
+    } else {
+      print('No image selected.');
+    }
   }
+
 
   Future<void> _handlePressButton() async {
     try {
@@ -336,29 +351,29 @@ class _AddLocationState extends State<AddLocationPage> {
     return _imageFile == null
         ? Container(
             margin: EdgeInsets.fromLTRB(20, 20, 20, 0),
-            width: 200, // กำหนดความกว้างที่ต้องการ
-            height: 200, // กำหนดความสูงที่ต้องการ
+            width: 200,
+            height: 200,
             child: ClipRRect(
               borderRadius: BorderRadius.circular(40),
               child: Image.asset(
-                'images/logo.png', // เปลี่ยนเป็นรูปภาพของแผนที่
-                //fit: BoxFit.cover,
+                'images/logo.png',
               ),
             ),
           )
         : Container(
             margin: EdgeInsets.fromLTRB(20, 20, 20, 0),
-            width: 200, // กำหนดความกว้างที่ต้องการ
+            width: 200,
             height: 200,
             child: ClipRRect(
               borderRadius: BorderRadius.circular(50),
               child: Image.file(
                 _imageFile!,
-                //fit: BoxFit.cover,
+                fit: BoxFit.cover,
               ),
             ),
           );
   }
+
 
   void showErrorDialog(BuildContext context, String message) {
     showDialog(
