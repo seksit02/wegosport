@@ -3,6 +3,8 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:wegosport/Homepage.dart';
 import 'package:wegosport/EditProfile.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key, required this.jwt});
@@ -14,8 +16,8 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  
   Map<String, dynamic>? userData;
+  File? _image;
 
   @override
   void initState() {
@@ -31,7 +33,7 @@ class _ProfilePageState extends State<ProfilePage> {
       'Authorization': 'Bearer $jwt',
     };
 
-    print('Headers: $headers'); // พิมพ์ headers เพื่อการตรวจสอบ
+    print('Headers profile : $headers'); // พิมพ์ headers เพื่อการตรวจสอบ
 
     try {
       var response = await http.post(
@@ -39,8 +41,8 @@ class _ProfilePageState extends State<ProfilePage> {
         headers: headers,
       );
 
-      print('Response status: ${response.statusCode}');
-      print('Response body: ${response.body}');
+      print('Response status profile : ${response.statusCode}');
+      print('Response body profile : ${response.body}');
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -63,6 +65,46 @@ class _ProfilePageState extends State<ProfilePage> {
     } catch (error) {
       print("Error: $error");
       throw Exception('Failed to load user data');
+    }
+  }
+
+  Future<void> _pickImage() async {
+    final pickedFile =
+        await ImagePicker().pickImage(source: ImageSource.gallery);
+    setState(() {
+      if (pickedFile != null) {
+        _image = File(pickedFile.path);
+        _uploadImage(_image!);
+      }
+    });
+  }
+
+  Future<void> _uploadImage(File image) async {
+    var url =
+        Uri.parse('http://10.0.2.2/flutter_webservice/savephotoprofile.php');
+
+    var request = http.MultipartRequest('POST', url);
+    request.headers['Authorization'] = 'Bearer ${widget.jwt}';
+    request.files.add(await http.MultipartFile.fromPath('image', image.path));
+
+    try {
+      var response = await request.send();
+
+      if (response.statusCode == 200) {
+        var responseData = await http.Response.fromStream(response);
+        var data = json.decode(responseData.body);
+        if (data['status'] == 'success') {
+          setState(() {
+            userData!['user_photo'] = data['image_url'];
+          });
+        } else {
+          print('Failed to upload image: ${data['message']}');
+        }
+      } else {
+        print('Failed to upload image: ${response.statusCode}');
+      }
+    } catch (error) {
+      print('Error uploading image: $error');
     }
   }
 
@@ -95,11 +137,14 @@ class _ProfilePageState extends State<ProfilePage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  CircleAvatar(
-                    radius: 50,
-                    backgroundImage: userData!['user_photo'] != null
-                        ? NetworkImage(userData!['user_photo'])
-                        : AssetImage("images/P001.jpg") as ImageProvider,
+                  GestureDetector(
+                    onTap: _pickImage,
+                    child: CircleAvatar(
+                      radius: 50,
+                      backgroundImage: userData!['user_photo'] != null
+                          ? NetworkImage(userData!['user_photo'])
+                          : AssetImage("images/P001.jpg") as ImageProvider,
+                    ),
                   ),
                   SizedBox(height: 16),
                   Text(
