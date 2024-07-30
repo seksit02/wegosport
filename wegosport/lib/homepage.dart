@@ -234,7 +234,7 @@ class _HomepageState extends State<Homepage> {
           preferredSize: Size.fromHeight(50.0),
           child: Container(
             color:
-                Color.fromARGB(255, 148, 148, 148), // กำหนดสีพื้นหลังที่ต้องการ
+                Color.fromARGB(255, 255, 255, 255), // กำหนดสีพื้นหลังที่ต้องการ
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: <Widget>[
@@ -244,7 +244,7 @@ class _HomepageState extends State<Homepage> {
                     'หน้าหลัก',
                     style: TextStyle(
                       color: _selectedIndex == 0
-                          ? const Color.fromARGB(255, 241, 241, 241)
+                          ? Color.fromARGB(255, 0, 0, 0)
                           : Colors.black,
                     ),
                   ),
@@ -531,7 +531,7 @@ class TagWidget extends StatelessWidget {
       margin: EdgeInsets.only(right: 8),
       padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       decoration: BoxDecoration(
-        color: const Color.fromARGB(255, 168, 168, 168),
+        color: Color.fromARGB(255, 106, 102, 102),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(

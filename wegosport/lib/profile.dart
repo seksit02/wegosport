@@ -52,7 +52,6 @@ class _ProfilePageState extends State<ProfilePage> {
           setState(() {
             userData = data[0];
           });
-          print('User data: $userData');
         } else {
           print("No user data found");
           throw Exception('Failed to load user data');

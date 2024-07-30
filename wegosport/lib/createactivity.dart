@@ -475,9 +475,16 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
           hintText: 'เพิ่มรายละเอียดกิจกรรม',
           fillColor: Color.fromARGB(255, 255, 255, 255),
           filled: true,
-          prefixIcon: Icon(
-            Icons.mail,
-            color: Colors.red,
+          prefixIcon: Container(
+            margin: EdgeInsets.all(11), // จัดการระยะขอบให้เหมาะสม
+            child: Text(
+              'ABC', // ตัวอักษรที่ต้องการใช้
+              style: TextStyle(
+                color: Colors.red,
+                fontSize: 20, // ขนาดของตัวอักษร
+                fontWeight: FontWeight.bold, // ทำให้ตัวอักษรหนา
+              ),
+            ),
           ),
           border: OutlineInputBorder(
             borderSide: BorderSide(color: Colors.black),
@@ -487,6 +494,7 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
       ),
     );
   }
+
 
   Widget createGroupButton() {
     return Container(

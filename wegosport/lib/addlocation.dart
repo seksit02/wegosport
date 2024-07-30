@@ -187,7 +187,7 @@ class _AddLocationState extends State<AddLocationPage> {
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(40),
           ),
-          prefixIcon: Icon(Icons.add, color: Color.fromARGB(255, 255, 0, 0)),
+          prefixIcon: Icon(Icons.abc, color: Color.fromARGB(255, 255, 0, 0)),
         ),
         style: TextStyle(color: const Color.fromARGB(255, 0, 0, 0)),
       ),
@@ -208,7 +208,8 @@ class _AddLocationState extends State<AddLocationPage> {
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(40),
           ),
-          prefixIcon: Icon(Icons.add, color: Color.fromARGB(255, 255, 0, 0)),
+          prefixIcon: Icon(Icons.calendar_today,
+              color: Color.fromARGB(255, 255, 0, 0)), // เปลี่ยนไอคอนเป็นปฏิทิน
         ),
         style: TextStyle(color: Color.fromARGB(255, 0, 0, 0)),
       ),
@@ -266,7 +267,7 @@ class _AddLocationState extends State<AddLocationPage> {
             controller: searchController,
             decoration: InputDecoration(
               contentPadding: EdgeInsets.fromLTRB(15, 10, 15, 10),
-              hintText: 'ค้นหาสถานที่',
+              hintText: 'พิมพ์ชื่อสถานที่',
               fillColor: const Color.fromARGB(255, 255, 255, 255),
               filled: true,
               hintStyle: TextStyle(color: Color.fromARGB(255, 102, 102, 102)),
@@ -284,9 +285,9 @@ class _AddLocationState extends State<AddLocationPage> {
                 style: TextStyle(color: const Color.fromARGB(255, 0, 0, 0))),
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color.fromARGB(255, 255, 255, 255),
-              padding: EdgeInsets.symmetric(vertical: 15),
+              padding: EdgeInsets.symmetric(horizontal: 10 , vertical: 0  ),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(40),
+                borderRadius: BorderRadius.circular(20),
               ),
             ),
             onPressed: () {
