@@ -5,6 +5,7 @@ import 'package:wegosport/Homepage.dart';
 import 'package:wegosport/EditProfile.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'package:image/image.dart' as img;
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key, required this.jwt});
@@ -33,7 +34,7 @@ class _ProfilePageState extends State<ProfilePage> {
       'Authorization': 'Bearer $jwt',
     };
 
-    print('Headers profile : $headers'); // พิมพ์ headers เพื่อการตรวจสอบ
+    print('Headers profile : $headers');
 
     try {
       var response = await http.post(
@@ -71,12 +72,27 @@ class _ProfilePageState extends State<ProfilePage> {
   Future<void> _pickImage() async {
     final pickedFile =
         await ImagePicker().pickImage(source: ImageSource.gallery);
-    setState(() {
-      if (pickedFile != null) {
-        _image = File(pickedFile.path);
-        _uploadImage(_image!);
-      }
-    });
+    if (pickedFile != null) {
+      File imageFile = File(pickedFile.path);
+      _compressAndUploadImage(imageFile);
+    }
+  }
+
+  Future<void> _compressAndUploadImage(File imageFile) async {
+    // Load the image file
+    img.Image? image = img.decodeImage(await imageFile.readAsBytes());
+
+    // Resize the image to a smaller size
+    img.Image resizedImage = img.copyResize(image!, width: 600);
+
+    // Compress the image to a smaller file size
+    List<int> compressedImageBytes = img.encodeJpg(resizedImage, quality: 85);
+
+    // Create a new file with the compressed image data
+    File compressedImageFile = File(imageFile.path)
+      ..writeAsBytesSync(compressedImageBytes);
+
+    _uploadImage(compressedImageFile);
   }
 
   Future<void> _uploadImage(File image) async {
@@ -124,8 +140,7 @@ class _ProfilePageState extends State<ProfilePage> {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
-                builder: (context) =>
-                    Homepage(jwt: widget.jwt), // ส่ง jwt กลับไปยัง Homepage
+                builder: (context) => Homepage(jwt: widget.jwt),
               ),
             );
           },
