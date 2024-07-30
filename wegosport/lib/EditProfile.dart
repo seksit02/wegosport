@@ -26,12 +26,21 @@ class _EditProfileState extends State<EditProfile> {
         backgroundColor: Color.fromARGB(255, 255, 255, 255),
         appBar: AppBar(
           backgroundColor: Color.fromARGB(255, 255, 0, 0),
-          title: Text("หน้าแก้ไขโปรไฟล์"),
+          title: Text(
+            "หน้าแก้ไขข้อมูล",
+            style: TextStyle(color: Colors.white),
+          ),
           leading: IconButton(
             icon: Icon(Icons.arrow_back,
                 color: Color.fromARGB(255, 255, 255, 255)),
             onPressed: () {
-              Navigator.pop(context);
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      ProfilePage(jwt: widget.jwt), // ส่ง jwt กลับไปยัง Homepage
+                ),
+              );
             },
           ),
         ),

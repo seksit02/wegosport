@@ -111,7 +111,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
                   ),
                   Text(
-                    userData!['user_id'] ?? 'ไม่มีข้อมูล',
+                    '@${userData!['user_id'] ?? 'ไม่มีข้อมูล'}',
                     style: TextStyle(
                       fontSize: 16,
                       color: const Color.fromARGB(255, 18, 18, 18),
