@@ -1,25 +1,34 @@
 <?php
-require 'vendor/autoload.php';
 include 'Connect.php';
-use \Firebase\JWT\JWT;
 
-$key = "your_secret_key"; // ใช้คีย์เดียวกันกับใน Dart
-$algorithm = 'HS256'; // อัลกอริธึมที่ใช้ในการเข้ารหัส
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    // รับข้อมูลจาก POST request
+    $input = json_decode(file_get_contents("php://input"), true);
+    $user_id = $input['user_id'];
+    $jwt = $input['jwt'];
 
-// รับข้อมูลที่ส่งมาจาก Flutter
-$data = json_decode(file_get_contents("php://input"));
+    // ตรวจสอบว่าข้อมูลที่จำเป็นครบถ้วนหรือไม่
+    if (isset($user_id) && isset($jwt)) {
+        // สร้างคำสั่ง SQL สำหรับอัพเดทข้อมูล JWT
+        $sql = "UPDATE user_information SET user_jwt = ? WHERE user_id = ?";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("ss", $jwt, $user_id);
 
-$user_id = $data->user_id;
-$jwt = $data->jwt;
+        if ($stmt->execute()) {
+            echo json_encode(array("result" => "1", "message" => "JWT saved successfully"));
+        } else {
+            echo json_encode(array("result" => "0", "message" => "Error saving JWT"));
+        }
 
-// เชื่อมต่อฐานข้อมูล
-require 'Connect.php';
+        // ปิด statement
+        $stmt->close();
+    } else {
+        echo json_encode(array("result" => "0", "message" => "Missing required fields"));
+    }
+} else {
+    echo json_encode(array("result" => "0", "message" => "Invalid request method"));
+}
 
-// เก็บ JWT ลงในฐานข้อมูล
-$stmt = $conn->prepare("UPDATE user_information SET user_jwt = ? WHERE user_id = ?");
-$stmt->bind_param("ss", $jwt, $user_id);
-$stmt->execute();
-
-$response['result'] = "1";
-echo json_encode($response);
+// ปิดการเชื่อมต่อฐานข้อมูล
+$conn->close();
 ?>

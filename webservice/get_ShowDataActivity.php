@@ -22,7 +22,7 @@ $activities = array();
 
 if ($result->num_rows > 0) {
     while($row = $result->fetch_assoc()) {
-        $location_photo_url = 'http://wegosport.dev/flutter_webservice/' . $row["location_photo"]; // Full URL
+        $location_photo_url = 'http://10.0.2.2/flutter_webservice/upload/' . $row["location_photo"]; // Full URL
         
         
         $activity = array(
@@ -57,7 +57,8 @@ function getMembersInActivity($conn, $activity_id) {
                 m.user_id,
                 u.user_name,
                 u.user_email,
-                u.user_age
+                u.user_age,
+                u.user_photo
             FROM 
                 member_in_activity m
             JOIN 
@@ -77,7 +78,8 @@ function getMembersInActivity($conn, $activity_id) {
                 "user_id" => $row["user_id"],
                 "user_name" => $row["user_name"],
                 "user_email" => $row["user_email"],
-                "user_age" => $row["user_age"]
+                "user_age" => $row["user_age"],
+                "user_photo" => 'http://10.0.2.2/flutter_webservice/upload/' . $row["user_photo"]
             );
             $members[] = $member;
         }
@@ -86,6 +88,7 @@ function getMembersInActivity($conn, $activity_id) {
     $stmt->close();
     return $members;
 }
+
 
 function getSportTypesInLocation($conn, $location_id) {
     $sql = "SELECT 

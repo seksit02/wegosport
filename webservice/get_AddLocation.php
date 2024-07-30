@@ -20,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $newFileName = md5(time() . $fileName) . '.' . $fileExtension;
         $uploadFileDir = 'C:/xampp/htdocs/flutter_webservice/upload/';
         $dest_path = $uploadFileDir . $newFileName;
-        $relative_url = 'upload/' . $newFileName; // Relative URL for access
+        $relative_url = '' . $newFileName; // Relative URL for access
 
         if(move_uploaded_file($fileTmpPath, $dest_path)) {
             $location_photo = $relative_url;

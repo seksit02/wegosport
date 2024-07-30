@@ -1,42 +1,53 @@
 <?php
-include 'Connect.php';
+include 'Connect.php'; // ไฟล์เชื่อมต่อกับฐานข้อมูล
 
-// ตรวจสอบว่าเป็นการร้องขอแบบ POST หรือไม่
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    // รับข้อมูลจาก POST request
-    $user_id = $_POST['user_id'];
+// รับข้อมูลจาก headers และ body
+$headers = apache_request_headers();
+if (isset($headers['authorization'])) {
+    $jwt = $headers['authorization'];
+
+    // ตรวจสอบและตัดคำว่า "Bearer " ออกถ้ามี
+    if (strpos($jwt, 'Bearer ') === 0) {
+        $jwt = substr($jwt, 7);
+    }
+
+    // รับข้อมูลจาก POST
     $user_name = $_POST['user_name'];
     $user_text = $_POST['user_text'];
 
-    // ตรวจสอบว่าข้อมูลที่จำเป็นครบถ้วนหรือไม่
-    if (isset($user_id) && isset($user_name) && isset($user_text)) {
-        // สร้างคำสั่ง SQL สำหรับอัพเดทข้อมูล
-        $sql = "UPDATE users SET user_name=?, user_text=? WHERE user_id=?";
+    // Debug: แสดงค่าที่ได้รับ
+    error_log("JWT : " . $jwt);
+    error_log("User_Name : " . $user_name);
+    error_log("User_Text : " . $user_text);
 
-        // เตรียมคำสั่ง SQL
-        if ($stmt = $conn->prepare($sql)) {
-            // ผูกตัวแปรเข้ากับคำสั่ง SQL
-            $stmt->bind_param("ssi", $user_name, $user_text, $user_id);
+    // ตรวจสอบ user_jwt ก่อนว่าเป็นของผู้ใช้คนไหน
+    $sql_check = $conn->prepare("SELECT user_id FROM user_information WHERE user_jwt = ?");
+    $sql_check->bind_param("s", $jwt);
+    $sql_check->execute();
+    $result = $sql_check->get_result();
 
-            // ดำเนินการคำสั่ง SQL
-            if ($stmt->execute()) {
-                echo json_encode(array("status" => "success", "message" => "User updated successfully"));
-            } else {
-                echo json_encode(array("status" => "error", "message" => "Error updating user"));
-            }
+    if ($result->num_rows > 0) {
+        $row = $result->fetch_assoc();
+        $user_id = $row['user_id'];
+        
+        // อัปเดตข้อมูล
+        $sql_update = $conn->prepare("UPDATE user_information SET user_name = ?, user_text = ? WHERE user_jwt = ?");
+        $sql_update->bind_param("sss", $user_name, $user_text, $jwt);
 
-            // ปิด statement
-            $stmt->close();
+        // Debug: แสดง SQL Query สำหรับอัปเดต
+        error_log("SQL Update: UPDATE user_information SET user_name = '$user_name', user_text = '$user_text' WHERE user_jwt = '$jwt'");
+
+        if ($sql_update->execute()) {
+            echo json_encode(array("message" => "User updated successfully"));
         } else {
-            echo json_encode(array("status" => "error", "message" => "Error preparing statement"));
+            echo json_encode(array("message" => "Error updating user: " . $sql_update->error));
         }
     } else {
-        echo json_encode(array("status" => "error", "message" => "Missing required fields"));
+        echo json_encode(array("message" => "Invalid JWT"));
     }
 } else {
-    echo json_encode(array("status" => "error", "message" => "Invalid request method"));
+    echo json_encode(array("message" => "Authorization header not found"));
 }
 
-// ปิดการเชื่อมต่อฐานข้อมูล
 $conn->close();
 ?>

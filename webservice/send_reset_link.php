@@ -20,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if ($result->num_rows > 0) {
         // สร้างโทเค็นเป็นตัวเลขสุ่มสำหรับรีเซ็ตรหัสผ่าน
         $token = mt_rand(100000, 999999);
-        $resetLink = "http://172.24.139.236/test/reset_password.php?token=$token";
+        $resetLink = "http://localhost/flutter_webservice/reset_password.php?token=$token";
 
         // บันทึกโทเค็นลงฐานข้อมูล
         $sql = "UPDATE user_information SET user_tokenmail = ? WHERE user_email = ?";

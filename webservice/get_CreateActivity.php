@@ -17,6 +17,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $location_name = trim($json_data["location_name"]);
     $sport_id = trim($json_data["sport_id"]);
     $hashtags = $json_data["hashtags"];
+    $creator = $json_data["creator"]; // รับข้อมูลผู้สร้างกิจกรรม
 
     if ($conn->connect_error) {
         echo json_encode(array("result" => 0, "message" => "Database connection failed", "datalist" => null));
@@ -50,6 +51,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $result = 1;
         $message = "เพิ่มข้อมูลสำเร็จ";
         $datalist[] = array("ID" => $activity_id, "activity_name" => $activity_name, "activity_details" => $activity_details, "activity_date" => $activity_date);
+
+        // Insert creator into member_in_activity table
+        $stmt = $conn->prepare("INSERT INTO member_in_activity (activity_id, user_id) VALUES (?, ?)");
+        $stmt->bind_param("is", $activity_id, $creator['user_id']);
+        $stmt->execute();
+        $stmt->close();
 
         // Insert hashtags
         foreach ($hashtags as $hashtag_message) {

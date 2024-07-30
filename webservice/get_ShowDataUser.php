@@ -1,63 +1,59 @@
 <?php
-include 'Connect.php'; // ตรวจสอบให้แน่ใจว่าเส้นทางนี้ถูกต้องและไฟล์ Connect.php มีอยู่
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 
-require 'vendor/autoload.php'; // ตรวจสอบให้แน่ใจว่าเส้นทางนี้ถูกต้องและไฟล์ autoload.php มีอยู่
+@header('Content-Type: application/json; charset=utf-8');
+include 'Connect.php';
 
+require 'vendor/autoload.php';
 use \Firebase\JWT\JWT;
+use \Firebase\JWT\Key;
 
-$key = "your_secret_key"; // ใช้คีย์เดียวกันกับใน Dart
-$algorithm = 'HS256'; // อัลกอริธึมที่ใช้ในการเข้ารหัส
+$key = "your_secret_key";
 
-// รับ JWT จากคำขอ
-$headers = getallheaders();
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    $headers = getallheaders();
+    error_log(print_r($headers, true), 3, "C:/xampp/tmp/error.log");  // พิมพ์ headers ลงในไฟล์ log
 
-$jwt = isset($headers['Authorization']) ? str_replace('Bearer ', '', $headers['Authorization']) : null;
+    if (isset($headers['authorization'])) {
+        $jwt = str_replace('Bearer ', '', $headers['authorization']);
+        error_log("JWT: $jwt", 3, "C:/xampp/tmp/error.log");  // พิมพ์ JWT ลงในไฟล์ log
 
-error_log("Received JWT: " . $jwt); // สำหรับการดีบัก
+        try {
+            $decoded = JWT::decode($jwt, new Key($key, 'HS256'));
+            $decoded_array = (array) $decoded;
+            error_log(print_r($decoded_array, true), 3, "C:/xampp/tmp/error.log");  // พิมพ์ decoded_array ลงในไฟล์ log
 
-if ($jwt) {
+            $user_id = $decoded_array['user_id'];
+            error_log("User ID: $user_id", 3, "C:/xampp/tmp/error.log");  // พิมพ์ user_id ลงในไฟล์ log
 
-    try {
-        // ถอดรหัส JWT
-        $decoded = JWT::decode($jwt, new \Firebase\JWT\Key($key, 'HS256'));
-        error_log("Decoded JWT: " . print_r($decoded, true)); // สำหรับการดีบัก
-        $user_id = $decoded->id;
-
-        // สร้างคำสั่ง SQL เพื่อดึงข้อมูลที่ต้องการ
-        $stmt = $conn->prepare("SELECT user_id, user_name, user_text, user_photo FROM user_information WHERE user_id = ?");
-        $stmt->bind_param("s", $user_id);
-        $stmt->execute();
-        $result = $stmt->get_result();
-
-        $user_data = array();
-
-        // ตรวจสอบและเก็บผลลัพธ์
-        if ($result->num_rows > 0) {
-            while($row = $result->fetch_assoc()) {
-                $user_data[] = $row;
+            $sql = "SELECT user_id, user_name, user_text, user_photo FROM user_information WHERE user_id = ?";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("s", $user_id);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            
+            if ($result->num_rows > 0) {
+                $user_data = $result->fetch_assoc();
+                $user_data['user_photo'] = 'http://10.0.2.2/flutter_webservice/upload/' . $user_data['user_photo'];
+                echo json_encode([$user_data]);  // ส่งเป็น array
+            } else {
+                echo json_encode(array("message" => "ไม่พบชื่อผู้ใช้"));
             }
-        } else {
-            http_response_code(404);
-            echo json_encode(array("message" => "No user found."));
-            exit();
+        } catch (Exception $e) {
+            echo json_encode(array(
+                "message" => "Access denied",
+                "error" => $e->getMessage()
+            ));
         }
-
-        // ปิดการเชื่อมต่อ
-        $stmt->close();
-        $conn->close();
-
-        // แปลงข้อมูลเป็น JSON และส่งออก
-        echo json_encode($user_data);
-
-    } catch (Exception $e) {
-        error_log("JWT Decode Error: " . $e->getMessage()); // สำหรับการดีบัก
-        http_response_code(401);
-        echo json_encode(array("message" => "การเข้าถึงถูกปฏิเสธ", "error" => $e->getMessage()));
+    } else {
+        error_log('ไม่พบส่วนหัวการอนุญาต', 3, "C:/xampp/tmp/error.log");
+        echo json_encode(array("message" => "ไม่พบส่วนหัวการอนุญาต"));
     }
-
 } else {
-    error_log("No JWT received"); // สำหรับการดีบัก
-    http_response_code(401);
-    echo json_encode(array("message" => "การเข้าถึงถูกปฏิเสธ (ไม่มี jwt)"));
+    echo json_encode(array("message" => "วิธีการร้องขอไม่ถูกต้อง"));
 }
+
+$conn->close();
 ?>

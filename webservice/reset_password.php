@@ -1,6 +1,17 @@
 <?php
 // เชื่อมต่อฐานข้อมูล
-include 'Connect.php';
+$servername = "localhost"; // ชื่อ server
+$username = "root"; // ชื่อผู้ใช้ของฐานข้อมูล
+$password = ""; // รหัสผ่านของฐานข้อมูล
+$dbname = "wegosport"; // ชื่อฐานข้อมูล
+
+// สร้างการเชื่อมต่อ
+$conn = new mysqli($servername, $username, $password, $dbname);
+
+// ตรวจสอบการเชื่อมต่อ
+if ($conn->connect_error) {
+    die("การเชื่อมต่อล้มเหลว : " . $conn->connect_error);
+}
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $newPassword = $_POST['password'];
@@ -9,6 +20,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // ตรวจสอบโทเค็น
     $sql = "SELECT user_email FROM user_information WHERE user_tokenmail = ?";
     $stmt = $conn->prepare($sql);
+    if ($stmt === false) {
+        die(json_encode(array("status" => "error", "message" => "Prepare failed: " . $conn->error)));
+    }
     $stmt->bind_param('s', $token);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -20,51 +34,23 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         // อัปเดตรหัสผ่านในตารางผู้ใช้เป็น plain text
         $sql = "UPDATE user_information SET user_pass = ?, user_tokenmail = NULL WHERE user_email = ?";
         $stmt = $conn->prepare($sql);
+        if ($stmt === false) {
+            die(json_encode(array("status" => "error", "message" => "Prepare failed: " . $conn->error)));
+        }
         $stmt->bind_param('ss', $newPassword, $email);
         $stmt->execute();
 
-        // แสดงผลการรีเซ็ตรหัสผ่านในรูปแบบการ์ด
-        echo "
-        <!DOCTYPE html>
-        <html lang='en'>
-        <head>
-            <meta charset='UTF-8'>
-            <title>Password Reset Successful</title>
-            <style>
-                body {
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    height: 100vh;
-                    margin: 0;
-                    font-family: Arial, sans-serif;
-                    background-color: #f2f2f2;
-                }
-                .card {
-                    background-color: #fff;
-                    padding: 20px;
-                    border-radius: 10px;
-                    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-                    text-align: center;
-                }
-                .card h2 {
-                    margin-top: 0;
-                }
-                .card p {
-                    font-size: 16px;
-                    color: #333;
-                }
-            </style>
-        </head>
-        <body>
-            <div class='card'>
-                <h2>รีเซ็ตรหัสผ่านสำเร็จแล้ว</h2>
-                <p>รหัสผ่านใหม่ของคุณคือ: $newPassword</p>
-            </div>
-        </body>
-        </html>";
+        // แสดงผลการรีเซ็ตรหัสผ่านในรูปแบบข้อความ
+        echo json_encode(array(
+            "status" => "success",
+            "message" => "Password reset successful",
+            "newPassword" => $newPassword
+        ));
     } else {
-        echo "โทเค็นไม่ถูกต้องหรือหมดอายุ";
+        echo json_encode(array(
+            "status" => "error",
+            "message" => "โทเค็นไม่ถูกต้องหรือหมดอายุ"
+        ));
     }
 
     $stmt->close();
@@ -76,6 +62,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         // ตรวจสอบโทเค็นและอีเมล
         $sql = "SELECT user_email FROM user_information WHERE user_tokenmail = ?";
         $stmt = $conn->prepare($sql);
+        if ($stmt === false) {
+            die(json_encode(array("status" => "error", "message" => "Prepare failed: " . $conn->error)));
+        }
         $stmt->bind_param('s', $token);
         $stmt->execute();
         $result = $stmt->get_result();
@@ -157,10 +146,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
             <?php
         } else {
-            echo "โทเค็นไม่ถูกต้องหรือหมดอายุ";
+            echo json_encode(array("status" => "error", "message" => "โทเค็นไม่ถูกต้องหรือหมดอายุ"));
         }
     } else {
-        echo "ไม่พบโทเค็น";
+        echo json_encode(array("status" => "error", "message" => "ไม่พบโทเค็น"));
     }
 }
 ?>
