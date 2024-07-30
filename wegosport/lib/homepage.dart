@@ -428,7 +428,7 @@ class ActivityCardItem extends StatelessWidget {
             Text(
               activity['activity_date'] ?? '',
               style: TextStyle(
-                color: isPast ? Colors.grey : Colors.black,
+                color: isPast ? const Color.fromARGB(255, 180, 180, 180) : Colors.black,
               ),
             ),
             SizedBox(height: 8),
@@ -531,7 +531,7 @@ class TagWidget extends StatelessWidget {
       margin: EdgeInsets.only(right: 8),
       padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       decoration: BoxDecoration(
-        color: Color.fromARGB(255, 106, 102, 102),
+        color: Color.fromARGB(255, 175, 175, 175),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(

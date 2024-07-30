@@ -78,8 +78,8 @@ class _EditProfileState extends State<EditProfile> {
       'user_text': _userTextController.text,
     };
 
-    print(headers);
-    print(body);
+    print('ข้อมูล headers : $headers');
+    print('ข้อมูล body : $body');
 
     try {
       var response = await http.post(
@@ -87,8 +87,10 @@ class _EditProfileState extends State<EditProfile> {
         headers: headers,
         body: body,
       );
-    print(response);
+
       if (response.statusCode == 200) {
+        print('Response status edit : ${response.statusCode}');
+        print('Response body edit : ${response.body}');
         // อัปเดตสำเร็จ
         Navigator.pushReplacement(
           context,
@@ -134,7 +136,13 @@ class _EditProfileState extends State<EditProfile> {
             children: [
               TextField(
                 controller: _userIdController,
-                decoration: InputDecoration(labelText: 'ชื่อผู้ใช้'),
+                decoration: InputDecoration(
+                  labelText: 'ชื่อผู้ใช้',
+                ),
+                enabled: false,
+                style: TextStyle(
+                  color: Colors.grey, // แสดงข้อความเป็นสีจาง
+                ),
               ),
               TextField(
                 controller: _userNameController,

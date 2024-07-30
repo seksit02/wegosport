@@ -34,6 +34,9 @@ dependencies:
   http: ^0.13.3 # ใช้สำหรับการทำ HTTP requests
   flutter_facebook_auth: ^4.2.1 # ใช้สำหรับการเข้าสู่ระบบด้วย Facebook
   image_picker: ^0.8.4+4 # ใช้สำหรับการเลือกรูปภาพจากอุปกรณ์
+  image: ^3.0.1 # บีบไฟล์ก่อนอัพโหลด
+  image_cropper: ^1.4.1 # ครอปรูป
+
   flutter_typeahead: ^4.0.0 # ใช้สำหรับการแนะนำสถานที่และกีฬา
   flutter_material_pickers: ^3.0.0 # ใช้สำหรับการเลือกแฮชแท็ก (hashtag)
 

@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:wegosport/Homepage.dart';
 import 'package:wegosport/EditProfile.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:image_cropper/image_cropper.dart';
 import 'dart:io';
 import 'package:image/image.dart' as img;
 
@@ -70,12 +71,60 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Future<void> _pickImage() async {
-    final pickedFile =
-        await ImagePicker().pickImage(source: ImageSource.gallery);
-    if (pickedFile != null) {
-      File imageFile = File(pickedFile.path);
-      _compressAndUploadImage(imageFile);
+    bool? confirm = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('ยืนยันการเปลี่ยนรูปโปรไฟล์'),
+          content: Text('คุณต้องการแก้ไขรูปโปรไฟล์หรือไม่?'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(false);
+              },
+              child: Text('ยกเลิก'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(true);
+              },
+              child: Text('ตกลง'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirm == true) {
+      final pickedFile =
+          await ImagePicker().pickImage(source: ImageSource.gallery);
+      if (pickedFile != null) {
+        File? croppedFile = await _cropImage(File(pickedFile.path));
+        if (croppedFile != null) {
+          _compressAndUploadImage(croppedFile);
+        }
+      }
     }
+  }
+
+  Future<File?> _cropImage(File imageFile) async {
+    File? croppedFile = await ImageCropper().cropImage(
+      sourcePath: imageFile.path,
+      aspectRatioPresets: [
+        CropAspectRatioPreset.square,
+      ],
+      androidUiSettings: AndroidUiSettings(
+        toolbarTitle: 'Crop Image',
+        toolbarColor: Colors.deepOrange,
+        toolbarWidgetColor: Colors.white,
+        initAspectRatio: CropAspectRatioPreset.square,
+        lockAspectRatio: true,
+      ),
+      iosUiSettings: IOSUiSettings(
+        minimumAspectRatio: 1.0,
+      ),
+    );
+    return croppedFile;
   }
 
   Future<void> _compressAndUploadImage(File imageFile) async {
@@ -100,8 +149,8 @@ class _ProfilePageState extends State<ProfilePage> {
         Uri.parse('http://10.0.2.2/flutter_webservice/savephotoprofile.php');
 
     var request = http.MultipartRequest('POST', url);
-    request.headers['Authorization'] = 'Bearer ${widget.jwt}';
     request.files.add(await http.MultipartFile.fromPath('image', image.path));
+    request.fields['user_id'] = userData!['user_id'];
 
     try {
       var response = await request.send();
@@ -113,16 +162,21 @@ class _ProfilePageState extends State<ProfilePage> {
           setState(() {
             userData!['user_photo'] = data['image_url'];
           });
+          fetchUserData(
+              widget.jwt); // เรียกใช้ fetchUserData เพื่อรีเฟรชหน้าทันที
         } else {
           print('Failed to upload image: ${data['message']}');
         }
       } else {
-        print('Failed to upload image: ${response.statusCode}');
+        var responseData = await http.Response.fromStream(response);
+        print('Failed to upload image: ${responseData.body}');
       }
     } catch (error) {
       print('Error uploading image: $error');
     }
   }
+
+
 
   @override
   Widget build(BuildContext context) {
