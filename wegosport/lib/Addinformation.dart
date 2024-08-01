@@ -252,24 +252,6 @@ class _editinformationState extends State<editinformation> {
           onPressed: () {
             if (_validateInputs()) {
               functionregister(context);
-              showDialog(
-                context: context,
-                builder: (BuildContext context) {
-                  return AlertDialog(
-                    title: Text("กรอกข้อมูลสำเร็จ"),
-                    actions: <Widget>[
-                      TextButton(
-                        child: Text("ตกลง"),
-                        onPressed: () {
-                          Navigator.of(context).pushReplacement(
-                              MaterialPageRoute(
-                                  builder: (context) => LoginPage()));
-                        },
-                      ),
-                    ],
-                  );
-                },
-              );
             } else {
               showDialog(
                 context: context,
@@ -311,7 +293,6 @@ class _editinformationState extends State<editinformation> {
         int.parse(five_value.text) > 0;
   }
 
-  // ฟังก์ชันส่งข้อมูลการลงทะเบียน
   Future<void> functionregister(BuildContext context) async {
     print("user_id: ${one_value.text}");
     print("user_email: ${two_value.text}");
@@ -348,19 +329,73 @@ class _editinformationState extends State<editinformation> {
       if (response.statusCode == 200) {
         Map<String, dynamic> jsonResponse = json.decode(response.body);
         print(jsonResponse);
+
+        // เช็คผลลัพธ์ที่ได้จากเซิร์ฟเวอร์
+        if (jsonResponse['result'] == 1) {
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: Text("กรอกข้อมูลสำเร็จ"),
+                actions: <Widget>[
+                  TextButton(
+                    child: Text("ตกลง"),
+                    onPressed: () {
+                      Navigator.of(context).pushReplacement(
+                          MaterialPageRoute(builder: (context) => LoginPage()));
+                    },
+                  ),
+                ],
+              );
+            },
+          );
+        } else {
+          // ตรวจสอบข้อความข้อผิดพลาด
+          if (jsonResponse['message'] == "ชื่อผู้ใช้หรืออีเมลนี้มีผู้ใช้แล้ว") {
+            _showDialog(context, 'ผิดพลาด',
+                'ชื่อผู้ใช้หรืออีเมลนี้มีผู้ใช้แล้ว กรุณากรอกข้อมูลใหม่');
+          } else {
+            _showDialog(context, 'ผิดพลาด',
+                jsonResponse['message'] ?? 'การเพิ่มข้อมูลล้มเหลว');
+          }
+        }
+        
       } else {
         print("Request failed with status: ${response.statusCode}");
+        _showDialog(
+            context, 'ผิดพลาด', 'เกิดข้อผิดพลาดในการเชื่อมต่อกับเซิร์ฟเวอร์');
       }
     } catch (error) {
       print("Error: $error");
+      _showDialog(context, 'ผิดพลาด', 'เกิดข้อผิดพลาด: $error');
     }
+  }
+
+  void _showDialog(BuildContext context, String title, String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(title),
+          content: Text(message),
+          actions: <Widget>[
+            TextButton(
+              child: Text("ปิด"),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   // วิดเจ็ตข้อความหัวข้อ
   Widget text1() {
     return Container(
       child: Text(
-        "เพิ่มข้อมูลผู้ใช้",
+        "สมัครสมาชิก",
         style: TextStyle(
           fontSize: 24,
           fontWeight: FontWeight.bold,
