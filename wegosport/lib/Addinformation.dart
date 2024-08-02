@@ -314,7 +314,7 @@ class _editinformationState extends State<editinformation> {
     print("user_email: ${two_value.text}");
     print("user_pass: ${three_value.text}");
     print("user_name: ${four_value.text}");
-    print("user_dob: ${five_value.text}"); // เปลี่ยนจาก user_age เป็น user_dob
+    print("user_age: ${five_value.text}"); 
     print("user_token: ${six_value}");
 
     // แปลงรูปแบบวันที่ให้เป็น YYYY-MM-DD ก่อนส่งไปยัง PHP
@@ -326,7 +326,7 @@ class _editinformationState extends State<editinformation> {
       "user_email": two_value.text,
       "user_pass": three_value.text,
       "user_name": four_value.text,
-      "user_dob": formattedDob, // ใช้วันที่ที่แปลงแล้ว
+      "user_age": formattedDob, // ใช้วันที่ที่แปลงแล้ว
       "user_token": six_value.toString()
     };
 

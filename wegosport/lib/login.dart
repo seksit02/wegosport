@@ -164,7 +164,7 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   // ฟังก์ชันสร้าง JWT
-  String generateJwt(String userId) {
+  String generateJwt(String userId ) {
     final jwt = JWT(
       {
         'user_id': userId,
@@ -212,6 +212,7 @@ class _LoginPageState extends State<LoginPage> {
 
         // ตรวจสอบว่าการเข้าสู่ระบบสำเร็จหรือไม่
         if (jsonResponse['result'] == "1") {
+
           String userId = jsonResponse['user_id'];
           String jwt = jsonResponse['jwt']; // ใช้ JWT ที่ได้รับจากเซิร์ฟเวอร์
 
@@ -359,10 +360,6 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  //ทำเงื่อนไข ถ้ามี user_token แต่ไม่มี user_jwt ให้สร้างฟังชั่นเพิ่ม jwt ลง database ก่อน ถ้าเพิ่มสำเร็จให้ให้เด้งไปหน้า home พร้อมกับค่า jwt ที่สร้าง
-  //แต่ ถ้าที่ user_token และ user_jwt อยู่ใน database อยู่แล้ว ให้ไปที่หน้า home และส่งค่า user_jwt ที่มีไปด้วย
-
-  // ฟังก์ชันล็อกอินด้วย Facebook
   Future<void> facebookLogin(BuildContext context) async {
     try {
       final result = await FacebookAuth.instance.login(
@@ -387,12 +384,70 @@ class _LoginPageState extends State<LoginPage> {
         );
 
         if (response.statusCode == 200) {
-          
           var jsonResponse = jsonDecode(response.body);
 
+          print('ข้อมูลจาก ChackToken : $jsonResponse');
+
           if (jsonResponse['exists']) {
-            // ถ้ามี user_token และ user_jwt อยู่ในฐานข้อมูล
-            if (jsonResponse['jwt'] != null) {
+            // ตรวจสอบว่า jwt ไม่มีค่า
+            if (jsonResponse['jwt'] == null || jsonResponse['jwt'].isEmpty) {
+              print("เข้าเงื่อนไขไม่มี jwt");
+
+              // ถ้ามี user_token แต่ไม่มี user_jwt ให้สร้าง jwt ก่อนและบันทึกลง database แล้วส่งไปหน้า home
+              String jwt = generateJwt(jsonResponse['user_id']);
+
+              // เก็บ JWT ลงในฐานข้อมูล
+              var saveJwtResponse = await http.post(
+                Uri.parse('http://10.0.2.2/flutter_webservice/get_Savejwt.php'),
+                headers: {"Content-Type": "application/json"},
+                body: jsonEncode({
+                  "user_id":
+                      jsonResponse['user_id'], // ใช้ userId จาก jsonResponse
+                  "jwt": jwt,
+                }),
+              );
+
+              print('ข้อมูล saveJwt : $saveJwtResponse[result]');
+
+              if (jwt.isNotEmpty) {
+              var saveJwtJsonResponse = jsonDecode(saveJwtResponse.body);
+
+              if (saveJwtJsonResponse['result'] == "1") {
+                // แสดงป๊อปอัพเพื่อแจ้งให้ผู้ใช้เข้าสู่ระบบอีกครั้ง
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                      title: Text("บันทึกข้อมูลสำเร็จ"),
+                      content: Text("กรุณาเข้าสู่ระบบอีกครั้ง"),
+                      actions: [
+                        TextButton(
+                          child: Text("ตกลง"),
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                            // ส่งผู้ใช้กลับไปหน้า login
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => LoginPage(),
+                              ),
+                            );
+                          },
+                        ),
+                      ],
+                    );
+                  },
+                );
+              } else {
+                _showErrorDialog("การเก็บ JWT ล้มเหลว");
+              }
+            } else {
+              _showErrorDialog("การเก็บ JWT ล้มเหลว");
+            }
+            } else {
+              print("เข้าเงื่อนไขมี jwt");
+
+              // ถ้ามี user_token และ user_jwt อยู่ในฐานข้อมูล
               String jwt = jsonResponse['jwt'];
 
               Navigator.pushReplacement(
@@ -401,36 +456,6 @@ class _LoginPageState extends State<LoginPage> {
                   builder: (context) => Homepage(jwt: jwt),
                 ),
               );
-            } else {
-              // ถ้ามี user_token แต่ไม่มี user_jwt
-              String jwt = generateJwt(facebookUserId);
-
-              // เก็บ JWT ลงในฐานข้อมูล
-              var saveJwtResponse = await http.post(
-                Uri.parse('http://10.0.2.2/flutter_webservice/get_Savejwt.php'),
-                headers: {"Content-Type": "application/json"},
-                body: jsonEncode({
-                  "user_id": facebookUserId,
-                  "jwt": jwt,
-                }),
-              );
-
-              if (saveJwtResponse.statusCode == 200) {
-                var saveJwtJsonResponse = jsonDecode(saveJwtResponse.body);
-
-                if (saveJwtJsonResponse['result'] == "1") {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => Homepage(jwt: jwt),
-                    ),
-                  );
-                } else {
-                  _showErrorDialog("การเก็บ JWT ล้มเหลว");
-                }
-              } else {
-                _showErrorDialog("การเก็บ JWT ล้มเหลว");
-              }
             }
           } else {
             Navigator.push(
@@ -453,6 +478,7 @@ class _LoginPageState extends State<LoginPage> {
       print(error);
     }
   }
+
 
   // การสร้าง UI ของหน้าจอล็อกอิน
   @override
