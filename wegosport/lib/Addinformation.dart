@@ -180,23 +180,25 @@ class _editinformationState extends State<editinformation> {
     );
   }
 
-  // วิดเจ็ตฟิลด์อายุ
+  // วิดเจ็ตฟิลด์วัน/เดือน/ปีเกิด
   Widget inputfive() {
     return Container(
       margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
       child: TextFormField(
         controller: five_value,
-        keyboardType: TextInputType.number,
+        keyboardType: TextInputType.datetime,
         inputFormatters: <TextInputFormatter>[
-          FilteringTextInputFormatter.digitsOnly,
+          FilteringTextInputFormatter.allow(RegExp(r'[0-9/]')),
+          LengthLimitingTextInputFormatter(10),
+          DateInputFormatter(),
         ],
         decoration: InputDecoration(
           contentPadding: EdgeInsets.fromLTRB(0, 15, 0, 0),
-          hintText: 'อายุ',
+          hintText: 'วัน/เดือน/ปีเกิด',
           fillColor: Colors.white,
           filled: true,
           prefixIcon: Icon(
-            Icons.edit,
+            Icons.calendar_today,
             color: Colors.red,
           ),
           border: OutlineInputBorder(
@@ -278,6 +280,11 @@ class _editinformationState extends State<editinformation> {
 
   // ฟังก์ชันตรวจสอบข้อมูล
   bool _validateInputs() {
+    // ตรวจสอบรูปแบบวันที่
+    RegExp dateRegEx = RegExp(
+      r'^(\d{2})/(\d{2})/(\d{4})$',
+    );
+
     return one_value.text.isNotEmpty &&
         one_value.text.length >= 6 &&
         one_value.text.contains(RegExp(r'[a-zA-Z]')) &&
@@ -289,8 +296,17 @@ class _editinformationState extends State<editinformation> {
         three_value.text.contains(RegExp(r'[a-zA-Z]')) &&
         four_value.text.isNotEmpty &&
         five_value.text.isNotEmpty &&
-        int.tryParse(five_value.text) != null &&
-        int.parse(five_value.text) > 0;
+        dateRegEx.hasMatch(
+            five_value.text); // ตรวจสอบว่าข้อความตรงกับรูปแบบวันที่ที่ถูกต้อง
+  }
+
+  // แปลงรูปแบบวันที่ให้เป็น YYYY-MM-DD ก่อนส่งไปยัง PHP
+  String formatDate(String date) {
+    List<String> parts = date.split('/');
+    if (parts.length == 3) {
+      return '${parts[2]}-${parts[1]}-${parts[0]}';
+    }
+    return date;
   }
 
   Future<void> functionregister(BuildContext context) async {
@@ -298,8 +314,11 @@ class _editinformationState extends State<editinformation> {
     print("user_email: ${two_value.text}");
     print("user_pass: ${three_value.text}");
     print("user_name: ${four_value.text}");
-    print("user_age: ${five_value.text}");
+    print("user_dob: ${five_value.text}"); // เปลี่ยนจาก user_age เป็น user_dob
     print("user_token: ${six_value}");
+
+    // แปลงรูปแบบวันที่ให้เป็น YYYY-MM-DD ก่อนส่งไปยัง PHP
+    String formattedDob = formatDate(five_value.text);
 
     // เตรียมข้อมูลที่จะส่ง
     Map<String, String> dataPost = {
@@ -307,7 +326,7 @@ class _editinformationState extends State<editinformation> {
       "user_email": two_value.text,
       "user_pass": three_value.text,
       "user_name": four_value.text,
-      "user_age": five_value.text,
+      "user_dob": formattedDob, // ใช้วันที่ที่แปลงแล้ว
       "user_token": six_value.toString()
     };
 
@@ -359,7 +378,6 @@ class _editinformationState extends State<editinformation> {
                 jsonResponse['message'] ?? 'การเพิ่มข้อมูลล้มเหลว');
           }
         }
-        
       } else {
         print("Request failed with status: ${response.statusCode}");
         _showDialog(
@@ -370,6 +388,7 @@ class _editinformationState extends State<editinformation> {
       _showDialog(context, 'ผิดพลาด', 'เกิดข้อผิดพลาด: $error');
     }
   }
+
 
   void _showDialog(BuildContext context, String title, String message) {
     showDialog(
@@ -451,6 +470,30 @@ class _editinformationState extends State<editinformation> {
           )
         ],
       ),
+    );
+  }
+}
+
+// Custom Input Formatter สำหรับรูปแบบวัน/เดือน/ปีเกิด
+class DateInputFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+      TextEditingValue oldValue, TextEditingValue newValue) {
+    // Handle backspace
+    if (newValue.text.length < oldValue.text.length) {
+      return newValue;
+    }
+
+    var newText = newValue.text;
+    if (newText.length == 2 || newText.length == 5) {
+      newText += '/';
+    } else if (newText.length > 10) {
+      newText = newText.substring(0, 10);
+    }
+
+    return newValue.copyWith(
+      text: newText,
+      selection: TextSelection.collapsed(offset: newText.length),
     );
   }
 }
