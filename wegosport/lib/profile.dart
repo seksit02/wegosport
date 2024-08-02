@@ -77,7 +77,7 @@ class _ProfilePageState extends State<ProfilePage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('ยืนยันการเปลี่ยนรูปโปรไฟล์'),
+          title: Text('แก้ไขรูปโปรไฟล์'),
           content: Text('คุณต้องการแก้ไขรูปโปรไฟล์หรือไม่?'),
           actions: <Widget>[
             TextButton(
