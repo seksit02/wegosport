@@ -102,7 +102,7 @@ class _AddLocationState extends State<AddLocationPage> {
   // ค้นหาสถานที่โดยใช้ Google Places API
   Future<void> _handlePressButton() async {
     try {
-      String searchQuery = searchController.text;
+      String searchQuery = input1.text;
       if (searchQuery.isEmpty) {
         print('Search query is empty.');
         return;
@@ -283,48 +283,23 @@ class _AddLocationState extends State<AddLocationPage> {
     );
   }
 
-  // วิดเจ็ตแถบค้นหาสถานที่
-  Widget searchBar() {
+  Widget searchlocation() {
     return Container(
       margin: EdgeInsets.fromLTRB(20, 20, 20, 0),
-      child: Column(
-        children: [
-          TextFormField(
-            controller: searchController,
-            decoration: InputDecoration(
-              contentPadding: EdgeInsets.fromLTRB(15, 10, 15, 10),
-              hintText: 'พิมพ์ชื่อสถานที่',
-              fillColor: const Color.fromARGB(255, 255, 255, 255),
-              filled: true,
-              hintStyle: TextStyle(color: Color.fromARGB(255, 102, 102, 102)),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(40),
-              ),
-              prefixIcon:
-                  Icon(Icons.search, color: Color.fromARGB(255, 255, 0, 0)),
-            ),
-            style: TextStyle(color: const Color.fromARGB(255, 0, 0, 0)),
+      child: ElevatedButton.icon(
+        onPressed: _handlePressButton,
+        icon: Icon(Icons.search),
+        label: Text('ค้นหาสถานที่'),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Color.fromARGB(255, 0, 123, 255),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(40),
           ),
-          SizedBox(height: 10),
-          ElevatedButton(
-            child: Text("ค้นหาสถานที่",
-                style: TextStyle(color: const Color.fromARGB(255, 0, 0, 0))),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color.fromARGB(255, 255, 255, 255),
-              padding: EdgeInsets.symmetric(horizontal: 10, vertical: 0),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-              ),
-            ),
-            onPressed: () {
-              print('Search button pressed');
-              _handlePressButton();
-            },
-          ),
-        ],
+        ),
       ),
     );
   }
+
 
   // วิดเจ็ตแผนที่
   Widget map() {
@@ -564,7 +539,7 @@ class _AddLocationState extends State<AddLocationPage> {
             type(),
             addImage(),
             mapImage(),
-            searchBar(),
+            searchlocation(),
             map(),
             buttonAddLocation(context),
             SizedBox(height: 20)
