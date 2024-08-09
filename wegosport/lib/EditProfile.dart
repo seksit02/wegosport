@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
+import 'package:wegosport/Addinformation.dart';
 import 'package:wegosport/Profile.dart';
 
 // หน้าจอแก้ไขโปรไฟล์
@@ -31,7 +33,20 @@ class _EditProfileState extends State<EditProfile> {
     fetchUserData(widget.jwt); // ดึงข้อมูลผู้ใช้เมื่อเริ่มต้น
   }
 
-  // ฟังก์ชันดึงข้อมูลผู้ใช้จากเซิร์ฟเวอร์
+  // ฟังก์ชันแปลงวันที่เป็น DD/MM/YYYY
+  String formatDate(String date) {
+    // แปลงสตริงวันที่เป็น DateTime object
+    DateTime parsedDate = DateTime.parse(date);
+
+    // แปลง DateTime object เป็นสตริงในรูปแบบ DD/MM/YYYY
+    String formattedDate = "${parsedDate.day.toString().padLeft(2, '0')}/"
+        "${parsedDate.month.toString().padLeft(2, '0')}/"
+        "${parsedDate.year}";
+
+    return formattedDate;
+  }
+
+// ฟังก์ชันดึงข้อมูลผู้ใช้จากเซิร์ฟเวอร์
   Future<void> fetchUserData(String jwt) async {
     var url =
         Uri.parse('http://10.0.2.2/flutter_webservice/get_ShowDataUser.php');
@@ -58,7 +73,8 @@ class _EditProfileState extends State<EditProfile> {
             _userIdController.text = userData!['user_id'];
             _userNameController.text = userData!['user_name'];
             _userTextController.text = userData!['user_text'];
-            _userAgeController.text = userData!['user_age'];
+            _userAgeController.text =
+                formatDate(userData!['user_age']); // แปลงวันที่ก่อนแสดงผล
           });
         } else {
           throw Exception('Failed to load user data');
@@ -70,6 +86,7 @@ class _EditProfileState extends State<EditProfile> {
       throw Exception('Failed to load user data');
     }
   }
+
 
   // ฟังก์ชันอัปเดตโปรไฟล์ผู้ใช้
   Future<void> updateUserProfile() async {
@@ -113,23 +130,6 @@ class _EditProfileState extends State<EditProfile> {
       }
     } catch (error) {
       throw Exception('Failed to update user data');
-    }
-  }
-
-  // ฟังก์ชันเลือกวันเกิด
-  Future<void> _selectDate(BuildContext context) async {
-    DateTime? selectedDate = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(1900),
-      lastDate: DateTime(2100),
-    );
-
-    if (selectedDate != null) {
-      setState(() {
-        _userAgeController.text =
-            "${selectedDate.year}-${selectedDate.month.toString().padLeft(2, '0')}-${selectedDate.day.toString().padLeft(2, '0')}";
-      });
     }
   }
 
@@ -179,19 +179,17 @@ class _EditProfileState extends State<EditProfile> {
                 controller: _userTextController,
                 decoration: InputDecoration(labelText: 'ข้อความขังเขป'),
               ),
-              TextField(
+              TextFormField(
                 controller: _userAgeController,
+                keyboardType: TextInputType.datetime,
+                inputFormatters: <TextInputFormatter>[
+                  FilteringTextInputFormatter.allow(RegExp(r'[0-9/]')),
+                  LengthLimitingTextInputFormatter(10),
+                  DateInputFormatter(), // ตัวจัดการการป้อนข้อมูลสำหรับวันที่
+                ],
                 decoration: InputDecoration(
-                  labelText: 'วันเกิด',
-                  suffixIcon: IconButton(
-                    icon: Icon(Icons.calendar_today),
-                    onPressed: () {
-                      _selectDate(context);
-                    },
-                  ),
+                  labelText: 'วัน/เดือน/ปีเกิด',
                 ),
-                readOnly:
-                    true, // ทำให้ไม่สามารถพิมพ์ได้ ต้องเลือกจาก DatePicker
               ),
               SizedBox(height: 20),
               ElevatedButton(
