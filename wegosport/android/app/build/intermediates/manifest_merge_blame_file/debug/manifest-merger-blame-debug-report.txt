@@ -1,0 +1,192 @@
+1<?xml version="1.0" encoding="utf-8"?>
+2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+3    package="com.example.wegosport"
+4    android:versionCode="1"
+5    android:versionName="1.0.0" >
+6
+7    <uses-sdk
+8        android:minSdkVersion="21"
+9        android:targetSdkVersion="34" />
+10    <!--
+11         The INTERNET permission is required for development. Specifically,
+12         the Flutter tool needs it to communicate with the running application
+13         to allow setting breakpoints, to provide hot reload, etc.
+14    -->
+15    <uses-permission android:name="android.permission.INTERNET" />
+15-->C:\myflutter66\wegosport\wegosport\android\app\src\debug\AndroidManifest.xml:6:5-66
+15-->C:\myflutter66\wegosport\wegosport\android\app\src\debug\AndroidManifest.xml:6:22-64
+16    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+16-->C:\myflutter66\wegosport\wegosport\android\app\src\main\AndroidManifest.xml:3:5-78
+16-->C:\myflutter66\wegosport\wegosport\android\app\src\main\AndroidManifest.xml:3:22-76
+17    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+17-->C:\myflutter66\wegosport\wegosport\android\app\src\main\AndroidManifest.xml:4:5-80
+17-->C:\myflutter66\wegosport\wegosport\android\app\src\main\AndroidManifest.xml:4:22-78
+18    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+18-->C:\myflutter66\wegosport\wegosport\android\app\src\main\AndroidManifest.xml:6:5-80
+18-->C:\myflutter66\wegosport\wegosport\android\app\src\main\AndroidManifest.xml:6:22-78
+19    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" /> <!-- Include required permissions for Google Maps API to run. -->
+19-->C:\myflutter66\wegosport\wegosport\android\app\src\main\AndroidManifest.xml:7:5-79
+19-->C:\myflutter66\wegosport\wegosport\android\app\src\main\AndroidManifest.xml:7:22-77
+20    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+20-->[com.google.android.gms:play-services-maps:17.0.0] C:\Users\Lenovo\.gradle\caches\transforms-3\2c1cf447cdc743f3a0b29768897b67c0\transformed\jetified-play-services-maps-17.0.0\AndroidManifest.xml:23:5-79
+20-->[com.google.android.gms:play-services-maps:17.0.0] C:\Users\Lenovo\.gradle\caches\transforms-3\2c1cf447cdc743f3a0b29768897b67c0\transformed\jetified-play-services-maps-17.0.0\AndroidManifest.xml:23:22-76
+21
+22    <uses-feature
+22-->[com.google.android.gms:play-services-maps:17.0.0] C:\Users\Lenovo\.gradle\caches\transforms-3\2c1cf447cdc743f3a0b29768897b67c0\transformed\jetified-play-services-maps-17.0.0\AndroidManifest.xml:26:5-28:35
+23        android:glEsVersion="0x00020000"
+23-->[com.google.android.gms:play-services-maps:17.0.0] C:\Users\Lenovo\.gradle\caches\transforms-3\2c1cf447cdc743f3a0b29768897b67c0\transformed\jetified-play-services-maps-17.0.0\AndroidManifest.xml:27:9-41
+24        android:required="true" />
+24-->[com.google.android.gms:play-services-maps:17.0.0] C:\Users\Lenovo\.gradle\caches\transforms-3\2c1cf447cdc743f3a0b29768897b67c0\transformed\jetified-play-services-maps-17.0.0\AndroidManifest.xml:28:9-32
+25
+26    <application
+26-->C:\myflutter66\wegosport\wegosport\android\app\src\main\AndroidManifest.xml:9:5-70:19
+27        android:name="com.example.wegosport.FlutterMultiDexApplication"
+27-->C:\myflutter66\wegosport\wegosport\android\app\src\main\AndroidManifest.xml:11:9-51
+28        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
+28-->[androidx.core:core:1.6.0] C:\Users\Lenovo\.gradle\caches\transforms-3\7e9df2ac2213a6bd3cef0f2f27870d79\transformed\core-1.6.0\AndroidManifest.xml:24:18-86
+29        android:debuggable="true"
+30        android:icon="@mipmap/ic_launcher"
+30-->C:\myflutter66\wegosport\wegosport\android\app\src\main\AndroidManifest.xml:12:9-43
+31        android:label="wegosport"
+31-->C:\myflutter66\wegosport\wegosport\android\app\src\main\AndroidManifest.xml:10:9-34
+32        android:requestLegacyExternalStorage="true" >
+32-->C:\myflutter66\wegosport\wegosport\android\app\src\main\AndroidManifest.xml:13:9-52
+33        <meta-data
+33-->C:\myflutter66\wegosport\wegosport\android\app\src\main\AndroidManifest.xml:15:9-107
+34            android:name="com.facebook.sdk.ApplicationId"
+34-->C:\myflutter66\wegosport\wegosport\android\app\src\main\AndroidManifest.xml:15:20-65
+35            android:value="@string/facebook_app_id" />
+35-->C:\myflutter66\wegosport\wegosport\android\app\src\main\AndroidManifest.xml:15:66-105
+36        <meta-data
+36-->C:\myflutter66\wegosport\wegosport\android\app\src\main\AndroidManifest.xml:16:9-111
+37            android:name="com.facebook.sdk.ClientToken"
+37-->C:\myflutter66\wegosport\wegosport\android\app\src\main\AndroidManifest.xml:16:20-63
+38            android:value="@string/facebook_client_token" />
+38-->C:\myflutter66\wegosport\wegosport\android\app\src\main\AndroidManifest.xml:16:64-109
+39        <meta-data
+39-->C:\myflutter66\wegosport\wegosport\android\app\src\main\AndroidManifest.xml:18:9-20:70
+40            android:name="com.google.android.geo.API_KEY"
+40-->C:\myflutter66\wegosport\wegosport\android\app\src\main\AndroidManifest.xml:19:13-58
+41            android:value="AIzaSyC_RzmlxLOESG1-JwwSddFSijV11HUVHJk" />
+41-->C:\myflutter66\wegosport\wegosport\android\app\src\main\AndroidManifest.xml:20:13-68
+42
+43        <activity
+43-->C:\myflutter66\wegosport\wegosport\android\app\src\main\AndroidManifest.xml:22:9-25:48
+44            android:name="com.facebook.FacebookActivity"
+44-->C:\myflutter66\wegosport\wegosport\android\app\src\main\AndroidManifest.xml:22:19-63
+45            android:configChanges="keyboard|keyboardHidden|screenLayout|screenSize|orientation"
+45-->C:\myflutter66\wegosport\wegosport\android\app\src\main\AndroidManifest.xml:23:13-114
+46            android:label="@string/app_name" />
+46-->C:\myflutter66\wegosport\wegosport\android\app\src\main\AndroidManifest.xml:25:13-45
+47        <activity
+47-->C:\myflutter66\wegosport\wegosport\android\app\src\main\AndroidManifest.xml:26:9-35:20
+48            android:name="com.facebook.CustomTabActivity"
+48-->C:\myflutter66\wegosport\wegosport\android\app\src\main\AndroidManifest.xml:27:13-58
+49            android:exported="true" >
+49-->C:\myflutter66\wegosport\wegosport\android\app\src\main\AndroidManifest.xml:28:13-36
+50            <intent-filter>
+50-->C:\myflutter66\wegosport\wegosport\android\app\src\main\AndroidManifest.xml:29:13-34:29
+51                <action android:name="android.intent.action.VIEW" />
+51-->C:\myflutter66\wegosport\wegosport\android\app\src\main\AndroidManifest.xml:30:17-69
+51-->C:\myflutter66\wegosport\wegosport\android\app\src\main\AndroidManifest.xml:30:25-66
+52
+53                <category android:name="android.intent.category.DEFAULT" />
+53-->C:\myflutter66\wegosport\wegosport\android\app\src\main\AndroidManifest.xml:31:17-76
+53-->C:\myflutter66\wegosport\wegosport\android\app\src\main\AndroidManifest.xml:31:27-73
+54                <category android:name="android.intent.category.BROWSABLE" />
+54-->C:\myflutter66\wegosport\wegosport\android\app\src\main\AndroidManifest.xml:32:17-78
+54-->C:\myflutter66\wegosport\wegosport\android\app\src\main\AndroidManifest.xml:32:27-75
+55
+56                <data android:scheme="@string/fb_login_protocol_scheme" />
+56-->C:\myflutter66\wegosport\wegosport\android\app\src\main\AndroidManifest.xml:33:17-75
+56-->C:\myflutter66\wegosport\wegosport\android\app\src\main\AndroidManifest.xml:33:23-72
+57            </intent-filter>
+58        </activity>
+59        <activity
+59-->C:\myflutter66\wegosport\wegosport\android\app\src\main\AndroidManifest.xml:37:9-57:20
+60            android:name="com.example.wegosport.MainActivity"
+60-->C:\myflutter66\wegosport\wegosport\android\app\src\main\AndroidManifest.xml:38:13-41
+61            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
+61-->C:\myflutter66\wegosport\wegosport\android\app\src\main\AndroidManifest.xml:42:13-163
+62            android:exported="true"
+62-->C:\myflutter66\wegosport\wegosport\android\app\src\main\AndroidManifest.xml:39:13-36
+63            android:hardwareAccelerated="true"
+63-->C:\myflutter66\wegosport\wegosport\android\app\src\main\AndroidManifest.xml:43:13-47
+64            android:launchMode="singleTop"
+64-->C:\myflutter66\wegosport\wegosport\android\app\src\main\AndroidManifest.xml:40:13-43
+65            android:theme="@style/LaunchTheme"
+65-->C:\myflutter66\wegosport\wegosport\android\app\src\main\AndroidManifest.xml:41:13-47
+66            android:windowSoftInputMode="adjustResize" >
+66-->C:\myflutter66\wegosport\wegosport\android\app\src\main\AndroidManifest.xml:44:13-55
+67
+68            <!--
+69                 Specifies an Android theme to apply to this Activity as soon as
+70                 the Android process has started. This theme is visible to the user
+71                 while the Flutter UI initializes. After that, this theme continues
+72                 to determine the Window background behind the Flutter UI.
+73            -->
+74            <meta-data
+74-->C:\myflutter66\wegosport\wegosport\android\app\src\main\AndroidManifest.xml:49:13-52:17
+75                android:name="io.flutter.embedding.android.NormalTheme"
+75-->C:\myflutter66\wegosport\wegosport\android\app\src\main\AndroidManifest.xml:50:15-70
+76                android:resource="@style/NormalTheme" />
+76-->C:\myflutter66\wegosport\wegosport\android\app\src\main\AndroidManifest.xml:51:15-52
+77
+78            <intent-filter>
+78-->C:\myflutter66\wegosport\wegosport\android\app\src\main\AndroidManifest.xml:53:13-56:29
+79                <action android:name="android.intent.action.MAIN" />
+79-->C:\myflutter66\wegosport\wegosport\android\app\src\main\AndroidManifest.xml:54:17-68
+79-->C:\myflutter66\wegosport\wegosport\android\app\src\main\AndroidManifest.xml:54:25-66
+80
+81                <category android:name="android.intent.category.LAUNCHER" />
+81-->C:\myflutter66\wegosport\wegosport\android\app\src\main\AndroidManifest.xml:55:17-76
+81-->C:\myflutter66\wegosport\wegosport\android\app\src\main\AndroidManifest.xml:55:27-74
+82            </intent-filter>
+83        </activity>
+84
+85        <!-- Add UCropActivity -->
+86        <activity
+86-->C:\myflutter66\wegosport\wegosport\android\app\src\main\AndroidManifest.xml:60:9-63:71
+87            android:name="com.yalantis.ucrop.UCropActivity"
+87-->C:\myflutter66\wegosport\wegosport\android\app\src\main\AndroidManifest.xml:61:13-60
+88            android:screenOrientation="portrait"
+88-->C:\myflutter66\wegosport\wegosport\android\app\src\main\AndroidManifest.xml:62:13-49
+89            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
+89-->C:\myflutter66\wegosport\wegosport\android\app\src\main\AndroidManifest.xml:63:13-69
+90
+91        <!--
+92             Don't delete the meta-data below.
+93             This is used by the Flutter tool to generate GeneratedPluginRegistrant.java
+94        -->
+95        <meta-data
+95-->C:\myflutter66\wegosport\wegosport\android\app\src\main\AndroidManifest.xml:67:9-69:33
+96            android:name="flutterEmbedding"
+96-->C:\myflutter66\wegosport\wegosport\android\app\src\main\AndroidManifest.xml:68:13-44
+97            android:value="2" />
+97-->C:\myflutter66\wegosport\wegosport\android\app\src\main\AndroidManifest.xml:69:13-30
+98        <!-- Needs to be explicitly declared on P+ -->
+99        <uses-library
+99-->[com.google.android.gms:play-services-maps:17.0.0] C:\Users\Lenovo\.gradle\caches\transforms-3\2c1cf447cdc743f3a0b29768897b67c0\transformed\jetified-play-services-maps-17.0.0\AndroidManifest.xml:33:9-35:40
+100            android:name="org.apache.http.legacy"
+100-->[com.google.android.gms:play-services-maps:17.0.0] C:\Users\Lenovo\.gradle\caches\transforms-3\2c1cf447cdc743f3a0b29768897b67c0\transformed\jetified-play-services-maps-17.0.0\AndroidManifest.xml:34:13-50
+101            android:required="false" />
+101-->[com.google.android.gms:play-services-maps:17.0.0] C:\Users\Lenovo\.gradle\caches\transforms-3\2c1cf447cdc743f3a0b29768897b67c0\transformed\jetified-play-services-maps-17.0.0\AndroidManifest.xml:35:13-37
+102
+103        <activity
+103-->[com.google.android.gms:play-services-base:17.5.0] C:\Users\Lenovo\.gradle\caches\transforms-3\77a9fb5976ced9cd794a08c741bd6c31\transformed\jetified-play-services-base-17.5.0\AndroidManifest.xml:23:9-26:75
+104            android:name="com.google.android.gms.common.api.GoogleApiActivity"
+104-->[com.google.android.gms:play-services-base:17.5.0] C:\Users\Lenovo\.gradle\caches\transforms-3\77a9fb5976ced9cd794a08c741bd6c31\transformed\jetified-play-services-base-17.5.0\AndroidManifest.xml:24:13-79
+105            android:exported="false"
+105-->[com.google.android.gms:play-services-base:17.5.0] C:\Users\Lenovo\.gradle\caches\transforms-3\77a9fb5976ced9cd794a08c741bd6c31\transformed\jetified-play-services-base-17.5.0\AndroidManifest.xml:25:13-37
+106            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+106-->[com.google.android.gms:play-services-base:17.5.0] C:\Users\Lenovo\.gradle\caches\transforms-3\77a9fb5976ced9cd794a08c741bd6c31\transformed\jetified-play-services-base-17.5.0\AndroidManifest.xml:26:13-72
+107
+108        <meta-data
+108-->[com.google.android.gms:play-services-basement:17.5.0] C:\Users\Lenovo\.gradle\caches\transforms-3\f7a6fab5bcea4c3e4bbf76941c45d3cb\transformed\jetified-play-services-basement-17.5.0\AndroidManifest.xml:23:9-25:69
+109            android:name="com.google.android.gms.version"
+109-->[com.google.android.gms:play-services-basement:17.5.0] C:\Users\Lenovo\.gradle\caches\transforms-3\f7a6fab5bcea4c3e4bbf76941c45d3cb\transformed\jetified-play-services-basement-17.5.0\AndroidManifest.xml:24:13-58
+110            android:value="@integer/google_play_services_version" />
+110-->[com.google.android.gms:play-services-basement:17.5.0] C:\Users\Lenovo\.gradle\caches\transforms-3\f7a6fab5bcea4c3e4bbf76941c45d3cb\transformed\jetified-play-services-basement-17.5.0\AndroidManifest.xml:25:13-66
+111    </application>
+112
+113</manifest>

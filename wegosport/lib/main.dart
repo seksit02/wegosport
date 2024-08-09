@@ -11,7 +11,6 @@ import 'package:wegosport/Homepage.dart';
 import 'package:wegosport/Login.dart';
 import 'package:wegosport/Profile.dart';
 
-
 void main() {
   runApp(MyApp());
 }

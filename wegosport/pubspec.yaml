@@ -30,7 +30,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-
+    
   http: ^0.13.3 # ใช้สำหรับการทำ HTTP requests
   flutter_facebook_auth: ^4.2.1 # ใช้สำหรับการเข้าสู่ระบบด้วย Facebook
   image_picker: ^0.8.4+4 # ใช้สำหรับการเลือกรูปภาพจากอุปกรณ์

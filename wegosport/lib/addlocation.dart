@@ -78,15 +78,23 @@ class _AddLocationState extends State<AddLocationPage> {
     }
   }
 
-  // เลือกรูปภาพ
+  // เลือกรูปภาพและแสดงรูปภาพ
   Future<void> _pickImage() async {
     final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
       File? croppedFile = await ImageCropper().cropImage(
         sourcePath: pickedFile.path,
         aspectRatio: CropAspectRatio(ratioX: 1.0, ratioY: 1.0),
-        compressFormat: ImageCompressFormat.jpg,
-        compressQuality: 70,
+        androidUiSettings: AndroidUiSettings(
+          toolbarTitle: 'Crop Image',
+          toolbarColor: Colors.red,
+          toolbarWidgetColor: Colors.white,
+          initAspectRatio: CropAspectRatioPreset.square,
+          lockAspectRatio: true,
+        ),
+        iosUiSettings: IOSUiSettings(
+          minimumAspectRatio: 1.0,
+        ),
       );
 
       if (croppedFile != null) {
@@ -300,7 +308,6 @@ class _AddLocationState extends State<AddLocationPage> {
     );
   }
 
-
   // วิดเจ็ตแผนที่
   Widget map() {
     return Container(
@@ -335,7 +342,7 @@ class _AddLocationState extends State<AddLocationPage> {
   }
 
   // วิดเจ็ตแสดงรูปภาพที่เลือกหรือโลโก้
-  Widget mapImage() {
+  Widget imageDisplay() {
     return _imageFile == null
         ? Container(
             margin: EdgeInsets.fromLTRB(20, 20, 20, 0),
@@ -350,10 +357,10 @@ class _AddLocationState extends State<AddLocationPage> {
           )
         : Container(
             margin: EdgeInsets.fromLTRB(20, 20, 20, 0),
-            width: 200,
-            height: 200,
+            //width: 300,
+            //height: 300,
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(50),
+              borderRadius: BorderRadius.circular(0),
               child: Image.file(
                 _imageFile!,
                 fit: BoxFit.cover,
@@ -538,7 +545,7 @@ class _AddLocationState extends State<AddLocationPage> {
             time(),
             type(),
             addImage(),
-            mapImage(),
+            imageDisplay(),
             searchlocation(),
             map(),
             buttonAddLocation(context),

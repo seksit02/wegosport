@@ -388,8 +388,15 @@ class ActivityCardItem extends StatelessWidget {
         ? Icon(Icons.star, color: Color.fromARGB(255, 255, 0, 0))
         : Icon(Icons.local_fire_department, color: Colors.red);
 
-    DateTime activityDate =
-        DateFormat('yyyy-MM-dd HH:mm:ss').parse(activity['activity_date']);
+    DateTime activityDate;
+
+    try {
+      activityDate =
+          DateFormat('yyyy-MM-dd HH:mm:ss').parse(activity['activity_date']);
+    } catch (e) {
+      activityDate = DateTime.now(); // หรือค่าดีฟอลต์หรือจัดการตามที่ต้องการ
+    }
+
     bool isPast = DateTime.now().isAfter(activityDate);
 
     return Card(
@@ -463,7 +470,7 @@ class ActivityCardItem extends StatelessWidget {
             // แถวของสมาชิก
             Row(
               children: [
-                if (members.isNotEmpty)
+                if (members != null && members.isNotEmpty)
                   ...members.map((member) {
                     String imageUrl = member['user_photo'] ?? 'images/logo.png';
                     return MemberAvatar(imageUrl: imageUrl);
@@ -477,7 +484,7 @@ class ActivityCardItem extends StatelessWidget {
                     Icon(Icons.person),
                     SizedBox(width: 4),
                     Text(
-                      '${activity['members'] != null ? activity['members'].length : 0}',
+                      '${members != null ? members.length : 0}',
                       style: TextStyle(
                         color: textColor,
                       ),

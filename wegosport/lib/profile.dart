@@ -242,8 +242,24 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
                   ),
                   SizedBox(height: 16),
+                  userData!['user_text'] != null
+                      ? Text(
+                          userData!['user_text'],
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: const Color.fromARGB(255, 0, 0, 0),
+                          ),
+                        )
+                      : Text(
+                          'ใส่รูปสัขเขป', // ข้อความที่จะแสดงแทนในกรณีที่ไม่มีข้อมูล
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: const Color.fromARGB(255, 0, 0, 0),
+                          ),
+                        ),
+                  SizedBox(height: 16),
                   Text(
-                    userData!['user_text'] ??
+                    userData!['user_age'] ??
                         'ไม่มีข้อมูล', // แสดงข้อความเกี่ยวกับผู้ใช้
                     style: TextStyle(
                       fontSize: 14,

@@ -579,11 +579,6 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
 
   // ฟังก์ชันสร้างกิจกรรม
   Future<void> functionCreateActivity() async {
-    if (userData == null) {
-      print("User data not loaded");
-      return;
-    }
-
     String hashtags = _selectedTags.join(" ");
     List<String> hashtagList =
         hashtags.split(RegExp(r'\s+')).where((tag) => tag.isNotEmpty).toList();
@@ -597,13 +592,7 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
     print("activity_details: ${detailsController.text}");
     print("activity_date: ${dateController.text}");
 
-    // เพิ่มข้อมูลผู้สร้างกิจกรรม
-    Map<String, dynamic> creator = {
-      "user_id": userData!['user_id'],
-      "user_name": userData!['user_name'],
-      "user_photo": userData!['user_photo']
-    };
-
+    // ลบข้อมูลผู้สร้างกิจกรรม
     Map<String, dynamic> dataPost = {
       "activity_name": nameController.text,
       "activity_details": detailsController.text,
@@ -611,13 +600,12 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
       "location_name": selectedLocation ?? '',
       "sport_id": selectedSportId, // Ensure this value is set appropriately
       "hashtags": hashtagList,
-      "creator": creator, // เพิ่มข้อมูลผู้สร้างกิจกรรม
     };
 
     Map<String, String> headers = {
       "Content-Type": "application/json",
       "Accept": "application/json",
-      "Authorization": "Bearer ${widget.jwt}" // เพิ่ม jwt ที่นี่
+      "Authorization": "Bearer ${widget.jwt}"
     };
 
     var url =
@@ -646,6 +634,8 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
       print("Error: $error");
     }
   }
+
+
 
   @override
   Widget build(BuildContext context) {

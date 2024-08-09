@@ -22,6 +22,8 @@ class _EditProfileState extends State<EditProfile> {
       TextEditingController(); // ตัวควบคุมสำหรับฟิลด์ user_name
   final TextEditingController _userTextController =
       TextEditingController(); // ตัวควบคุมสำหรับฟิลด์ user_text
+  final TextEditingController _userAgeController =
+      TextEditingController(); // ตัวควบคุมสำหรับฟิลด์ user_age
 
   @override
   void initState() {
@@ -56,6 +58,7 @@ class _EditProfileState extends State<EditProfile> {
             _userIdController.text = userData!['user_id'];
             _userNameController.text = userData!['user_name'];
             _userTextController.text = userData!['user_text'];
+            _userAgeController.text = userData!['user_age'];
           });
         } else {
           throw Exception('Failed to load user data');
@@ -82,6 +85,7 @@ class _EditProfileState extends State<EditProfile> {
       'user_id': _userIdController.text,
       'user_name': _userNameController.text,
       'user_text': _userTextController.text,
+      'user_age': _userAgeController.text,
     };
 
     print('ข้อมูล headers : $headers');
@@ -109,6 +113,23 @@ class _EditProfileState extends State<EditProfile> {
       }
     } catch (error) {
       throw Exception('Failed to update user data');
+    }
+  }
+
+  // ฟังก์ชันเลือกวันเกิด
+  Future<void> _selectDate(BuildContext context) async {
+    DateTime? selectedDate = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(1900),
+      lastDate: DateTime(2100),
+    );
+
+    if (selectedDate != null) {
+      setState(() {
+        _userAgeController.text =
+            "${selectedDate.year}-${selectedDate.month.toString().padLeft(2, '0')}-${selectedDate.day.toString().padLeft(2, '0')}";
+      });
     }
   }
 
@@ -157,6 +178,20 @@ class _EditProfileState extends State<EditProfile> {
               TextField(
                 controller: _userTextController,
                 decoration: InputDecoration(labelText: 'ข้อความขังเขป'),
+              ),
+              TextField(
+                controller: _userAgeController,
+                decoration: InputDecoration(
+                  labelText: 'วันเกิด',
+                  suffixIcon: IconButton(
+                    icon: Icon(Icons.calendar_today),
+                    onPressed: () {
+                      _selectDate(context);
+                    },
+                  ),
+                ),
+                readOnly:
+                    true, // ทำให้ไม่สามารถพิมพ์ได้ ต้องเลือกจาก DatePicker
               ),
               SizedBox(height: 20),
               ElevatedButton(

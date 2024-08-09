@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:wegosport/Homepage.dart';
 
@@ -103,9 +104,17 @@ class ActivityPage extends StatelessWidget {
                       SizedBox(height: 8),
                       Container(
                         height: 200,
-                        color: Colors.white,
-                        child: Center(
-                          child: Image.asset("images/logo.png", height: 200),
+                        child: GoogleMap(
+                          initialCameraPosition: CameraPosition(
+                            target: LatLng(latitude, longitude),
+                            zoom: 14,
+                          ),
+                          markers: {
+                            Marker(
+                              markerId: MarkerId('activityLocation'),
+                              position: LatLng(latitude, longitude),
+                            ),
+                          },
                         ),
                       ),
                     ],

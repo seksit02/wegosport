@@ -123,20 +123,25 @@ class _LoginPageState extends State<LoginPage> {
             } else {
               var loginResult =
                   await FunctionLogin(); // เรียกใช้ฟังก์ชันล็อกอิน
-              bool loginSuccess = loginResult['success'];
-              String jwt = loginResult['jwt'];
+
+              bool loginSuccess = loginResult['success'] ??
+                  false; // กำหนดค่าดีฟอลต์เป็น false หาก 'success' เป็น null
+              String jwt = loginResult['jwt'] ??
+                  ''; // กำหนดค่าดีฟอลต์เป็นสตริงว่างหาก 'jwt' เป็น null
 
               if (loginSuccess) {
                 Navigator.of(context).pushReplacement(
                   MaterialPageRoute(
-                      builder: (context) => Homepage(
-                          jwt:
-                              jwt)), // ส่งค่า jwt ที่ได้รับจากฟังก์ชันไปยังหน้า Homepage
+                    builder: (context) => Homepage(
+                        jwt:
+                            jwt), // ส่งค่า jwt ที่ได้รับจากฟังก์ชันไปยังหน้า Homepage
+                  ),
                 );
               } else {
                 _showErrorDialog(
                     "การเข้าสู่ระบบล้มเหลว"); // แสดงข้อความแจ้งเตือนหากการเข้าสู่ระบบล้มเหลว
               }
+
             }
           },
         ),
