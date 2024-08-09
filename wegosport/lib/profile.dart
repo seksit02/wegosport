@@ -70,6 +70,18 @@ class _ProfilePageState extends State<ProfilePage> {
       throw Exception('Failed to load user data');
     }
   }
+  
+  String formatDate(String date) {
+    // แปลงสตริงวันที่เป็น DateTime object
+    DateTime parsedDate = DateTime.parse(date);
+
+    // แปลง DateTime object เป็นสตริงในรูปแบบ DD/MM/YYYY
+    String formattedDate = "${parsedDate.day.toString().padLeft(2, '0')}/"
+        "${parsedDate.month.toString().padLeft(2, '0')}/"
+        "${parsedDate.year}";
+
+    return formattedDate;
+  }
 
   // ฟังก์ชันเลือกภาพจากแกลเลอรี
   Future<void> _pickImage() async {
@@ -242,7 +254,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
                   ),
                   SizedBox(height: 16),
-                  userData!['user_text'] != null
+                  userData!['user_text']?.isNotEmpty == true
                       ? Text(
                           userData!['user_text'],
                           style: TextStyle(
@@ -251,7 +263,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           ),
                         )
                       : Text(
-                          'ใส่รูปสัขเขป', // ข้อความที่จะแสดงแทนในกรณีที่ไม่มีข้อมูล
+                          'ใส่ข้อความสังเขป', // ข้อความที่จะแสดงแทนในกรณีที่ไม่มีข้อมูล
                           style: TextStyle(
                             fontSize: 14,
                             color: const Color.fromARGB(255, 0, 0, 0),
@@ -259,13 +271,14 @@ class _ProfilePageState extends State<ProfilePage> {
                         ),
                   SizedBox(height: 16),
                   Text(
-                    userData!['user_age'] ??
-                        'ไม่มีข้อมูล', // แสดงข้อความเกี่ยวกับผู้ใช้
+                    formatDate(userData!['user_age'] ??
+                        'ไม่มีข้อมูล'), // แสดงผลวันที่ในรูปแบบ DD/MM/YYYY
                     style: TextStyle(
                       fontSize: 14,
                       color: const Color.fromARGB(255, 0, 0, 0),
                     ),
                   ),
+
                   SizedBox(height: 16),
                   ElevatedButton(
                     onPressed: () {
@@ -285,3 +298,5 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 }
+
+
