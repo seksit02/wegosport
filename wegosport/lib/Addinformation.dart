@@ -1,6 +1,4 @@
-import 'dart:math';
 import 'package:flutter/services.dart';
-import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:async';
@@ -51,161 +49,234 @@ class _editinformationState extends State<editinformation> {
   Widget inputOne() {
     return Container(
       margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
-      child: TextFormField(
-        controller: one_value,
-        decoration: InputDecoration(
-          contentPadding: EdgeInsets.fromLTRB(0, 15, 0, 0),
-          hintText: 'ชื่อผู้ใช้งาน "มากกว่า 6 ตัว"',
-          fillColor: Colors.white,
-          filled: true,
-          prefixIcon: Icon(
-            Icons.create,
-            color: Colors.red,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          TextFormField(
+            controller: one_value,
+            decoration: InputDecoration(
+              contentPadding: EdgeInsets.fromLTRB(0, 15, 0, 0),
+              hintText: 'ชื่อผู้ใช้งาน "มากกว่า 6 ตัว"',
+              fillColor: Colors.white,
+              filled: true,
+              prefixIcon: Icon(
+                Icons.create,
+                color: Colors.red,
+              ),
+              border: OutlineInputBorder(
+                borderSide: BorderSide(color: Colors.black),
+                borderRadius: BorderRadius.circular(30),
+              ),
+            ),
+            validator: (value) {
+              if (value!.isEmpty) {
+                return 'กรุณากรอกชื่อผู้ใช้งาน';
+              }
+              if (value.length <= 6) {
+                return 'ชื่อผู้ใช้งานควรมีมากกว่า 6 ตัวอักษร';
+              }
+              if (!value.contains(RegExp(r'[a-zA-Z]'))) {
+                return 'ชื่อผู้ใช้งานควรมีตัวอักษรประกอบด้วยอย่างน้อย 1 ตัว';
+              }
+              return null;
+            },
+            inputFormatters: <TextInputFormatter>[
+              FilteringTextInputFormatter.allow(
+                RegExp(
+                    r'[a-zA-Z0-9]'), // อนุญาตให้กรอกได้เฉพาะตัวเลขและตัวอักษรภาษาอังกฤษพิมพ์เล็ก-ใหญ่
+              ),
+            ],
           ),
-          border: OutlineInputBorder(
-            borderSide: BorderSide(color: Colors.black),
-            borderRadius: BorderRadius.circular(30),
+          SizedBox(height: 5),
+          Padding(
+            padding: EdgeInsets.only(left: 16.0),
+            child: Text(
+              'ตัวอย่าง: user1234',
+              style: TextStyle(color: Colors.grey),
+            ),
           ),
-        ),
-        validator: (value) {
-          if (value!.isEmpty) {
-            return 'กรุณากรอกชื่อผู้ใช้งาน';
-          }
-          if (value.length <= 6) {
-            return 'ชื่อผู้ใช้งานควรมีมากกว่า 6 ตัวอักษร';
-          }
-          if (!value.contains(RegExp(r'[a-zA-Z]'))) {
-            return 'ชื่อผู้ใช้งานควรมีตัวอักษรประกอบด้วยอย่างน้อย 1 ตัว';
-          }
-          return null;
-        },
+        ],
       ),
     );
   }
 
-  // วิดเจ็ตฟิลด์อีเมล
+// วิดเจ็ตฟิลด์อีเมล
   Widget inputTwo() {
     return Container(
       margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
-      child: TextFormField(
-        controller: two_value,
-        decoration: InputDecoration(
-          contentPadding: EdgeInsets.fromLTRB(0, 15, 0, 0),
-          hintText: 'อีเมล "ใช้อีเมลที่ติดต่อได้เท่านั้น"',
-          fillColor: Colors.white,
-          filled: true,
-          prefixIcon: Icon(
-            Icons.edit,
-            color: Colors.red,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          TextFormField(
+            controller: two_value,
+            decoration: InputDecoration(
+              contentPadding: EdgeInsets.fromLTRB(0, 15, 0, 0),
+              hintText: 'อีเมล "ใช้อีเมลที่ติดต่อได้เท่านั้น"',
+              fillColor: Colors.white,
+              filled: true,
+              prefixIcon: Icon(
+                Icons.edit,
+                color: Colors.red,
+              ),
+              border: OutlineInputBorder(
+                borderSide: BorderSide(color: Colors.black),
+                borderRadius: BorderRadius.circular(30),
+              ),
+            ),
           ),
-          border: OutlineInputBorder(
-            borderSide: BorderSide(color: Colors.black),
-            borderRadius: BorderRadius.circular(30),
+          SizedBox(height: 5),
+          Padding(
+            padding: EdgeInsets.only(left: 20.0), // เพิ่มระยะทางซ้ายของข้อความ
+            child: Text(
+              'ตัวอย่าง: example@example.com',
+              style: TextStyle(color: Colors.grey),
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
 
-  // วิดเจ็ตฟิลด์รหัสผ่าน
+// วิดเจ็ตฟิลด์รหัสผ่าน
   Widget inputthree() {
     return Container(
       margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
-      child: TextFormField(
-        controller: three_value,
-        keyboardType: TextInputType.text,
-        obscureText: true, // ทำเป็นรหัสผ่านที่ถูกซ่อนไว้
-        validator: (value) {
-          if (value!.isEmpty) {
-            return 'กรุณากรอกรหัสผ่าน';
-          }
-          if (value.length <= 6) {
-            return 'รหัสผ่านควรมีอย่างน้อย 6 ตัว';
-          }
-          bool hasDigits = value.contains(RegExp(r'\d'));
-          bool hasLetters = value.contains(RegExp(r'[a-zA-Z]'));
-          if (!hasDigits || !hasLetters) {
-            return 'รหัสผ่านควรประกอบด้วยตัวเลขและตัวอักษร';
-          }
-          return null;
-        },
-        decoration: InputDecoration(
-          contentPadding: EdgeInsets.fromLTRB(0, 15, 0, 0),
-          hintText: 'รหัสผ่าน "มากกว่า 6 ตัว"',
-          fillColor: Colors.white,
-          filled: true,
-          prefixIcon: Icon(
-            Icons.edit,
-            color: Colors.red,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          TextFormField(
+            controller: three_value,
+            keyboardType: TextInputType.text,
+            obscureText: true, // ทำเป็นรหัสผ่านที่ถูกซ่อนไว้
+            validator: (value) {
+              if (value!.isEmpty) {
+                return 'กรุณากรอกรหัสผ่าน';
+              }
+              if (value.length <= 6) {
+                return 'รหัสผ่านควรมีอย่างน้อย 6 ตัว';
+              }
+              bool hasDigits = value.contains(RegExp(r'\d'));
+              bool hasLetters = value.contains(RegExp(r'[a-zA-Z]'));
+              if (!hasDigits || !hasLetters) {
+                return 'รหัสผ่านควรประกอบด้วยตัวเลขและตัวอักษร';
+              }
+              return null;
+            },
+            decoration: InputDecoration(
+              contentPadding: EdgeInsets.fromLTRB(0, 15, 0, 0),
+              hintText: 'รหัสผ่าน "มากกว่า 6 ตัว"',
+              fillColor: Colors.white,
+              filled: true,
+              prefixIcon: Icon(
+                Icons.edit,
+                color: Colors.red,
+              ),
+              border: OutlineInputBorder(
+                borderSide: BorderSide(color: Colors.black),
+                borderRadius: BorderRadius.circular(30),
+              ),
+            ),
+            inputFormatters: <TextInputFormatter>[
+              FilteringTextInputFormatter.allow(
+                RegExp(
+                    r'[a-zA-Z0-9._]'), // อนุญาตให้กรอกได้เฉพาะตัวเลขและตัวอักษร
+              ),
+            ],
           ),
-          border: OutlineInputBorder(
-            borderSide: BorderSide(color: Colors.black),
-            borderRadius: BorderRadius.circular(30),
+          SizedBox(height: 5),
+          Padding(
+            padding: EdgeInsets.only(left: 20.0), // เพิ่มระยะทางซ้ายของข้อความ
+            child: Text(
+              'ตัวอย่าง: Pass1234',
+              style: TextStyle(color: Colors.grey),
+            ),
           ),
-        ),
-        inputFormatters: <TextInputFormatter>[
-          FilteringTextInputFormatter.allow(
-              RegExp(r'[a-zA-Z0-9]')), // อนุญาตให้กรอกได้เฉพาะตัวเลขและตัวอักษร
         ],
       ),
     );
   }
 
-  // วิดเจ็ตฟิลด์ชื่อ-สกุล
+// วิดเจ็ตฟิลด์ชื่อ-สกุล
   Widget inputfour() {
     return Container(
       margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
-      child: TextFormField(
-        controller: four_value,
-        keyboardType: TextInputType.text,
-        inputFormatters: <TextInputFormatter>[
-          FilteringTextInputFormatter.allow(RegExp(
-              r'[a-zA-Zก-๏เ-๙]')), // อนุญาตให้กรอกเฉพาะตัวอักษรภาษาไทยและอักษรภาษาอังกฤษ
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          TextFormField(
+            controller: four_value,
+            keyboardType: TextInputType.text,
+            inputFormatters: <TextInputFormatter>[
+              FilteringTextInputFormatter.allow(RegExp(
+                  r'[a-zA-Zก-๏เ-๙]')), // อนุญาตให้กรอกเฉพาะตัวอักษรภาษาไทยและอักษรภาษาอังกฤษ
+            ],
+            decoration: InputDecoration(
+              contentPadding: EdgeInsets.fromLTRB(0, 15, 0, 0),
+              hintText: 'ชื่อ-สกุล',
+              fillColor: Colors.white,
+              filled: true,
+              prefixIcon: Icon(
+                Icons.edit,
+                color: Colors.red,
+              ),
+              border: OutlineInputBorder(
+                borderSide: BorderSide(color: Colors.black),
+                borderRadius: BorderRadius.circular(30),
+              ),
+            ),
+          ),
+          SizedBox(height: 5),
+          Padding(
+            padding: EdgeInsets.only(left: 20.0), // เพิ่มระยะทางซ้ายของข้อความ
+            child: Text(
+              'ตัวอย่าง: John Doe หรือ สมชาย ใจดี',
+              style: TextStyle(color: Colors.grey),
+            ),
+          ),
         ],
-        decoration: InputDecoration(
-          contentPadding: EdgeInsets.fromLTRB(0, 15, 0, 0),
-          hintText: 'ชื่อ-สกุล',
-          fillColor: Colors.white,
-          filled: true,
-          prefixIcon: Icon(
-            Icons.edit,
-            color: Colors.red,
-          ),
-          border: OutlineInputBorder(
-            borderSide: BorderSide(color: Colors.black),
-            borderRadius: BorderRadius.circular(30),
-          ),
-        ),
       ),
     );
   }
 
-  // วิดเจ็ตฟิลด์วัน/เดือน/ปีเกิด
+// วิดเจ็ตฟิลด์วัน/เดือน/ปีเกิด
   Widget inputfive() {
     return Container(
       margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
-      child: TextFormField(
-        controller: five_value,
-        keyboardType: TextInputType.datetime,
-        inputFormatters: <TextInputFormatter>[
-          FilteringTextInputFormatter.allow(RegExp(r'[0-9/]')),
-          LengthLimitingTextInputFormatter(10),
-          DateInputFormatter(),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          TextFormField(
+            controller: five_value,
+            keyboardType: TextInputType.datetime,
+            inputFormatters: <TextInputFormatter>[
+              FilteringTextInputFormatter.allow(RegExp(r'[0-9/]')),
+              LengthLimitingTextInputFormatter(10),
+              DateInputFormatter(),
+            ],
+            decoration: InputDecoration(
+              contentPadding: EdgeInsets.fromLTRB(0, 15, 0, 0),
+              hintText: 'วัน/เดือน/ปีเกิด',
+              fillColor: Colors.white,
+              filled: true,
+              prefixIcon: Icon(
+                Icons.calendar_today,
+                color: Colors.red,
+              ),
+              border: OutlineInputBorder(
+                borderSide: BorderSide(color: Colors.black),
+                borderRadius: BorderRadius.circular(30),
+              ),
+            ),
+          ),
+          SizedBox(height: 5),
+          Padding(
+            padding: EdgeInsets.only(left: 20.0), // เพิ่มระยะทางซ้ายของข้อความ
+            child: Text(
+              'ตัวอย่าง: 01/01/1990',
+              style: TextStyle(color: Colors.grey),
+            ),
+          ),
         ],
-        decoration: InputDecoration(
-          contentPadding: EdgeInsets.fromLTRB(0, 15, 0, 0),
-          hintText: 'วัน/เดือน/ปีเกิด',
-          fillColor: Colors.white,
-          filled: true,
-          prefixIcon: Icon(
-            Icons.calendar_today,
-            color: Colors.red,
-          ),
-          border: OutlineInputBorder(
-            borderSide: BorderSide(color: Colors.black),
-            borderRadius: BorderRadius.circular(30),
-          ),
-        ),
       ),
     );
   }
@@ -388,7 +459,6 @@ class _editinformationState extends State<editinformation> {
       _showDialog(context, 'ผิดพลาด', 'เกิดข้อผิดพลาด: $error');
     }
   }
-
 
   void _showDialog(BuildContext context, String title, String message) {
     showDialog(
