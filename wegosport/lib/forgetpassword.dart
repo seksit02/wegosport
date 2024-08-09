@@ -14,7 +14,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
   final GlobalKey<FormState> _formKey =
       GlobalKey<FormState>(); // กุญแจสำหรับฟอร์ม
 
-  // ฟังก์ชันส่งลิ้งก์รีเซ็ตรหัสผ่าน
+// ฟังก์ชันส่งลิ้งก์รีเซ็ตรหัสผ่าน
   Future<void> _sendResetLink() async {
     final email = _emailController.text.trim();
 
@@ -25,10 +25,30 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
       );
 
       if (response.statusCode == 200) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
+        // แสดงป๊อปอัพเมื่อส่งลิ้งก์สำเร็จ
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text('สำเร็จ'),
               content:
-                  Text('ลิ้งก์รีเซ็ตรหัสผ่านได้ถูกส่งไปที่อีเมลของคุณแล้ว')),
+                  Text('ลิ้งก์รีเซ็ตรหัสผ่านได้ถูกส่งไปที่อีเมลของคุณแล้ว รีเซ็ตรหัสผ่านได้ที่อีเมล'),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop(); // ปิดป๊อปอัพ
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => LoginPage(),
+                      ),
+                    ); // เด้งกลับไปหน้า Login
+                  },
+                  child: Text('ตกลง'),
+                ),
+              ],
+            );
+          },
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
