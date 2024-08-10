@@ -591,8 +591,15 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
     print("activity_name: ${nameController.text}");
     print("activity_details: ${detailsController.text}");
     print("activity_date: ${dateController.text}");
+    print("location_name: ${selectedLocation ?? ''}");
+    print("sport_id: $selectedSportId");
+    print("hashtags: $hashtagList");
+    print("user_id: ${userData!['user_id']}");
 
-    // ลบข้อมูลผู้สร้างกิจกรรม
+    // สมมุติว่า userData มี user_id ของผู้ใช้ที่ล็อกอินอยู่
+    String userId = userData!['user_id'];
+
+    // เพิ่ม user_id ในการส่งข้อมูล
     Map<String, dynamic> dataPost = {
       "activity_name": nameController.text,
       "activity_details": detailsController.text,
@@ -600,6 +607,7 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
       "location_name": selectedLocation ?? '',
       "sport_id": selectedSportId, // Ensure this value is set appropriately
       "hashtags": hashtagList,
+      "user_id": userId, // ส่ง user_id ของผู้สร้างกิจกรรมไปด้วย
     };
 
     Map<String, String> headers = {
@@ -634,8 +642,6 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
       print("Error: $error");
     }
   }
-
-
 
   @override
   Widget build(BuildContext context) {
