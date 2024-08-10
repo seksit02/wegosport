@@ -14,11 +14,13 @@ if (isset($headers['authorization'])) {
     // รับข้อมูลจาก POST
     $user_name = $_POST['user_name'];
     $user_text = $_POST['user_text'];
+    $user_age = $_POST['user_age'];
 
     // Debug: แสดงค่าที่ได้รับ
     error_log("JWT : " . $jwt);
     error_log("User_Name : " . $user_name);
     error_log("User_Text : " . $user_text);
+    error_log("User_Age : " . $user_age);
 
     // ตรวจสอบ user_jwt ก่อนว่าเป็นของผู้ใช้คนไหน
     $sql_check = $conn->prepare("SELECT user_id FROM user_information WHERE user_jwt = ?");
@@ -31,11 +33,11 @@ if (isset($headers['authorization'])) {
         $user_id = $row['user_id'];
         
         // อัปเดตข้อมูล
-        $sql_update = $conn->prepare("UPDATE user_information SET user_name = ?, user_text = ? WHERE user_jwt = ?");
-        $sql_update->bind_param("sss", $user_name, $user_text, $jwt);
+        $sql_update = $conn->prepare("UPDATE user_information SET user_name = ?, user_text = ?, user_age = ? WHERE user_jwt = ?");
+        $sql_update->bind_param("ssss", $user_name, $user_text, $user_age, $jwt);
 
         // Debug: แสดง SQL Query สำหรับอัปเดต
-        error_log("SQL Update: UPDATE user_information SET user_name = '$user_name', user_text = '$user_text' WHERE user_jwt = '$jwt'");
+        error_log("SQL Update: UPDATE user_information SET user_name = '$user_name', user_text = '$user_text', user_age = '$user_age' WHERE user_jwt = '$jwt'");
 
         if ($sql_update->execute()) {
             echo json_encode(array("message" => "User updated successfully"));

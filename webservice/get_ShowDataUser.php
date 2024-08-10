@@ -28,7 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $user_id = $decoded_array['user_id'];
             error_log("User ID: $user_id", 3, "C:/xampp/tmp/error.log");  // พิมพ์ user_id ลงในไฟล์ log
 
-            $sql = "SELECT user_id, user_name, user_text, user_photo FROM user_information WHERE user_id = ?";
+            $sql = "SELECT user_id, user_name, user_text, user_photo, user_age FROM user_information WHERE user_id = ?";
             $stmt = $conn->prepare($sql);
             $stmt->bind_param("s", $user_id);
             $stmt->execute();

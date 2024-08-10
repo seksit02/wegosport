@@ -9,7 +9,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $user_email = mysqli_real_escape_string($conn, trim($json_data["user_email"]));
     $user_pass = mysqli_real_escape_string($conn, trim($json_data["user_pass"]));
     $user_name = mysqli_real_escape_string($conn, trim($json_data["user_name"]));
-    $user_dob = mysqli_real_escape_string($conn, trim($json_data["user_dob"])); // ใช้ user_dob แทน user_age
+    $user_age = mysqli_real_escape_string($conn, trim($json_data["user_age"])); //
     $user_token = mysqli_real_escape_string($conn, trim($json_data["user_token"]));
     
     // ตรวจสอบว่า user_id หรือ user_email มีอยู่แล้วหรือไม่
@@ -23,14 +23,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $datalist[] = null;
     } else {
         // ถ้า user_id หรือ user_email ไม่มีอยู่ ดำเนินการเพิ่มข้อมูล
-        $strSQL = "INSERT INTO user_information (user_id, user_email, user_pass, user_name, user_dob, user_token) VALUES ('$user_id','$user_email','$user_pass','$user_name','$user_dob','$user_token')";
+        $strSQL = "INSERT INTO user_information (user_id, user_email, user_pass, user_name, user_age, user_token) VALUES ('$user_id','$user_email','$user_pass','$user_name','$user_age','$user_token')";
         $query = @mysqli_query($conn, $strSQL);
         $datalist = array();
         
         if ($query) {
             $result = 1;
             $message = "เพิ่มข้อมูลสำเร็จ";
-            $datalist[] = array("ID" => mysqli_insert_id($conn), "user_id" => $user_id, "user_email" => $user_email, "user_pass" => $user_pass, "user_name" => $user_name, "user_dob" => $user_dob, "user_token" => $user_token);
+            $datalist[] = array("ID" => mysqli_insert_id($conn), "user_id" => $user_id, "user_email" => $user_email, "user_pass" => $user_pass, "user_name" => $user_name, "user_age" => $user_age, "user_token" => $user_token);
         } else {
             $result = 0;
             $message = "การเพิ่มข้อมูลล้มเหลว";

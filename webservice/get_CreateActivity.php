@@ -11,21 +11,30 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         exit;
     }
 
+    // ข้อมูลที่จำเป็น
     $activity_name = trim($json_data["activity_name"]);
     $activity_details = trim($json_data["activity_details"]);
     $activity_date = trim($json_data["activity_date"]);
     $location_name = trim($json_data["location_name"]);
     $sport_id = trim($json_data["sport_id"]);
     $hashtags = $json_data["hashtags"];
-    $creator = $json_data["creator"]; // รับข้อมูลผู้สร้างกิจกรรม
+    $user_id = trim($json_data["user_id"]); // รับ user_id ของผู้สร้างกิจกรรม
 
-    if ($conn->connect_error) {
-        echo json_encode(array("result" => 0, "message" => "Database connection failed", "datalist" => null));
-        http_response_code(500);
+    // ตรวจสอบว่า user_id มีอยู่ในตาราง user_information หรือไม่
+    $stmt = $conn->prepare("SELECT COUNT(*) FROM user_information WHERE user_id = ?");
+    $stmt->bind_param("s", $user_id);
+    $stmt->execute();
+    $stmt->bind_result($count);
+    $stmt->fetch();
+
+    if ($count == 0) {
+        echo json_encode(array("result" => 0, "message" => "Invalid user ID", "datalist" => null));
+        http_response_code(400);
         exit;
     }
+    $stmt->close();
 
-    // Get location_id from location_name
+    // Get location_id จาก location_name
     $stmt = $conn->prepare("SELECT location_id FROM location WHERE location_name = ?");
     $stmt->bind_param("s", $location_name);
     $stmt->execute();
@@ -44,17 +53,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $stmt = $conn->prepare("INSERT INTO activity (activity_name, activity_details, activity_date, location_id, sport_id) VALUES (?, ?, ?, ?, ?)");
     $stmt->bind_param("sssii", $activity_name, $activity_details, $activity_date, $location_id, $sport_id);
     $query = $stmt->execute();
-    $datalist = array();
 
     if ($query) {
+        // รับ activity_id ที่เพิ่งถูกสร้างขึ้น
         $activity_id = $stmt->insert_id;
-        $result = 1;
-        $message = "เพิ่มข้อมูลสำเร็จ";
-        $datalist[] = array("ID" => $activity_id, "activity_name" => $activity_name, "activity_details" => $activity_details, "activity_date" => $activity_date);
 
-        // Insert creator into member_in_activity table
+        // แทรกข้อมูลลงในตาราง member_in_activity
         $stmt = $conn->prepare("INSERT INTO member_in_activity (activity_id, user_id) VALUES (?, ?)");
-        $stmt->bind_param("is", $activity_id, $creator['user_id']);
+        $stmt->bind_param("is", $activity_id, $user_id);
+        $stmt->execute();
+        $stmt->close();
+
+        // แทรกข้อมูลลงในตาราง creator
+        $stmt = $conn->prepare("INSERT INTO creator (activity_id, user_id) VALUES (?, ?)");
+        $stmt->bind_param("is", $activity_id, $user_id);
         $stmt->execute();
         $stmt->close();
 
@@ -62,7 +74,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         foreach ($hashtags as $hashtag_message) {
             $hashtag_message = trim($hashtag_message);
 
-            // Check if hashtag exists
+            // ตรวจสอบว่า hashtag มีอยู่หรือไม่
             $stmt = $conn->prepare("SELECT hashtag_id FROM hashtag WHERE hashtag_message = ?");
             $stmt->bind_param("s", $hashtag_message);
             $stmt->execute();
@@ -85,13 +97,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $stmt->execute();
             $stmt->close();
         }
+
+        echo json_encode(array("result" => 1, "message" => "Activity created successfully", "datalist" => array("activity_id" => $activity_id)));
     } else {
-        $result = 0;
-        $message = "มีข้อมูลซ้ำในระบบ";
-        $datalist[] = null;
+        echo json_encode(array("result" => 0, "message" => "Failed to create activity", "datalist" => null));
+        http_response_code(400);
+        exit;
     }
 
-    echo json_encode(array("result" => $result, "message" => $message, "datalist" => $datalist));
     $conn->close();
     exit;
 }
