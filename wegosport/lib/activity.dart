@@ -52,7 +52,8 @@ class ActivityPage extends StatelessWidget {
             Wrap(
               runSpacing: 5.0,
               children: (activity['hashtags'] as List<dynamic>? ?? [])
-                  .map((tag) => TagWidget(text: tag['hashtag_message']))
+                  .map((tag) => TagWidget(
+                      text: '#${tag['hashtag_message']}')) // เพิ่ม # นำหน้า
                   .toList(),
             ),
             SizedBox(height: 8),
@@ -75,14 +76,14 @@ class ActivityPage extends StatelessWidget {
             Row(
               children: [
                 CircleAvatar(
-                  backgroundImage: AssetImage('images/P001.jpg'),
+                  backgroundImage: AssetImage('images/logo.png'),
                   radius: 16,
                 ),
                 SizedBox(width: 8),
                 Text(activity['members'] != null &&
                         activity['members'].isNotEmpty
                     ? (activity['members'] as List)
-                        .map((member) => member['user_id'])
+                        .map((member) => member['user_name'])
                         .join(', ')
                     : 'ไม่ระบุชื่อ'),
               ],
@@ -130,7 +131,7 @@ class ActivityPage extends StatelessWidget {
             Row(
               children: [
                 IconButton(
-                  icon: Icon(Icons.add_circle, color: Colors.grey),
+                  icon: Icon(Icons.add_circle, color: Color.fromARGB(255, 156, 156, 156)),
                   onPressed: () {
                     // Add action for adding member
                   },
@@ -139,7 +140,7 @@ class ActivityPage extends StatelessWidget {
                   (activity['members'] as List<dynamic>).map(
                     (member) => CircleAvatar(
                       backgroundImage: AssetImage(
-                          'images/P001.jpg'), // Replace with member's actual image URL if available
+                          'images/logo.png'), // Replace with member's actual image URL if available
                       radius: 16,
                     ),
                   ),
