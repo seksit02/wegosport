@@ -421,12 +421,13 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
                   padding: const EdgeInsets.only(right: 8.0),
                   child: TextButton(
                     onPressed: () {
-                      if (hashtagController.text.isNotEmpty &&
-                          hashtagController.text.length <= 20 &&
+                      String newTag = hashtagController.text.trim();
+                      if (newTag.isNotEmpty &&
+                          newTag.length <= 20 &&
                           _selectedTags.length < 3 &&
-                          !_selectedTags.contains(hashtagController.text)) {
+                          !_selectedTags.contains('#$newTag')) {
                         setState(() {
-                          _selectedTags.add(hashtagController.text);
+                          _selectedTags.add('#$newTag'); // เพิ่ม #
                           hashtagController.clear();
                         });
                       }
@@ -450,9 +451,9 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
             },
             onSuggestionSelected: (suggestion) {
               if (_selectedTags.length < 3 &&
-                  !_selectedTags.contains(suggestion)) {
+                  !_selectedTags.contains('#$suggestion')) {
                 setState(() {
-                  _selectedTags.add(suggestion);
+                  _selectedTags.add('#$suggestion'); // เพิ่ม #
                   hashtagController.clear();
                 });
               }
