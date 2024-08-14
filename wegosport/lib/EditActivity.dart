@@ -3,11 +3,11 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class EditActivity extends StatefulWidget {
-  final String activityId;
-  final String jwt;
-
   const EditActivity({Key? key, required this.activityId, required this.jwt})
       : super(key: key);
+
+  final String activityId;
+  final String jwt;
 
   @override
   State<EditActivity> createState() => _EditActivityState();
@@ -19,10 +19,8 @@ class _EditActivityState extends State<EditActivity> {
   TextEditingController detailsController = TextEditingController();
   TextEditingController dateController = TextEditingController();
   TextEditingController hashtagController = TextEditingController();
-
-  List<Map<String, dynamic>> locations = [];
-  List<Map<String, dynamic>> sports = [];
-
+  Map<String, int> locationMap = {};
+  Map<String, int> sportMap = {};
   String? selectedLocation;
   String? selectedSport;
   List<String> _selectedTags = [];
@@ -43,7 +41,11 @@ class _EditActivityState extends State<EditActivity> {
       final List<Map<String, dynamic>> data =
           List<Map<String, dynamic>>.from(json.decode(response.body));
       setState(() {
-        locations = data;
+        locationMap = {
+          for (var loc in data)
+            if (loc['location_id'] != null)
+              loc['location_name']: loc['location_id']
+        };
       });
     } else {
       print('Failed to load locations');
@@ -58,7 +60,11 @@ class _EditActivityState extends State<EditActivity> {
       final List<Map<String, dynamic>> data =
           List<Map<String, dynamic>>.from(json.decode(response.body));
       setState(() {
-        sports = data;
+        sportMap = {
+          for (var sport in data)
+            if (sport['sport_id'] != null)
+              sport['sport_name']: sport['sport_id']
+        };
       });
     } else {
       print('Failed to load sports');
@@ -92,27 +98,6 @@ class _EditActivityState extends State<EditActivity> {
     }
   }
 
-  int? getLocationIdByName(String locationName) {
-    print('Looking for location: $locationName');
-    final loc = locations
-        .firstWhere((loc) => loc['location_name'] == locationName, orElse: () {
-      print('Location not found');
-      return {};
-    });
-    return loc.isNotEmpty ? loc['location_id'] : null;
-  }
-
-  int? getSportIdByName(String sportName) {
-    print('Looking for sport: $sportName');
-    final sport = sports.firstWhere((sport) => sport['sport_name'] == sportName,
-        orElse: () {
-      print('Sport not found');
-      return {};
-    });
-    return sport.isNotEmpty ? sport['sport_id'] : null;
-  }
-
-
   Future<void> updateActivity() async {
     print('ข้อมูล ไอดีกิจกรรม : ${widget.activityId}');
     print('ข้อมูล ชื่อกิจกรรม : ${nameController.text}');
@@ -121,9 +106,9 @@ class _EditActivityState extends State<EditActivity> {
     print('ข้อมูล สถานที่ : ${selectedLocation}');
     print('ข้อมูล กีฬา : ${selectedSport}');
     print('ข้อมูล hashtag : ${_selectedTags}');
-    
-    final locationId = getLocationIdByName(selectedLocation ?? '');
-    final sportId = getSportIdByName(selectedSport ?? '');
+
+    final locationId = locationMap[selectedLocation ?? ''];
+    final sportId = sportMap[selectedSport ?? ''];
 
     print('ข้อมูล สถานที่แปลงแล้ว : ${locationId}');
     print('ข้อมูล กีฬาแปลงแล้ว : ${sportId}');
@@ -245,10 +230,10 @@ class _EditActivityState extends State<EditActivity> {
                     selectedLocation = value;
                   });
                 },
-                items: locations
-                    .map((location) => DropdownMenuItem<String>(
-                          value: location['location_name'],
-                          child: Text(location['location_name']),
+                items: locationMap.keys
+                    .map((locationName) => DropdownMenuItem<String>(
+                          value: locationName,
+                          child: Text(locationName),
                         ))
                     .toList(),
               ),
@@ -260,10 +245,10 @@ class _EditActivityState extends State<EditActivity> {
                     selectedSport = value;
                   });
                 },
-                items: sports
-                    .map((sport) => DropdownMenuItem<String>(
-                          value: sport['sport_name'],
-                          child: Text(sport['sport_name']),
+                items: sportMap.keys
+                    .map((sportName) => DropdownMenuItem<String>(
+                          value: sportName,
+                          child: Text(sportName),
                         ))
                     .toList(),
               ),
@@ -277,7 +262,6 @@ class _EditActivityState extends State<EditActivity> {
                   return null;
                 },
               ),
-              // Add more fields as needed
               SizedBox(height: 20),
               ElevatedButton(
                 onPressed: updateActivity,

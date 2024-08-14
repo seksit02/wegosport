@@ -15,9 +15,10 @@ import 'package:wegosport/Homepage.dart';
 const kGoogleApiKey =
     "AIzaSyD7Okt5SymXMu3nocso2FJb5_2dSgGhL-s"; // แทนที่ด้วย API Key ของคุณ
 
-// หน้าจอเพิ่มสถานที่
+
 class AddLocationPage extends StatefulWidget {
   const AddLocationPage({Key? key, required this.jwt}) : super(key: key);
+
   final String jwt;
 
   @override
@@ -35,7 +36,6 @@ class _AddLocationState extends State<AddLocationPage> {
       TextEditingController(); // ตัวควบคุมสำหรับประเภทสนาม
   List<String> selectedTypes = []; // ประเภทสนามที่เลือก
   List<Map<String, dynamic>> fieldTypes = []; // ประเภทสนามทั้งหมด
-
   File? _imageFile; // ไฟล์รูปภาพที่เลือก
   LatLng? _selectedLocation; // ตำแหน่งที่เลือกบนแผนที่
   final ImagePicker _picker = ImagePicker(); // ตัวเลือกภาพ
@@ -297,9 +297,10 @@ class _AddLocationState extends State<AddLocationPage> {
       child: ElevatedButton.icon(
         onPressed: _handlePressButton,
         icon: Icon(Icons.search),
-        label: Text('ค้นหาสถานที่'),
+        label: Text('ค้นหาสถานที่',
+            style: TextStyle(color: const Color.fromARGB(255, 29, 29, 29))),
         style: ElevatedButton.styleFrom(
-          backgroundColor: Color.fromARGB(255, 0, 123, 255),
+          backgroundColor: Color.fromARGB(255, 255, 255, 255),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(40),
           ),
@@ -489,37 +490,63 @@ class _AddLocationState extends State<AddLocationPage> {
     request.files
         .add(await http.MultipartFile.fromPath('image', _imageFile!.path));
 
-    print(request.fields);
+    print('Fields : ${request.fields}');
+    print('File : ${_imageFile!.path}');
+
     try {
       var response = await request.send();
 
       if (response.statusCode == 200) {
         var responseData = await response.stream.bytesToString();
-        print(responseData);
-        // Show success dialog
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: Text('สำเร็จ'),
-              content: Text('เพิ่มสถานที่สำเร็จแล้ว'),
-              actions: <Widget>[
-                TextButton(
-                  child: Text('ตกลง'),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) =>
-                              Homepage(jwt: widget.jwt)), // แก้ไขตรงนี้
-                    );
-                  },
-                ),
-              ],
-            );
+        var responseDataJson = json.decode(responseData);
+        print('Response Data Addlocation : $responseData');
+
+        // รับ location_id จากการตอบกลับ
+        String locationId = responseDataJson['location_id']
+            .toString(); // แปลงเป็น String ก่อนใช้งาน
+
+        // ส่งคำขอเพื่อรับสถานะของสถานที่ที่เพิ่งเพิ่ม
+        var statusResponse = await http.post(
+          Uri.parse('http://10.0.2.2/flutter_webservice/get_Chackapprove.php'),
+          body: {
+            'location_id': locationId,
           },
         );
+
+        if (statusResponse.statusCode == 200) {
+          var statusData = json.decode(statusResponse.body);
+          String status =
+              statusData['status'].toString(); // ใช้จาก statusResponse
+
+          print('สถานะการอนุมัติ: $status');
+
+          // Show success dialog
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: Text('สำเร็จ'),
+                content:
+                    Text('เพิ่มสถานที่สำเร็จแล้ว สถานะการอนุมัติ: $status'),
+                actions: <Widget>[
+                  TextButton(
+                    child: Text('ตกลง'),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => Homepage(jwt: widget.jwt)),
+                      );
+                    },
+                  ),
+                ],
+              );
+            },
+          );
+        } else {
+          print("Failed to get status: ${statusResponse.statusCode}");
+        }
       } else {
         print("Request failed with status: ${response.statusCode}");
       }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:wegosport/Addlocation.dart';
 import 'package:wegosport/Createactivity.dart';
+import 'package:wegosport/EditActivity.dart';
 import 'package:wegosport/Profile.dart';
 import 'package:wegosport/Activity.dart';
 import 'package:wegosport/groupchat.dart';
@@ -13,7 +14,7 @@ import 'package:intl/intl.dart';
 // หน้าจอ Homepage
 class Homepage extends StatefulWidget {
   final String jwt; // รับค่า JWT สำหรับการตรวจสอบสิทธิ์
-
+  
   const Homepage({Key? key, required this.jwt}) : super(key: key);
 
   @override
@@ -90,6 +91,7 @@ class _HomepageState extends State<Homepage> {
             userData = data[0];
           });
           print('User data: $userData');
+          
         } else {
           print("No user data found");
           throw Exception('Failed to load user data');
@@ -104,20 +106,7 @@ class _HomepageState extends State<Homepage> {
     }
   }
 
-  // ฟังก์ชันเปลี่ยนแท็บ
-  void _onItemTapped(int index) {
-    if (index == 0) {
-      setState(() {
-        _selectedIndex = 0;
-      });
-    } else if (index == 1) {
-      Navigator.of(context).push(
-        MaterialPageRoute(builder: (context) => groupchat()),
-      );
-    }
-  }
-
-  // ฟังก์ชันกรองกิจกรรม
+  // ฟังก์ชันกรองกิจกรรม (ช่องค้นหา)
   void _filterActivities(String query) {
     if (activities == null || query == null) {
       setState(() {
@@ -160,6 +149,19 @@ class _HomepageState extends State<Homepage> {
         }).toList();
       }
     });
+  }
+
+  // ฟังก์ชันเปลี่ยนแท็บ
+  void _onItemTapped(int index) {
+    if (index == 0) {
+      setState(() {
+        _selectedIndex = 0;
+      });
+    } else if (index == 1) {
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (context) => groupchat()),
+      );
+    }
   }
 
   // ฟังก์ชันออกจากระบบ
@@ -308,7 +310,8 @@ class _HomepageState extends State<Homepage> {
                             ),
                           );
                         },
-                        child: ActivityCardItem(activity: activity),
+                        child: ActivityCardItem(activity: activity, userData: userData,
+                        ),
                       );
                     },
                   ),
@@ -366,12 +369,14 @@ class _HomepageState extends State<Homepage> {
 // วิดเจ็ตแสดงกิจกรรม
 class ActivityCardItem extends StatelessWidget {
   final dynamic activity;
+  final dynamic userData;
   final Color backgroundColor;
   final Color statusColor;
   final Color textColor;
 
   ActivityCardItem({
     required this.activity,
+    required this.userData,
     this.backgroundColor = const Color.fromARGB(255, 255, 255, 255),
     this.statusColor = const Color.fromARGB(255, 255, 225, 1),
     this.textColor = Colors.black,
@@ -379,8 +384,8 @@ class ActivityCardItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    print(activity['location_photo']);
-
+    print('ข้อมูล userData จากการ์ด $userData');
+    print('ข้อมูล Activity จากการ์ด $activity');
     final members = activity['members'];
     bool isPopular = (members != null && members.length > 3);
     String statusText = isPopular ? "ยอดฮิต" : "มาใหม่";
@@ -407,28 +412,69 @@ class ActivityCardItem extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // แถบแสดงสถานะ
-            Container(
-              padding: EdgeInsets.symmetric(horizontal: 130, vertical: 1),
-              decoration: BoxDecoration(
-                color: statusColor,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    statusText,
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: textColor,
-                    ),
+            // แถบแสดงสถานะพร้อมปุ่มแก้ไข
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 110, vertical: 1),
+                  decoration: BoxDecoration(
+                    color: statusColor,
+                    borderRadius: BorderRadius.circular(20),
                   ),
-                  SizedBox(width: 5),
-                  statusIcon,
-                ],
-              ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        statusText,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: textColor,
+                        ),
+                      ),
+                      SizedBox(width: 5),
+                      statusIcon,
+                    ],
+                  ),
+                ),
+
+                IconButton(
+                  icon: Icon(Icons.more_vert,
+                      color: const Color.fromARGB(255, 0, 0, 0)),
+                  onPressed: () {
+
+                    if (userData != null &&
+                        activity['creator_id'] == userData!['user_id']) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => EditActivity(
+                              activityId: activity['activity_id'].toString(), jwt: '',),
+                        ),
+                      );
+                    } else {
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            title: Text('ไม่มีสิทธิ์ในการแก้ไข'),
+                            content: Text('คุณไม่มีสิทธิ์ในการแก้ไขกิจกรรมนี้'),
+                            actions: [
+                              TextButton(
+                                child: Text('ตกลง'),
+                                onPressed: () {
+                                  Navigator.of(context).pop(); // ปิด popup
+                                },
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                    }
+                  },
+                ),
+              ],
             ),
             SizedBox(height: 8),
             // แถวของแท็ก
@@ -537,7 +583,7 @@ class ActivityCardItem extends StatelessWidget {
   }
 }
 
-// วิดเจ็ตแสดงแท็ก
+// วิดเจ็ตแสดงแท็ก (hashtag)
 class TagWidget extends StatelessWidget {
   final String text;
 

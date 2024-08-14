@@ -32,7 +32,7 @@ class _editinformationState extends State<editinformation> {
       TextEditingController(); // ตัวควบคุมสำหรับชื่อ-สกุล
   TextEditingController five_value =
       TextEditingController(); // ตัวควบคุมสำหรับอายุ
-
+  String? six_value;
   @override
   void initState() {
     super.initState();
@@ -43,8 +43,25 @@ class _editinformationState extends State<editinformation> {
     });
   }
 
-  String? six_value;
-
+  // วิดเจ็ตแสดงโลโก้
+  Widget appLogo() {
+    return Container(
+      width: 100,
+      height: 100,
+      margin: EdgeInsets.fromLTRB(0, 50, 0, 0),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(50),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(10),
+        child: Image.asset(
+          "images/logo.png",
+          fit: BoxFit.cover,
+        ),
+      ),
+    );
+  }
+  
   // วิดเจ็ตฟิลด์ชื่อผู้ใช้งาน
   Widget inputOne() {
     return Container(
@@ -100,7 +117,7 @@ class _editinformationState extends State<editinformation> {
     );
   }
 
-// วิดเจ็ตฟิลด์อีเมล
+  // วิดเจ็ตฟิลด์อีเมล
   Widget inputTwo() {
     return Container(
       margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
@@ -137,7 +154,7 @@ class _editinformationState extends State<editinformation> {
     );
   }
 
-// วิดเจ็ตฟิลด์รหัสผ่าน
+  // วิดเจ็ตฟิลด์รหัสผ่าน
   Widget inputthree() {
     return Container(
       margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
@@ -196,7 +213,7 @@ class _editinformationState extends State<editinformation> {
     );
   }
 
-// วิดเจ็ตฟิลด์ชื่อ-สกุล
+  // วิดเจ็ตฟิลด์ชื่อ-สกุล
   Widget inputfour() {
     return Container(
       margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
@@ -238,7 +255,7 @@ class _editinformationState extends State<editinformation> {
     );
   }
 
-// วิดเจ็ตฟิลด์วัน/เดือน/ปีเกิด
+  // วิดเจ็ตฟิลด์วัน/เดือน/ปีเกิด
   Widget inputfive() {
     return Container(
       margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
@@ -281,23 +298,26 @@ class _editinformationState extends State<editinformation> {
     );
   }
 
-  // วิดเจ็ตแสดงโลโก้
-  Widget appLogo() {
-    return Container(
-      width: 100,
-      height: 100,
-      margin: EdgeInsets.fromLTRB(0, 50, 0, 0),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(50),
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(10),
-        child: Image.asset(
-          "images/logo.png",
-          fit: BoxFit.cover,
-        ),
-      ),
+  // ฟังก์ชันตรวจสอบข้อมูล
+  bool _validateInputs() {
+    // ตรวจสอบรูปแบบวันที่
+    RegExp dateRegEx = RegExp(
+      r'^(\d{2})/(\d{2})/(\d{4})$',
     );
+
+    return one_value.text.isNotEmpty &&
+        one_value.text.length >= 6 &&
+        one_value.text.contains(RegExp(r'[a-zA-Z]')) &&
+        two_value.text.isNotEmpty &&
+        two_value.text.contains('@') &&
+        three_value.text.isNotEmpty &&
+        three_value.text.length >= 6 &&
+        three_value.text.contains(RegExp(r'\d')) &&
+        three_value.text.contains(RegExp(r'[a-zA-Z]')) &&
+        four_value.text.isNotEmpty &&
+        five_value.text.isNotEmpty &&
+        dateRegEx.hasMatch(
+            five_value.text); // ตรวจสอบว่าข้อความตรงกับรูปแบบวันที่ที่ถูกต้อง
   }
 
   // วิดเจ็ตปุ่มยืนยันข้อมูล
@@ -349,28 +369,6 @@ class _editinformationState extends State<editinformation> {
     );
   }
 
-  // ฟังก์ชันตรวจสอบข้อมูล
-  bool _validateInputs() {
-    // ตรวจสอบรูปแบบวันที่
-    RegExp dateRegEx = RegExp(
-      r'^(\d{2})/(\d{2})/(\d{4})$',
-    );
-
-    return one_value.text.isNotEmpty &&
-        one_value.text.length >= 6 &&
-        one_value.text.contains(RegExp(r'[a-zA-Z]')) &&
-        two_value.text.isNotEmpty &&
-        two_value.text.contains('@') &&
-        three_value.text.isNotEmpty &&
-        three_value.text.length >= 6 &&
-        three_value.text.contains(RegExp(r'\d')) &&
-        three_value.text.contains(RegExp(r'[a-zA-Z]')) &&
-        four_value.text.isNotEmpty &&
-        five_value.text.isNotEmpty &&
-        dateRegEx.hasMatch(
-            five_value.text); // ตรวจสอบว่าข้อความตรงกับรูปแบบวันที่ที่ถูกต้อง
-  }
-
   // แปลงรูปแบบวันที่ให้เป็น YYYY-MM-DD ก่อนส่งไปยัง PHP
   String formatDate(String date) {
     List<String> parts = date.split('/');
@@ -379,13 +377,14 @@ class _editinformationState extends State<editinformation> {
     }
     return date;
   }
-
+  
+  //ฟังชั่นสมัครสมาชิก
   Future<void> functionregister(BuildContext context) async {
     print("user_id: ${one_value.text}");
     print("user_email: ${two_value.text}");
     print("user_pass: ${three_value.text}");
     print("user_name: ${four_value.text}");
-    print("user_age: ${five_value.text}"); 
+    print("user_age: ${five_value.text}");
     print("user_token: ${six_value}");
 
     // แปลงรูปแบบวันที่ให้เป็น YYYY-MM-DD ก่อนส่งไปยัง PHP
@@ -459,7 +458,8 @@ class _editinformationState extends State<editinformation> {
       _showDialog(context, 'ผิดพลาด', 'เกิดข้อผิดพลาด: $error');
     }
   }
-
+  
+  // ฟังชั่นแสดงข้อความแจ้งเตือน
   void _showDialog(BuildContext context, String title, String message) {
     showDialog(
       context: context,

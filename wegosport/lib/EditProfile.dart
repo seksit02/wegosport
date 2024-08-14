@@ -17,7 +17,6 @@ class EditProfile extends StatefulWidget {
 
 class _EditProfileState extends State<EditProfile> {
   Map<String, dynamic>? userData; // เก็บข้อมูลผู้ใช้
-
   final TextEditingController _userIdController =
       TextEditingController(); // ตัวควบคุมสำหรับฟิลด์ user_id
   final TextEditingController _userNameController =
@@ -33,20 +32,7 @@ class _EditProfileState extends State<EditProfile> {
     fetchUserData(widget.jwt); // ดึงข้อมูลผู้ใช้เมื่อเริ่มต้น
   }
 
-  // ฟังก์ชันแปลงวันที่เป็น DD/MM/YYYY
-  String formatDate(String date) {
-    // แปลงสตริงวันที่เป็น DateTime object
-    DateTime parsedDate = DateTime.parse(date);
-
-    // แปลง DateTime object เป็นสตริงในรูปแบบ DD/MM/YYYY
-    String formattedDate = "${parsedDate.day.toString().padLeft(2, '0')}/"
-        "${parsedDate.month.toString().padLeft(2, '0')}/"
-        "${parsedDate.year}";
-
-    return formattedDate;
-  }
-
-// ฟังก์ชันดึงข้อมูลผู้ใช้จากเซิร์ฟเวอร์
+  // ฟังก์ชันดึงข้อมูลผู้ใช้จากเซิร์ฟเวอร์
   Future<void> fetchUserData(String jwt) async {
     var url =
         Uri.parse('http://10.0.2.2/flutter_webservice/get_ShowDataUser.php');
@@ -87,7 +73,18 @@ class _EditProfileState extends State<EditProfile> {
     }
   }
 
+  // ฟังก์ชันแปลงวันที่เป็น DD/MM/YYYY
+  String formatDate(String date) {
+    // แปลงสตริงวันที่เป็น DateTime object
+    DateTime parsedDate = DateTime.parse(date);
+    // แปลง DateTime object เป็นสตริงในรูปแบบ DD/MM/YYYY
+    String formattedDate = "${parsedDate.day.toString().padLeft(2, '0')}/"
+        "${parsedDate.month.toString().padLeft(2, '0')}/"
+        "${parsedDate.year}";
 
+    return formattedDate;
+  }
+  
   // ฟังก์ชันอัปเดตโปรไฟล์ผู้ใช้
   Future<void> updateUserProfile() async {
     var url =

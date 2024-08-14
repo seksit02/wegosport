@@ -8,7 +8,6 @@ import 'package:image_cropper/image_cropper.dart'; // ใช้สำหรั�
 import 'dart:io'; // ใช้สำหรับการจัดการไฟล์
 import 'package:image/image.dart' as img; // ใช้สำหรับการจัดการภาพ
 
-// หน้าจอโปรไฟล์
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key, required this.jwt});
 
@@ -70,9 +69,9 @@ class _ProfilePageState extends State<ProfilePage> {
       throw Exception('Failed to load user data');
     }
   }
-  
+
+  // ฟังชั่นแปลงสตริงวันที่เป็น DateTime object
   String formatDate(String date) {
-    // แปลงสตริงวันที่เป็น DateTime object
     DateTime parsedDate = DateTime.parse(date);
 
     // แปลง DateTime object เป็นสตริงในรูปแบบ DD/MM/YYYY
@@ -108,7 +107,7 @@ class _ProfilePageState extends State<ProfilePage> {
         );
       },
     );
-    
+
     if (confirm == true) {
       final pickedFile = await ImagePicker()
           .pickImage(source: ImageSource.gallery); // เลือกภาพจากแกลเลอรี
@@ -278,7 +277,6 @@ class _ProfilePageState extends State<ProfilePage> {
                       color: const Color.fromARGB(255, 0, 0, 0),
                     ),
                   ),
-
                   SizedBox(height: 16),
                   ElevatedButton(
                     onPressed: () {
@@ -298,5 +296,3 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 }
-
-

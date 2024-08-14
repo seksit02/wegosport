@@ -1,18 +1,13 @@
 import 'package:flutter/material.dart';
-
-import 'package:wegosport/Profile.dart';
 import 'package:wegosport/Addinformation.dart';
 import 'package:wegosport/Homepage.dart';
 import 'package:wegosport/forgetpassword.dart';
-
 import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart'; // ใช้สำหรับการสร้าง JWT
-
 import 'package:flutter_facebook_auth/flutter_facebook_auth.dart'; // ใช้สำหรับการเข้าสู่ระบบด้วย Facebook
 import 'package:http/http.dart' as http; // ใช้สำหรับการเรียก HTTP
 import 'dart:async'; // ใช้สำหรับการทำงานแบบ asynchronous
 import 'dart:convert'; // ใช้สำหรับการแปลง JSON
 
-// หน้าจอล็อกอิน
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
 
@@ -141,7 +136,6 @@ class _LoginPageState extends State<LoginPage> {
                 _showErrorDialog(
                     "การเข้าสู่ระบบล้มเหลว"); // แสดงข้อความแจ้งเตือนหากการเข้าสู่ระบบล้มเหลว
               }
-
             }
           },
         ),
@@ -149,7 +143,7 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  // ฟังก์ชันแสดงกล่องข้อความแจ้งเตือน
+  // ฟังก์ชันแสดงกล่องข้อความแจ้งเตือน buttonProcesslogin
   void _showErrorDialog(String message) {
     showDialog(
       context: context,
@@ -168,23 +162,7 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  // ฟังก์ชันสร้าง JWT
-  String generateJwt(String userId ) {
-    final jwt = JWT(
-      {
-        'user_id': userId,
-      },
-    );
-
-    final secretKey = 'your_secret_key';
-    final token = jwt.sign(SecretKey(secretKey), algorithm: JWTAlgorithm.HS256);
-
-    print("Generated JWT: $token"); // สำหรับการดีบัก
-
-    return token;
-  }
-
-  // ฟังก์ชันล็อกอิน
+  // ฟังก์ชันล็อกอินธรรมดา
   Future<Map<String, dynamic>> FunctionLogin() async {
     print("user_id: ${inputone.text}");
     print("user_pass: ${inputtwo.text}");
@@ -217,7 +195,6 @@ class _LoginPageState extends State<LoginPage> {
 
         // ตรวจสอบว่าการเข้าสู่ระบบสำเร็จหรือไม่
         if (jsonResponse['result'] == "1") {
-
           String userId = jsonResponse['user_id'];
           String jwt = jsonResponse['jwt']; // ใช้ JWT ที่ได้รับจากเซิร์ฟเวอร์
 
@@ -291,80 +268,8 @@ class _LoginPageState extends State<LoginPage> {
       ),
     );
   }
-
-  // วิดเจ็ตปุ่มลืมรหัสผ่าน
-  Widget buttonforget() {
-    return Container(
-      margin: EdgeInsets.fromLTRB(0, 15, 0, 0),
-      child: ElevatedButton.icon(
-        icon: Icon(
-          Icons.lock_open,
-          color: const Color.fromARGB(255, 0, 0, 0),
-        ),
-        label: Text(
-          "ลืมรหัสผ่าน",
-          style: TextStyle(
-            color: Color.fromARGB(255, 0, 0, 0),
-          ),
-        ),
-        onPressed: () {
-          Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (context) =>
-                      ForgotPasswordPage())); // ไปยังหน้าลืมรหัสผ่านเมื่อกดปุ่ม
-        },
-        style: ElevatedButton.styleFrom(
-          padding: EdgeInsets.fromLTRB(10, 10, 20, 8),
-          backgroundColor: Color.fromARGB(255, 255, 255, 255),
-          shadowColor: Colors.black,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(30), // ปรับความโค้งของกรอบ
-          ),
-          side: BorderSide(color: Colors.black),
-        ),
-      ),
-    );
-  }
-
-  // วิดเจ็ตปุ่มสมัครสมาชิก
-  Widget buttonregister() {
-    return Container(
-      margin: EdgeInsets.fromLTRB(0, 15, 0, 0),
-      child: ElevatedButton.icon(
-        icon: Icon(
-          Icons.people,
-          color: const Color.fromARGB(255, 0, 0, 0),
-        ),
-        label: Text(
-          "สมัครสมาชิก",
-          style: TextStyle(
-            color: Color.fromARGB(255, 0, 0, 0),
-          ),
-        ),
-        onPressed: () {
-          Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (context) => editinformation(
-                        name: '',
-                        six_value: '',
-                        email: '',
-                      ))); // ไปยังหน้าสมัครสมาชิกเมื่อกดปุ่ม
-        },
-        style: ElevatedButton.styleFrom(
-          padding: EdgeInsets.fromLTRB(10, 10, 20, 8),
-          backgroundColor: Color.fromARGB(255, 255, 255, 255),
-          shadowColor: Colors.black,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(30), // ปรับความโค้งของกรอบ
-          ),
-          side: BorderSide(color: Colors.black),
-        ),
-      ),
-    );
-  }
-
+  
+  // ฟังก์ชันล็อกอิน facebook
   Future<void> facebookLogin(BuildContext context) async {
     try {
       final result = await FacebookAuth.instance.login(
@@ -415,40 +320,40 @@ class _LoginPageState extends State<LoginPage> {
               print('ข้อมูล saveJwt : $saveJwtResponse[result]');
 
               if (jwt.isNotEmpty) {
-              var saveJwtJsonResponse = jsonDecode(saveJwtResponse.body);
+                var saveJwtJsonResponse = jsonDecode(saveJwtResponse.body);
 
-              if (saveJwtJsonResponse['result'] == "1") {
-                // แสดงป๊อปอัพเพื่อแจ้งให้ผู้ใช้เข้าสู่ระบบอีกครั้ง
-                showDialog(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return AlertDialog(
-                      title: Text("บันทึกข้อมูลสำเร็จ"),
-                      content: Text("กรุณาเข้าสู่ระบบอีกครั้ง"),
-                      actions: [
-                        TextButton(
-                          child: Text("ตกลง"),
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                            // ส่งผู้ใช้กลับไปหน้า login
-                            Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => LoginPage(),
-                              ),
-                            );
-                          },
-                        ),
-                      ],
-                    );
-                  },
-                );
+                if (saveJwtJsonResponse['result'] == "1") {
+                  // แสดงป๊อปอัพเพื่อแจ้งให้ผู้ใช้เข้าสู่ระบบอีกครั้ง
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        title: Text("บันทึกข้อมูลสำเร็จ"),
+                        content: Text("กรุณาเข้าสู่ระบบอีกครั้ง"),
+                        actions: [
+                          TextButton(
+                            child: Text("ตกลง"),
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                              // ส่งผู้ใช้กลับไปหน้า login
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => LoginPage(),
+                                ),
+                              );
+                            },
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                } else {
+                  _showErrorDialog("การเก็บ JWT ล้มเหลว");
+                }
               } else {
                 _showErrorDialog("การเก็บ JWT ล้มเหลว");
               }
-            } else {
-              _showErrorDialog("การเก็บ JWT ล้มเหลว");
-            }
             } else {
               print("เข้าเงื่อนไขมี jwt");
 
@@ -484,6 +389,94 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
+  // ฟังก์ชันสร้าง JWT
+  String generateJwt(String userId) {
+    final jwt = JWT(
+      {
+        'user_id': userId,
+      },
+    );
+
+    final secretKey = 'your_secret_key';
+    final token = jwt.sign(SecretKey(secretKey), algorithm: JWTAlgorithm.HS256);
+
+    print("Generated JWT: $token"); // สำหรับการดีบัก
+
+    return token;
+  }
+
+  // วิดเจ็ตปุ่มสมัครสมาชิก
+  Widget buttonregister() {
+    return Container(
+      margin: EdgeInsets.fromLTRB(0, 15, 0, 0),
+      child: ElevatedButton.icon(
+        icon: Icon(
+          Icons.people,
+          color: const Color.fromARGB(255, 0, 0, 0),
+        ),
+        label: Text(
+          "สมัครสมาชิก",
+          style: TextStyle(
+            color: Color.fromARGB(255, 0, 0, 0),
+          ),
+        ),
+        onPressed: () {
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => editinformation(
+                        name: '',
+                        six_value: '',
+                        email: '',
+                      ))); // ไปยังหน้าสมัครสมาชิกเมื่อกดปุ่ม
+        },
+        style: ElevatedButton.styleFrom(
+          padding: EdgeInsets.fromLTRB(10, 10, 20, 8),
+          backgroundColor: Color.fromARGB(255, 255, 255, 255),
+          shadowColor: Colors.black,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(30), // ปรับความโค้งของกรอบ
+          ),
+          side: BorderSide(color: Colors.black),
+        ),
+      ),
+    );
+  }
+
+  // วิดเจ็ตปุ่มลืมรหัสผ่าน
+  Widget buttonforget() {
+    return Container(
+      margin: EdgeInsets.fromLTRB(0, 15, 0, 0),
+      child: ElevatedButton.icon(
+        icon: Icon(
+          Icons.lock_open,
+          color: const Color.fromARGB(255, 0, 0, 0),
+        ),
+        label: Text(
+          "ลืมรหัสผ่าน",
+          style: TextStyle(
+            color: Color.fromARGB(255, 0, 0, 0),
+          ),
+        ),
+        onPressed: () {
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) =>
+                      ForgotPasswordPage())); // ไปยังหน้าลืมรหัสผ่านเมื่อกดปุ่ม
+        },
+        style: ElevatedButton.styleFrom(
+          padding: EdgeInsets.fromLTRB(10, 10, 20, 8),
+          backgroundColor: Color.fromARGB(255, 255, 255, 255),
+          shadowColor: Colors.black,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(30), // ปรับความโค้งของกรอบ
+          ),
+          side: BorderSide(color: Colors.black),
+        ),
+      ),
+    );
+  }
 
   // การสร้าง UI ของหน้าจอล็อกอิน
   @override

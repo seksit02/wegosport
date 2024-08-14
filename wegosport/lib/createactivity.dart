@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_typeahead/flutter_typeahead.dart'; // ใช้สำหรับแสดงรายการที่แนะนำ
 import 'package:flutter_material_pickers/flutter_material_pickers.dart'; // ใช้สำหรับการเลือกแบบรายการ
-
 import 'dart:async';
 import 'dart:convert';
 import 'package:wegosport/Homepage.dart';
@@ -10,6 +9,7 @@ import 'package:wegosport/Homepage.dart';
 // หน้าจอสร้างกิจกรรม
 class CreateActivityPage extends StatefulWidget {
   const CreateActivityPage({Key? key, required this.jwt}) : super(key: key);
+
   final String jwt; // รับค่า JWT สำหรับการตรวจสอบสิทธิ์
 
   @override
@@ -32,7 +32,22 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
   Map<String, dynamic>? userData; // เก็บข้อมูลผู้ใช้
   final List<String> _selectedTags = []; // เก็บแฮชแท็กที่เลือก
   List<String> _allHashtags = []; // เก็บแฮชแท็กทั้งหมด
+  String? selectedLocation; // สถานที่ที่เลือก
+  String? selectedSport; // กีฬาที่เลือก
+  List<String> locations = []; // เก็บสถานที่ทั้งหมด
+  List<String> sport = []; // เก็บกีฬาทั้งหมด
 
+  get selectedSportId => 1; // ID ของกีฬาที่เลือก (แก้ไขตามความเหมาะสม)
+
+  @override
+  void initState() {
+    super.initState();
+    fetchLocations();
+    fetchSport();
+    fetchHashtags();
+    fetchUserData(widget.jwt);
+  }
+  
   void _showTagPicker(BuildContext context) {
     showMaterialCheckboxPicker(
       context: context,
@@ -48,13 +63,6 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
     );
   }
 
-  String? selectedLocation; // สถานที่ที่เลือก
-  String? selectedSport; // กีฬาที่เลือก
-  List<String> locations = []; // เก็บสถานที่ทั้งหมด
-  List<String> sport = []; // เก็บกีฬาทั้งหมด
-
-  get selectedSportId => 1; // ID ของกีฬาที่เลือก (แก้ไขตามความเหมาะสม)
-
   // ฟังก์ชันดึงข้อมูลสถานที่จากเซิร์ฟเวอร์
   Future<void> fetchLocations() async {
     final response = await http.get(Uri.parse(
@@ -62,9 +70,15 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
+
+      print('DataCreat :$data');
+
       setState(() {
-        locations = List<String>.from(
-            data.map((item) => item['location_name']).toSet());
+        // กรองสถานที่ที่มี status เป็น 'approved' เท่านั้น
+        locations = List<String>.from(data
+            .where((item) => item['status'] == 'approved')
+            .map((item) => item['location_name'])
+            .toSet());
       });
     } else {
       print('Failed to load locations. Status code: ${response.statusCode}');
@@ -151,15 +165,6 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
       print("Error: $error");
       throw Exception('Failed to load user data');
     }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    fetchLocations();
-    fetchSport();
-    fetchHashtags();
-    fetchUserData(widget.jwt);
   }
 
   // วิดเจ็ตฟิลด์ชื่อกิจกรรม
@@ -538,46 +543,6 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
     );
   }
 
-  // วิดเจ็ตปุ่มกลับไปหน้าหลัก
-  Widget backButton() {
-    return IconButton(
-      icon: Icon(Icons.arrow_back,
-          color: const Color.fromARGB(255, 255, 255, 255)),
-      onPressed: () {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-              builder: (context) => Homepage(jwt: widget.jwt)), // แก้ไขตรงนี้
-        );
-      },
-    );
-  }
-
-  // ฟังก์ชันแสดง dialog เมื่อสร้างกิจกรรมสำเร็จ
-  Future<void> showSuccessDialog() async {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text("สำเร็จ"),
-          content: Text("สร้างกิจกรรมสำเร็จ"),
-          actions: <Widget>[
-            TextButton(
-              child: Text("ตกลง"),
-              onPressed: () {
-                Navigator.of(context).pop(); // ปิด dialog
-                Navigator.of(context).pushReplacement(
-                  MaterialPageRoute(
-                      builder: (context) =>
-                          Homepage(jwt: widget.jwt)), // แก้ไขตรงนี้
-                );
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
   // ฟังก์ชันสร้างกิจกรรม
   Future<void> functionCreateActivity() async {
     String hashtags = _selectedTags.join(" ");
@@ -643,7 +608,47 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
       print("Error: $error");
     }
   }
-
+  
+  // ฟังก์ชันแสดง dialog เมื่อสร้างกิจกรรมสำเร็จ
+  Future<void> showSuccessDialog() async {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("สำเร็จ"),
+          content: Text("สร้างกิจกรรมสำเร็จ"),
+          actions: <Widget>[
+            TextButton(
+              child: Text("ตกลง"),
+              onPressed: () {
+                Navigator.of(context).pop(); // ปิด dialog
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(
+                      builder: (context) =>
+                          Homepage(jwt: widget.jwt)), // แก้ไขตรงนี้
+                );
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+  
+  // วิดเจ็ตปุ่มกลับไปหน้าหลัก
+  Widget backButton() {
+    return IconButton(
+      icon: Icon(Icons.arrow_back,
+          color: const Color.fromARGB(255, 255, 255, 255)),
+      onPressed: () {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+              builder: (context) => Homepage(jwt: widget.jwt)), // แก้ไขตรงนี้
+        );
+      },
+    );
+  }
+  
   @override
   Widget build(BuildContext context) {
     return MaterialApp(

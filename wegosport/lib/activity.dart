@@ -11,6 +11,7 @@ class ActivityPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    
     // แปลงค่าจาก String เป็น double
     double latitude = double.tryParse(activity['latitude'] ?? '0.0') ?? 0.0;
     double longitude = double.tryParse(activity['longitude'] ?? '0.0') ?? 0.0;
@@ -52,8 +53,7 @@ class ActivityPage extends StatelessWidget {
             Wrap(
               runSpacing: 5.0,
               children: (activity['hashtags'] as List<dynamic>? ?? [])
-                  .map((tag) => TagWidget(
-                      text: '#${tag['hashtag_message']}')) // เพิ่ม # นำหน้า
+                  .map((tag) => TagWidget(text: tag['hashtag_message']))
                   .toList(),
             ),
             SizedBox(height: 8),

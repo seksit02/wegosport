@@ -31,8 +31,8 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
           builder: (BuildContext context) {
             return AlertDialog(
               title: Text('สำเร็จ'),
-              content:
-                  Text('ลิ้งก์รีเซ็ตรหัสผ่านได้ถูกส่งไปที่อีเมลของคุณแล้ว รีเซ็ตรหัสผ่านได้ที่อีเมล'),
+              content: Text(
+                  'ลิ้งก์รีเซ็ตรหัสผ่านได้ถูกส่งไปที่อีเมลของคุณแล้ว รีเซ็ตรหัสผ่านได้ที่อีเมล'),
               actions: [
                 TextButton(
                   onPressed: () {
