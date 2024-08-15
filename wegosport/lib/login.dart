@@ -193,6 +193,12 @@ class _LoginPageState extends State<LoginPage> {
       if (response.statusCode == 200) {
         Map<String, dynamic> jsonResponse = json.decode(response.body);
 
+        // ตรวจสอบสถานะก่อน
+        if (jsonResponse['status'] == 'inactive') {
+          _showErrorDialog("บัญชีของคุณถูกระงับ");
+          return {'success': false};
+        }
+
         // ตรวจสอบว่าการเข้าสู่ระบบสำเร็จหรือไม่
         if (jsonResponse['result'] == "1") {
           String userId = jsonResponse['user_id'];
@@ -298,6 +304,12 @@ class _LoginPageState extends State<LoginPage> {
 
           print('ข้อมูลจาก ChackToken : $jsonResponse');
 
+          // ตรวจสอบสถานะก่อน
+          if (jsonResponse['status'] == 'inactive') {
+            _showErrorDialog("บัญชีของคุณถูกระงับ");
+            return;
+          }
+
           if (jsonResponse['exists']) {
             // ตรวจสอบว่า jwt ไม่มีค่า
             if (jsonResponse['jwt'] == null || jsonResponse['jwt'].isEmpty) {
@@ -388,6 +400,7 @@ class _LoginPageState extends State<LoginPage> {
       print(error);
     }
   }
+
 
   // ฟังก์ชันสร้าง JWT
   String generateJwt(String userId) {
