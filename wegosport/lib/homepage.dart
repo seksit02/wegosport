@@ -386,6 +386,10 @@ class ActivityCardItem extends StatelessWidget {
   Widget build(BuildContext context) {
     print('ข้อมูล userData จากการ์ด $userData');
     print('ข้อมูล Activity จากการ์ด $activity');
+
+    // ตรวจสอบสถานะของกิจกรรม
+    final isActive = activity['status'] == 'active';
+
     final members = activity['members'];
     bool isPopular = (members != null && members.length > 3);
     String statusText = isPopular ? "ยอดฮิต" : "มาใหม่";
@@ -404,184 +408,215 @@ class ActivityCardItem extends StatelessWidget {
 
     bool isPast = DateTime.now().isAfter(activityDate);
 
-    return Card(
-      color: backgroundColor,
-      margin: EdgeInsets.all(10),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // แถบแสดงสถานะพร้อมปุ่มแก้ไข
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Container(
-                  padding: EdgeInsets.symmetric(horizontal: 110, vertical: 1),
-                  decoration: BoxDecoration(
-                    color: statusColor,
-                    borderRadius: BorderRadius.circular(20),
+    return GestureDetector(
+      onTap: () {
+        if (isActive) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ActivityPage(activity: activity),
+            ),
+          );
+        } else {
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: Text('กิจกรรมถูกระงับ'),
+              content: Text('กิจกรรมนี้ถูกระงับและไม่สามารถเข้าถึงได้.'),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: Text('ตกลง'),
+                ),
+              ],
+            ),
+          );
+        }
+      },
+      child: Card(
+        color: backgroundColor,
+        margin: EdgeInsets.all(10),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // แถบแสดงสถานะพร้อมปุ่มแก้ไข
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: 110, vertical: 1),
+                    decoration: BoxDecoration(
+                      color: statusColor,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          statusText,
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: textColor,
+                          ),
+                        ),
+                        SizedBox(width: 5),
+                        statusIcon,
+                      ],
+                    ),
                   ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment: MainAxisAlignment.center,
+                  IconButton(
+                    icon: Icon(Icons.more_vert,
+                        color: const Color.fromARGB(255, 0, 0, 0)),
+                    onPressed: () {
+                      if (userData != null &&
+                          activity['creator_id'] == userData!['user_id']) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => EditActivity(
+                              activityId: activity['activity_id'].toString(),
+                              jwt: '',
+                            ),
+                          ),
+                        );
+                      } else {
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              title: Text('ไม่มีสิทธิ์ในการแก้ไข'),
+                              content:
+                                  Text('คุณไม่มีสิทธิ์ในการแก้ไขกิจกรรมนี้'),
+                              actions: [
+                                TextButton(
+                                  child: Text('ตกลง'),
+                                  onPressed: () {
+                                    Navigator.of(context).pop(); // ปิด popup
+                                  },
+                                ),
+                              ],
+                            );
+                          },
+                        );
+                      }
+                    },
+                  ),
+                ],
+              ),
+              SizedBox(height: 8),
+              // แถวของแท็ก
+              Wrap(
+                runSpacing: 5.0,
+                children: (activity['hashtags'] as List<dynamic>? ?? [])
+                    .map((tag) => TagWidget(text: tag['hashtag_message']))
+                    .toList(),
+              ),
+              SizedBox(height: 8),
+              // วันที่และเวลา
+              Text(
+                activity['activity_date'] ?? '',
+                style: TextStyle(
+                  color: isPast
+                      ? const Color.fromARGB(255, 180, 180, 180)
+                      : Colors.black,
+                ),
+              ),
+              SizedBox(height: 8),
+              // ชื่อกิจกรรม
+              Text(
+                activity['activity_name'] ?? '',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                  color: textColor,
+                ),
+              ),
+              SizedBox(height: 4),
+              // สถานที่
+              Text(
+                activity['location_name'] ?? '',
+                style: TextStyle(
+                  color: Colors.grey,
+                ),
+              ),
+              SizedBox(height: 8),
+              // แถวของสมาชิก
+              Row(
+                children: [
+                  if (members != null && members.isNotEmpty)
+                    ...members.map((member) {
+                      String imageUrl =
+                          member['user_photo'] ?? 'images/logo.png';
+                      return MemberAvatar(imageUrl: imageUrl);
+                    }).toList()
+                  else
+                    Text('ไม่มีสมาชิก', style: TextStyle(color: Colors.grey)),
+                  Spacer(),
+                  // จำนวนสมาชิก
+                  Row(
                     children: [
+                      Icon(Icons.person),
+                      SizedBox(width: 4),
                       Text(
-                        statusText,
+                        '${members != null ? members.length : 0}',
                         style: TextStyle(
-                          fontWeight: FontWeight.bold,
                           color: textColor,
                         ),
                       ),
-                      SizedBox(width: 5),
-                      statusIcon,
                     ],
                   ),
+                ],
+              ),
+              SizedBox(height: 8),
+              // ข้อความเข้าร่วม
+              Text(
+                '${activity['members'] != null ? activity['members'].length : 0}/${activity['members'] != null ? activity['members'].length : 0} จะไปแน่นอน',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: textColor,
                 ),
-
-                IconButton(
-                  icon: Icon(Icons.more_vert,
-                      color: const Color.fromARGB(255, 0, 0, 0)),
-                  onPressed: () {
-
-                    if (userData != null &&
-                        activity['creator_id'] == userData!['user_id']) {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => EditActivity(
-                              activityId: activity['activity_id'].toString(), jwt: '',),
-                        ),
-                      );
-                    } else {
-                      showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return AlertDialog(
-                            title: Text('ไม่มีสิทธิ์ในการแก้ไข'),
-                            content: Text('คุณไม่มีสิทธิ์ในการแก้ไขกิจกรรมนี้'),
-                            actions: [
-                              TextButton(
-                                child: Text('ตกลง'),
-                                onPressed: () {
-                                  Navigator.of(context).pop(); // ปิด popup
-                                },
-                              ),
-                            ],
-                          );
-                        },
-                      );
-                    }
-                  },
+              ),
+              SizedBox(height: 4),
+              // รายละเอียดกิจกรรม
+              Text(
+                activity['activity_details'] ?? '',
+                style: TextStyle(
+                  color: textColor,
                 ),
-              ],
-            ),
-            SizedBox(height: 8),
-            // แถวของแท็ก
-            Wrap(
-              runSpacing: 5.0,
-              children: (activity['hashtags'] as List<dynamic>? ?? [])
-                  .map((tag) => TagWidget(text: tag['hashtag_message']))
-                  .toList(),
-            ),
-            SizedBox(height: 8),
-            // วันที่และเวลา
-            Text(
-              activity['activity_date'] ?? '',
-              style: TextStyle(
-                color: isPast
-                    ? const Color.fromARGB(255, 180, 180, 180)
-                    : Colors.black,
               ),
-            ),
-            SizedBox(height: 8),
-            // ชื่อกิจกรรม
-            Text(
-              activity['activity_name'] ?? '',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 18,
-                color: textColor,
-              ),
-            ),
-            SizedBox(height: 4),
-            // สถานที่
-            Text(
-              activity['location_name'] ?? '',
-              style: TextStyle(
-                color: Colors.grey,
-              ),
-            ),
-            SizedBox(height: 8),
-            // แถวของสมาชิก
-            Row(
-              children: [
-                if (members != null && members.isNotEmpty)
-                  ...members.map((member) {
-                    String imageUrl = member['user_photo'] ?? 'images/logo.png';
-                    return MemberAvatar(imageUrl: imageUrl);
-                  }).toList()
-                else
-                  Text('ไม่มีสมาชิก', style: TextStyle(color: Colors.grey)),
-                Spacer(),
-                // จำนวนสมาชิก
-                Row(
-                  children: [
-                    Icon(Icons.person),
-                    SizedBox(width: 4),
-                    Text(
-                      '${members != null ? members.length : 0}',
-                      style: TextStyle(
-                        color: textColor,
-                      ),
+              SizedBox(height: 8),
+              // รูปภาพสถานที่
+              activity['location_photo'] != null
+                  ? Image.network(
+                      activity['location_photo'],
+                      height: 200,
+                      errorBuilder: (BuildContext context, Object exception,
+                          StackTrace? stackTrace) {
+                        return Container(
+                          height: 200,
+                          child: Center(
+                            child: Text('เกิดข้อผิดพลาดในการโหลดรูปภาพ'),
+                          ),
+                        );
+                      },
+                    )
+                  : SizedBox(
+                      height: 200,
+                      child: Center(child: Text('ไม่มีรูปภาพ')),
                     ),
-                  ],
-                ),
-              ],
-            ),
-            SizedBox(height: 8),
-            // ข้อความเข้าร่วม
-            Text(
-              '${activity['members'] != null ? activity['members'].length : 0}/${activity['members'] != null ? activity['members'].length : 0} จะไปแน่นอน',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: textColor,
-              ),
-            ),
-            SizedBox(height: 4),
-            // รายละเอียดกิจกรรม
-            Text(
-              activity['activity_details'] ?? '',
-              style: TextStyle(
-                color: textColor,
-              ),
-            ),
-            SizedBox(height: 8),
-            // รูปภาพสถานที่
-            activity['location_photo'] != null
-                ? Image.network(
-                    activity['location_photo'],
-                    height: 200,
-                    errorBuilder: (BuildContext context, Object exception,
-                        StackTrace? stackTrace) {
-                      return Container(
-                        height: 200,
-                        child: Center(
-                          child: Text('เกิดข้อผิดพลาดในการโหลดรูปภาพ'),
-                        ),
-                      );
-                    },
-                  )
-                : SizedBox(
-                    height: 200,
-                    child: Center(child: Text('ไม่มีรูปภาพ')),
-                  ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 }
+
 
 // วิดเจ็ตแสดงแท็ก (hashtag)
 class TagWidget extends StatelessWidget {
