@@ -36,6 +36,8 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
   String? selectedSport; // กีฬาที่เลือก
   List<String> locations = []; // เก็บสถานที่ทั้งหมด
   List<String> sport = []; // เก็บกีฬาทั้งหมด
+  List<Map<String, dynamic>> locationData =
+      []; // เก็บข้อมูลทั้งหมดของสถานที่และกีฬา
 
   get selectedSportId => 1; // ID ของกีฬาที่เลือก (แก้ไขตามความเหมาะสม)
 
@@ -43,7 +45,6 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
   void initState() {
     super.initState();
     fetchLocations();
-    fetchSport();
     fetchHashtags();
     fetchUserData(widget.jwt);
   }
@@ -74,11 +75,11 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
       print('DataCreat :$data');
 
       setState(() {
-        // กรองสถานที่ที่มี status เป็น 'approved' เท่านั้น
-        locations = List<String>.from(data
-            .where((item) => item['status'] == 'approved')
-            .map((item) => item['location_name'])
-            .toSet());
+        locationData = List<Map<String, dynamic>>.from(
+            data.where((item) => item['status'] == 'approved'));
+        locations = locationData
+            .map((item) => item['location_name'].toString())
+            .toList();
       });
     } else {
       print('Failed to load locations. Status code: ${response.statusCode}');
@@ -86,21 +87,28 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
     }
   }
 
-  // ฟังก์ชันดึงข้อมูลกีฬาจากเซิร์ฟเวอร์
-  Future<void> fetchSport() async {
-    final response = await http.get(
-        Uri.parse('http://10.0.2.2/flutter_webservice/get_ShowDataSport.php'));
+  // ฟังก์ชันกรองกีฬาเมื่อเลือกสถานที่
+  void updateSportsForLocation(String locationName) {
+    // ดึงข้อมูลสถานที่ที่เลือกจาก locationData
+    final selectedLocation = locationData.firstWhere(
+      (location) => location['location_name'] == locationName,
+      orElse: () => {},
+    );
 
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      setState(() {
-        sport =
-            List<String>.from(data.map((item) => item['sport_name']).toSet());
-      });
-    } else {
-      print('Failed to load sport names. Status code: ${response.statusCode}');
-      throw Exception('Failed to load sport names');
-    }
+    setState(() {
+      // ถ้าสถานที่ถูกต้องและมี sport_types ให้ดึง sport_name ออกมา
+      if (selectedLocation.isNotEmpty &&
+          selectedLocation['sport_types'] != null) {
+        sport = selectedLocation['sport_types']
+            .expand((type) =>
+                type['sports'] as List) // ดึงรายการกีฬาออกมาจากแต่ละประเภท
+            .map<String>((sport) =>
+                sport['sport_name'].toString()) // ทำให้แน่ใจว่าเป็น String
+            .toList();
+      } else {
+        sport = []; // ถ้าไม่มีข้อมูลกีฬาก็เคลียร์รายการกีฬา
+      }
+    });
   }
 
   // ฟังก์ชันดึงข้อมูลแฮชแท็กจากเซิร์ฟเวอร์
@@ -198,7 +206,7 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
     );
   }
 
-  // วิดเจ็ตฟิลด์สถานที่
+  // วิดเจ็ตฟิลด์เลือกสถานที่
   Widget location() {
     return Container(
       margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
@@ -236,6 +244,8 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
           setState(() {
             locationController.text = suggestion;
             selectedLocation = suggestion;
+            updateSportsForLocation(
+                suggestion); // อัพเดทข้อมูลกีฬาตามสถานที่ที่เลือก
           });
         },
         noItemsFoundBuilder: (context) {
