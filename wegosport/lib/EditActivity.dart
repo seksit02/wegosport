@@ -1,48 +1,44 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter_typeahead/flutter_typeahead.dart';
+import 'package:flutter_material_pickers/flutter_material_pickers.dart';
 import 'dart:convert';
 
-// หน้าจอแก้ไขกิจกรรม
 class EditActivity extends StatefulWidget {
   const EditActivity({Key? key, required this.activityId, required this.jwt})
       : super(key: key);
 
-  final String activityId; // รับค่า ID ของกิจกรรมสำหรับการแก้ไข
-  final String jwt; // รับค่า JWT สำหรับการตรวจสอบสิทธิ์
+  final String activityId;
+  final String jwt;
 
   @override
-  State<EditActivity> createState() =>
-      _EditActivityState(); // สร้างสถานะของ EditActivity
+  State<EditActivity> createState() => _EditActivityState();
 }
 
 class _EditActivityState extends State<EditActivity> {
-  final _formKey = GlobalKey<FormState>(); // กุญแจสำหรับฟอร์ม
-  TextEditingController nameController =
-      TextEditingController(); // ตัวควบคุมสำหรับฟิลด์ชื่อกิจกรรม
-  TextEditingController detailsController =
-      TextEditingController(); // ตัวควบคุมสำหรับฟิลด์รายละเอียดกิจกรรม
-  TextEditingController dateController =
-      TextEditingController(); // ตัวควบคุมสำหรับฟิลด์วันที่
-  TextEditingController hashtagController =
-      TextEditingController(); // ตัวควบคุมสำหรับฟิลด์แฮชแท็ก
-  Map<String, int> locationMap = {}; // แผนที่สำหรับจับคู่ชื่อสถานที่กับ ID
-  Map<String, int> sportMap = {}; // แผนที่สำหรับจับคู่ชื่อกีฬากับ ID
-  String? selectedLocation; // สถานที่ที่ถูกเลือก
-  String? selectedSport; // กีฬาที่ถูกเลือก
-  List<String> _selectedTags = []; // แฮชแท็กที่ถูกเลือก
-  List<String> locations = []; // เก็บสถานที่ทั้งหมด
-  List<String> sport = []; // เก็บกีฬาทั้งหมด
-  List<Map<String, dynamic>> locationData =
-      []; // จัดเก็บข้อมูลสถานที่ในรูปแบบที่ถูกต้อง
+  TextEditingController nameController = TextEditingController();
+  TextEditingController detailsController = TextEditingController();
+  TextEditingController dateController = TextEditingController();
+  TextEditingController hashtagController = TextEditingController();
+  TextEditingController locationController = TextEditingController();
+  TextEditingController sportController = TextEditingController();
+
+  List<String> _selectedTags = [];
+  List<String> _allHashtags = [];
+  String? selectedLocation;
+  String? selectedSport;
+  List<String> locations = [];
+  List<String> sport = [];
+  List<Map<String, dynamic>> locationData = [];
 
   @override
   void initState() {
     super.initState();
-    fetchLocations(); // ดึงข้อมูลสถานที่เมื่อเริ่มต้น
-    fetchActivityDetails(); // ดึงข้อมูลกิจกรรมเมื่อเริ่มต้น
+    fetchLocations();
+    fetchHashtags();
+    fetchActivityDetails();
   }
 
-  // ฟังก์ชันดึงข้อมูลสถานที่จากเซิร์ฟเวอร์
   Future<void> fetchLocations() async {
     final response = await http.get(Uri.parse(
         'http://10.0.2.2/flutter_webservice/get_ShowDataLocation.php'));
@@ -51,173 +47,173 @@ class _EditActivityState extends State<EditActivity> {
       final data = json.decode(response.body);
 
       setState(() {
-        locations = List<String>.from(data
-            .where((item) => item['status'] == 'approved')
-            .map((item) => item['location_name'])
-            .toSet()); // กรองสถานที่ที่ถูกอนุมัติและเก็บชื่อในรูปแบบของ Set เพื่อหลีกเลี่ยงการซ้ำ
+        locationData = List<Map<String, dynamic>>.from(
+            data.where((item) => item['status'] == 'approved'));
+        locations = locationData
+            .map((item) => item['location_name'].toString())
+            .toList();
       });
     } else {
-      print(
-          'Failed to load locations. Status code: ${response.statusCode}'); // พิมพ์ข้อผิดพลาดหากไม่สามารถโหลดข้อมูลได้
+      print('Failed to load locations.');
+      throw Exception('Failed to load locations');
     }
   }
 
-  // ฟังก์ชันดึงข้อมูลกีฬาตามสถานที่จากเซิร์ฟเวอร์
-  Future<void> fetchSportByLocation(String locationName) async {
+  void updateSportsForLocation(String locationName) {
+    final selectedLocation = locationData.firstWhere(
+      (location) => location['location_name'] == locationName,
+      orElse: () => {},
+    );
+
+    setState(() {
+      if (selectedLocation.isNotEmpty &&
+          selectedLocation['sport_types'] != null) {
+        sport = selectedLocation['sport_types']
+            .expand((type) => type['sports'] as List)
+            .map<String>((sport) => sport['sport_name'].toString())
+            .toList();
+      } else {
+        sport = [];
+      }
+    });
+  }
+
+  Future<void> fetchHashtags() async {
     final response = await http.get(Uri.parse(
-        'http://10.0.2.2/flutter_webservice/get_ShowSportByLocation.php?location=$locationName'));
+        'http://10.0.2.2/flutter_webservice/get_ShowDataHashtag.php'));
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
       setState(() {
-        sport = List<String>.from(data
-            .map((item) => item['sport_name'])
-            .toSet()); // เก็บชื่อกีฬาในรูปแบบของ Set เพื่อหลีกเลี่ยงการซ้ำ
+        _allHashtags = List<String>.from(data
+            .map((item) => item['hashtag_message'])
+            .where((item) => item != null)
+            .toSet());
       });
     } else {
-      print(
-          'Failed to load sport names. Status code: ${response.statusCode}'); // พิมพ์ข้อผิดพลาดหากไม่สามารถโหลดข้อมูลได้
+      print('Failed to load hashtags.');
+      throw Exception('Failed to load hashtags');
     }
   }
 
-  // ฟังก์ชันดึงข้อมูลกิจกรรมจากเซิร์ฟเวอร์
   Future<void> fetchActivityDetails() async {
-    final response = await http.get(
-      Uri.parse(
-          'http://10.0.2.2/flutter_webservice/get_ShowDataActivity.php?id=${widget.activityId}'), // ดึงข้อมูลกิจกรรมตาม ID
-    );
+    final response = await http.get(Uri.parse(
+        'http://10.0.2.2/flutter_webservice/get_ShowDataActivity.php?id=${widget.activityId}'));
 
     if (response.statusCode == 200) {
       final List<dynamic> activities = json.decode(response.body);
-      final activity = activities.firstWhere((activity) =>
-          activity['activity_id'] ==
-          widget.activityId); // ค้นหากิจกรรมที่ตรงกับ ID ที่ระบุ
+      final activity = activities.firstWhere(
+          (activity) => activity['activity_id'] == widget.activityId);
 
       setState(() {
-        nameController.text =
-            activity['activity_name']; // กำหนดค่าชื่อกิจกรรมในฟิลด์
-        dateController.text =
-            activity['activity_date']; // กำหนดค่าวันที่ในฟิลด์
-        detailsController.text =
-            activity['activity_details']; // กำหนดค่ารายละเอียดในฟิลด์
-
-        locationData = [
-          {
-            'location_name': activity['location_name'],
-            'location_id': activity['location_id'] ??
-                0, // เพิ่มการตรวจสอบ location_id เป็น null
-          }
-        ];
-
-        selectedLocation =
-            activity['location_name']; // กำหนดค่าสถานที่ที่ถูกเลือก
-
-        // ตรวจสอบ sport_name และ sport_id ว่าไม่ใช่ null ก่อนกำหนดค่า
-        if (activity['sport_name'] != null && activity['sport_id'] != null) {
-          sportMap = {
-            activity['sport_name']: activity['sport_id']
-          }; // เก็บชื่อกีฬาและ ID ในแผนที่
-          selectedSport = activity['sport_name']; // กำหนดค่ากีฬาที่ถูกเลือก
-        } else {
-          sportMap = {};
-          selectedSport = null; // หรือกำหนดค่าเริ่มต้น
-        }
-
+        nameController.text = activity['activity_name'];
+        dateController.text = activity['activity_date'];
+        detailsController.text = activity['activity_details'];
         _selectedTags.addAll((activity['hashtags'] as List<dynamic>?)
                 ?.map((hashtag) => "${hashtag['hashtag_message']}")
                 .toList() ??
-            []); // เก็บแฮชแท็กที่เกี่ยวข้องกับกิจกรรม
+            []);
+        selectedLocation = activity['location_name'];
+        selectedSport = activity['sport_name'];
 
-        fetchSportByLocation(
-            selectedLocation!); // ดึงข้อมูลกีฬาตามสถานที่ที่เลือก
+        locationController.text = selectedLocation!;
+
+        if (selectedSport != null) {
+          sportController.text = selectedSport!;
+        }
+
+        updateSportsForLocation(selectedLocation!);
+
       });
     } else {
-      print(
-          'Failed to load activity details'); // พิมพ์ข้อผิดพลาดหากไม่สามารถโหลดข้อมูลได้
+      print('Failed to load activity details');
     }
   }
-
-  // ฟังก์ชันอัปเดตข้อมูลกิจกรรม
+  
   Future<void> updateActivity() async {
-    //ฟังก์ชันอัพเดทข้อมูลกิจกรรม
-    print('ข้อมูล ไอดีกิจกรรม : ${widget.activityId}');
-    print('ข้อมูล ชื่อกิจกรรม : ${nameController.text}');
-    print('ข้อมูล ข้อความสังเขปกิจกรรม : ${detailsController.text}');
-    print('ข้อมูล วันที่ : ${dateController.text}');
-    print('ข้อมูล สถานที่ : ${selectedLocation}');
-    print('ข้อมูล กีฬา : ${selectedSport}');
-    print('ข้อมูล hashtag : ${_selectedTags}');
+    String hashtags = _selectedTags.join(" ");
+    List<String> hashtagList =
+        hashtags.split(RegExp(r'\s+')).where((tag) => tag.isNotEmpty).toList();
 
-    final locationId =
-        locationMap[selectedLocation ?? '']; // ดึง location_id จากแผนที่สถานที่
-    final sportId = sportMap[selectedSport ?? '']; // ดึง sport_id จากแผนที่กีฬา
-
-    print('ข้อมูล สถานที่แปลงแล้ว : ${locationId}');
-    print('ข้อมูล กีฬาแปลงแล้ว : ${sportId}');
-
-    if (locationId == null || sportId == null) {
-      print(
-          'เลือกสถานที่หรือกีฬาไม่ถูกต้อง'); // พิมพ์ข้อผิดพลาดหากเลือกสถานที่หรือกีฬาไม่ถูกต้อง
+    if (hashtagList.length > 3 || hashtagList.any((tag) => tag.length > 20)) {
+      print("Invalid hashtag input");
       return;
     }
-
-    String hashtags =
-        _selectedTags.join(" "); // รวมแฮชแท็กเป็นสตริงเดียวโดยมีช่องว่างคั่น
-    List<String> hashtagList = hashtags
-        .split(RegExp(r'\s+'))
-        .where((tag) => tag.isNotEmpty)
-        .toList(); // แยกแฮชแท็กจากช่องว่างและกรองแฮชแท็กที่ไม่ใช่ null
 
     Map<String, dynamic> dataPost = {
       "activity_id": widget.activityId,
       "activity_name": nameController.text,
       "activity_details": detailsController.text,
       "activity_date": dateController.text,
-      "location_id": locationId,
-      "sport_id": sportId,
+      "location_name": selectedLocation ?? '',
+      "sport_name": sport.firstWhere((element) => element == selectedSport),
       "hashtags": hashtagList,
-    }; // จัดเตรียมข้อมูลที่จะส่งไปยังเซิร์ฟเวอร์
+    };
+
+    // พิมพ์ค่า dataPost ที่จะถูกส่งไปยังเซิร์ฟเวอร์
+    print("DataPost: $dataPost");
 
     Map<String, String> headers = {
       "Content-Type": "application/json",
       "Accept": "application/json",
       "Authorization": "Bearer ${widget.jwt}"
-    }; // กำหนด headers สำหรับการส่งคำขอ
+    };
 
-    var url = Uri.parse(
-        "http://10.0.2.2/flutter_webservice/get_UpdateActivity.php"); // URL สำหรับอัปเดตข้อมูลกิจกรรม
+    var url =
+        Uri.parse("http://10.0.2.2/flutter_webservice/get_UpdateActivity.php");
 
     var response = await http.post(
       url,
-      headers: headers, // ส่ง headers ไปพร้อมกับคำขอ
-      body: json.encode(dataPost), // ส่งข้อมูลกิจกรรมที่ถูกแก้ไขไปพร้อมกับคำขอ
+      headers: headers,
+      body: json.encode(dataPost),
     );
 
     print('Response status: ${response.statusCode}');
     print('Response body: ${response.body}');
 
     if (response.statusCode == 200) {
-      // แสดงป๊อปอัพเมื่ออัปเดตสำเร็จ
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: Text("สำเร็จ"),
-            content: Text("แก้ไขกิจกรรมสำเร็จ"),
-            actions: <Widget>[
-              TextButton(
-                child: Text("ตกลง"),
-                onPressed: () {
-                  Navigator.of(context).pop(); // ปิดป๊อปอัพ
-                  Navigator.of(context).pop(); // กลับไปหน้าก่อนหน้า
-                },
-              ),
-            ],
-          );
-        },
-      );
+      // Check if the response body indicates success
+      var responseData = json.decode(response.body);
+      if (responseData["result"] == "success") {
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text("สำเร็จ"),
+              content: Text("แก้ไขกิจกรรมสำเร็จ"),
+              actions: <Widget>[
+                TextButton(
+                  child: Text("ตกลง"),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      } else {
+        print("Update failed: ${responseData['message']}");
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text("ล้มเหลว"),
+              content: Text("การแก้ไขกิจกรรมล้มเหลว"),
+              actions: <Widget>[
+                TextButton(
+                  child: Text("ตกลง"),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      }
     } else {
-      // แสดงป๊อปอัพเมื่ออัปเดตล้มเหลว
       showDialog(
         context: context,
         builder: (BuildContext context) {
@@ -228,7 +224,7 @@ class _EditActivityState extends State<EditActivity> {
               TextButton(
                 child: Text("ตกลง"),
                 onPressed: () {
-                  Navigator.of(context).pop(); // ปิดป๊อปอัพ
+                  Navigator.of(context).pop();
                 },
               ),
             ],
@@ -238,151 +234,304 @@ class _EditActivityState extends State<EditActivity> {
     }
   }
 
+  Future<void> deleteActivity() async {
+    Map<String, dynamic> dataPost = {
+      "activity_id": widget.activityId,
+    };
+
+    print("DataPost for Delete: $dataPost");
+
+    Map<String, String> headers = {
+      "Content-Type": "application/json",
+      "Accept": "application/json",
+      "Authorization": "Bearer ${widget.jwt}"
+    };
+
+    var url =
+        Uri.parse("http://10.0.2.2/flutter_webservice/get_DeleteActivity.php");
+
+    var response = await http.post(
+      url,
+      headers: headers,
+      body: json.encode(dataPost),
+    );
+
+    print('Response status: ${response.statusCode}');
+    print('Response body: ${response.body}');
+
+    if (response.statusCode == 200) {
+      var responseData = json.decode(response.body);
+      if (responseData["result"] == "success") {
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text("สำเร็จ"),
+              content: Text("ลบกิจกรรมสำเร็จ"),
+              actions: <Widget>[
+                TextButton(
+                  child: Text("ตกลง"),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      } else {
+        print("Delete failed: ${responseData['message']}");
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text("ล้มเหลว"),
+              content: Text("การลบกิจกรรมล้มเหลว"),
+              actions: <Widget>[
+                TextButton(
+                  child: Text("ตกลง"),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      }
+    } else {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text("ล้มเหลว"),
+            content: Text("การลบกิจกรรมล้มเหลว"),
+            actions: <Widget>[
+              TextButton(
+                child: Text("ตกลง"),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
+    }
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('แก้ไขกิจกรรม'), // ชื่อหน้าจอแก้ไขกิจกรรม
+        title: Text('แก้ไขกิจกรรม'),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0), // กำหนดขนาด padding ของฟอร์ม
-        child: Form(
-          key: _formKey,
-          child: ListView(
-            children: [
-              buildTextField(nameController, 'ชื่อกิจกรรม',
-                  Icons.event), // ฟิลด์สำหรับกรอกชื่อกิจกรรม
-              buildDropdownButtonFormField(
-                selectedLocation, // ยังคงใช้ตัวแปรนี้สำหรับแสดงผลสถานที่ที่ถูกเลือก
-                Map<String, int>.fromIterable(
-                  locationData, // ใช้ locationData
-                  key: (item) =>
-                      item['location_name'] as String, // ใช้ชื่อสถานที่เป็น key
-                  value: (item) =>
-                      item['location_id'] as int, // ใช้ ID ของสถานที่เป็น value
-                ),
-                'สถานที่', // ป้ายกำกับฟิลด์
-                Icons.location_on, // ไอคอนของฟิลด์
-                (value) {
-                  setState(() {
-                    selectedLocation = value; // กำหนดค่าสถานที่ที่เลือก
-                    fetchSportByLocation(
-                        value!); // อัพเดตข้อมูลกีฬาตามสถานที่ที่เลือก
-                  });
-                },
-              ),
-              buildDropdownButtonFormField(
-                selectedSport, // ยังคงใช้ตัวแปรนี้สำหรับแสดงผลกีฬาที่ถูกเลือก
-                sportMap, // คาดว่าจะถูกอัพเดตหลังจากเลือกสถานที่
-                'กีฬา', // ป้ายกำกับฟิลด์
-                Icons.sports_soccer, // ไอคอนของฟิลด์
-                (value) {
-                  setState(() {
-                    selectedSport = value; // กำหนดค่ากีฬาที่เลือก
-                  });
-                },
-              ),
-              buildTextField(detailsController, 'รายละเอียดกิจกรรม',
-                  Icons.description), // ฟิลด์สำหรับกรอกรายละเอียดกิจกรรม
-              buildDatePickerField(dateController, 'วันที่และเวลา',
-                  Icons.calendar_today), // ฟิลด์สำหรับเลือกวันที่และเวลา
-              buildTagPickerField(hashtagController, 'แฮชแท็ก',
-                  Icons.tag), // ฟิลด์สำหรับกรอกแฮชแท็ก
-              SizedBox(height: 20),
-              ElevatedButton(
-                onPressed:
-                    updateActivity, // เรียกใช้ฟังก์ชัน updateActivity เมื่อกดปุ่ม
-                child: Text('บันทึกการเปลี่ยนแปลง'), // ข้อความในปุ่ม
-              ),
-            ],
-          ),
+      body: SafeArea(
+        child: ListView(
+          children: [
+            nameActivity(),
+            location(),
+            sportDropdown(),
+            dateField(),
+            hashtagField(),
+            detailsField(),
+            saveButton(),
+            deleteButton()
+          ],
         ),
       ),
     );
   }
 
-  // วิดเจ็ตสำหรับสร้างฟิลด์ข้อความ
-  Widget buildTextField(
-      TextEditingController controller, String labelText, IconData icon) {
+  Widget deleteButton() {
     return Container(
-      margin: EdgeInsets.fromLTRB(50, 20, 50, 0), // กำหนดขนาด margin ของฟิลด์
+      margin: EdgeInsets.fromLTRB(10, 20, 10, 0),
+      child: SizedBox(
+        width: 200,
+        child: ElevatedButton(
+          child: Text(
+            "ลบกิจกรรม",
+            style: TextStyle(color: Colors.white),
+          ),
+          style: ElevatedButton.styleFrom(
+            padding: EdgeInsets.fromLTRB(20, 10, 20, 10),
+            backgroundColor: Colors.red,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(30),
+              side: BorderSide(color: Colors.black),
+            ),
+          ),
+          onPressed: () {
+            showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  title: Text("ยืนยันการลบ"),
+                  content: Text("คุณต้องการลบกิจกรรมนี้หรือไม่?"),
+                  actions: <Widget>[
+                    TextButton(
+                      child: Text("ยกเลิก"),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                    ),
+                    TextButton(
+                      child: Text("ยืนยัน"),
+                      onPressed: () {
+                        Navigator.of(context).pop(); // ปิด dialog
+                        deleteActivity();
+                      },
+                    ),
+                  ],
+                );
+              },
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget nameActivity() {
+    return Container(
+      margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
       child: TextFormField(
-        controller: controller,
+        controller: nameController,
         decoration: InputDecoration(
-          contentPadding:
-              EdgeInsets.fromLTRB(0, 15, 0, 0), // กำหนดขนาด padding ภายในฟิลด์
-          hintText: labelText, // ข้อความแนะนำในฟิลด์
-          fillColor: Color.fromARGB(255, 255, 255, 255), // กำหนดสีพื้นหลังฟิลด์
+          contentPadding: EdgeInsets.fromLTRB(0, 15, 0, 0),
+          hintText: 'ชื่อกิจกรรม',
+          fillColor: Colors.white,
           filled: true,
-          prefixIcon: Icon(icon, color: Colors.red), // ไอคอนด้านหน้าฟิลด์
+          prefixIcon: Icon(Icons.event, color: Colors.red),
           border: OutlineInputBorder(
-            borderSide: BorderSide(color: Colors.black), // กำหนดสีของขอบฟิลด์
-            borderRadius: BorderRadius.circular(30), // ปรับความโค้งของขอบฟิลด์
+            borderSide: BorderSide(color: Colors.black),
+            borderRadius: BorderRadius.circular(30),
           ),
         ),
       ),
     );
   }
 
-  // วิดเจ็ตสำหรับสร้างฟิลด์ DropdownButtonFormField
-  Widget buildDropdownButtonFormField(
-      String? selectedItem,
-      Map<String, int> itemMap,
-      String labelText,
-      IconData icon,
-      ValueChanged<String?> onChanged) {
+  Widget location() {
     return Container(
-      margin: EdgeInsets.fromLTRB(50, 20, 50, 0), // กำหนดขนาด margin ของฟิลด์
-      child: DropdownButtonFormField<String>(
-        value: selectedItem, // ค่าเริ่มต้นที่เลือก
-        decoration: InputDecoration(
-          contentPadding:
-              EdgeInsets.fromLTRB(0, 15, 0, 0), // กำหนดขนาด padding ภายในฟิลด์
-          hintText: labelText, // ข้อความแนะนำในฟิลด์
-          fillColor: Color.fromARGB(255, 255, 255, 255), // กำหนดสีพื้นหลังฟิลด์
-          filled: true,
-          prefixIcon: Icon(icon, color: Colors.red), // ไอคอนด้านหน้าฟิลด์
-          border: OutlineInputBorder(
-            borderSide: BorderSide(color: Colors.black), // กำหนดสีของขอบฟิลด์
-            borderRadius: BorderRadius.circular(30), // ปรับความโค้งของขอบฟิลด์
+      margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
+      child: TypeAheadFormField(
+        textFieldConfiguration: TextFieldConfiguration(
+          controller: locationController,
+          decoration: InputDecoration(
+            contentPadding: EdgeInsets.fromLTRB(0, 15, 0, 0),
+            hintText: 'สถานที่',
+            fillColor: Colors.white,
+            filled: true,
+            prefixIcon: Icon(Icons.location_on, color: Colors.red),
+            border: OutlineInputBorder(
+              borderSide: BorderSide(color: Colors.black),
+              borderRadius: BorderRadius.circular(30),
+            ),
           ),
         ),
-        onChanged: onChanged, // ฟังก์ชันที่เรียกใช้เมื่อมีการเปลี่ยนแปลงค่า
-        items: itemMap.keys
-            .map((itemName) => DropdownMenuItem<String>(
-                  value: itemName, // กำหนดค่าในแต่ละรายการ
-                  child: Text(itemName), // ข้อความที่แสดงในรายการ
-                ))
-            .toList(),
+        suggestionsCallback: (pattern) {
+          return locations.where((location) =>
+              location.toLowerCase().contains(pattern.toLowerCase()));
+        },
+        itemBuilder: (context, suggestion) {
+          return ListTile(
+            title: Text(suggestion),
+          );
+        },
+        onSuggestionSelected: (suggestion) {
+          setState(() {
+            locationController.text = suggestion;
+            selectedLocation = suggestion;
+            updateSportsForLocation(suggestion);
+          });
+        },
+        noItemsFoundBuilder: (context) {
+          return Padding(
+            padding: EdgeInsets.all(8.0),
+            child: Text(
+              'ไม่พบสถานที่',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.grey, fontSize: 18.0),
+            ),
+          );
+        },
       ),
     );
   }
 
-  // วิดเจ็ตสำหรับสร้างฟิลด์เลือกวันที่และเวลา
-  Widget buildDatePickerField(
-      TextEditingController controller, String labelText, IconData icon) {
+  Widget sportDropdown() {
     return Container(
-      margin: EdgeInsets.fromLTRB(50, 20, 50, 0), // กำหนดขนาด margin ของฟิลด์
+      margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
+      child: TypeAheadFormField(
+        textFieldConfiguration: TextFieldConfiguration(
+          controller: sportController,
+          decoration: InputDecoration(
+            contentPadding: EdgeInsets.fromLTRB(0, 15, 0, 0),
+            hintText: 'กีฬา',
+            fillColor: Colors.white,
+            filled: true,
+            prefixIcon: Icon(Icons.sports_soccer, color: Colors.red),
+            border: OutlineInputBorder(
+              borderSide: BorderSide(color: Colors.black),
+              borderRadius: BorderRadius.circular(30),
+            ),
+          ),
+        ),
+        suggestionsCallback: (pattern) {
+          return sport.where(
+              (sport) => sport.toLowerCase().contains(pattern.toLowerCase()));
+        },
+        itemBuilder: (context, suggestion) {
+          return ListTile(
+            title: Text(suggestion),
+          );
+        },
+        onSuggestionSelected: (suggestion) {
+          setState(() {
+            sportController.text = suggestion;
+            selectedSport = suggestion;
+          });
+        },
+        noItemsFoundBuilder: (context) {
+          return Padding(
+            padding: EdgeInsets.all(8.0),
+            child: Text(
+              'ไม่พบกีฬา',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.grey, fontSize: 18.0),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget dateField() {
+    return Container(
+      margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
       child: TextFormField(
-        controller: controller,
+        controller: dateController,
         decoration: InputDecoration(
-          contentPadding:
-              EdgeInsets.fromLTRB(0, 15, 0, 0), // กำหนดขนาด padding ภายในฟิลด์
-          hintText: labelText, // ข้อความแนะนำในฟิลด์
-          fillColor: Color.fromARGB(255, 255, 255, 255), // กำหนดสีพื้นหลังฟิลด์
+          contentPadding: EdgeInsets.fromLTRB(0, 15, 0, 0),
+          hintText: 'วันที่และเวลา',
+          fillColor: Colors.white,
           filled: true,
-          prefixIcon: Icon(icon, color: Colors.red), // ไอคอนด้านหน้าฟิลด์
+          prefixIcon: Icon(Icons.calendar_today, color: Colors.red),
           border: OutlineInputBorder(
-            borderSide: BorderSide(color: Colors.black), // กำหนดสีของขอบฟิลด์
-            borderRadius: BorderRadius.circular(30), // ปรับความโค้งของขอบฟิลด์
+            borderSide: BorderSide(color: Colors.black),
+            borderRadius: BorderRadius.circular(30),
           ),
         ),
-        readOnly: true, // ปิดการแก้ไขฟิลด์โดยตรง
+        readOnly: true,
         onTap: () async {
+          DateTime now = DateTime.now();
           DateTime? pickedDate = await showDatePicker(
             context: context,
-            initialDate: DateTime.now(),
-            firstDate: DateTime(2000),
+            initialDate: now,
+            firstDate: now,
             lastDate: DateTime(2101),
           );
 
@@ -390,6 +539,14 @@ class _EditActivityState extends State<EditActivity> {
             TimeOfDay? pickedTime = await showTimePicker(
               context: context,
               initialTime: TimeOfDay.now(),
+              builder: (context, child) {
+                return MediaQuery(
+                  data: MediaQuery.of(context).copyWith(
+                    alwaysUse24HourFormat: true,
+                  ),
+                  child: child!,
+                );
+              },
             );
 
             if (pickedTime != null) {
@@ -402,8 +559,7 @@ class _EditActivityState extends State<EditActivity> {
               );
 
               setState(() {
-                controller.text = finalDateTime
-                    .toString(); // กำหนดค่าวันที่และเวลาที่ถูกเลือกในฟิลด์
+                dateController.text = finalDateTime.toString();
               });
             }
           }
@@ -412,55 +568,130 @@ class _EditActivityState extends State<EditActivity> {
     );
   }
 
-  // วิดเจ็ตสำหรับสร้างฟิลด์แฮชแท็ก
-  Widget buildTagPickerField(
-      TextEditingController controller, String labelText, IconData icon) {
+  Widget hashtagField() {
     return Container(
-      margin: EdgeInsets.fromLTRB(50, 20, 50, 0), // กำหนดขนาด margin ของฟิลด์
+      margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Wrap(
-            spacing: 8.0, // กำหนดระยะห่างระหว่างแฮชแท็ก
+            spacing: 8.0,
             children: _selectedTags
                 .map((tag) => Chip(
-                      label: Text(tag), // ข้อความในแฮชแท็ก
+                      label: Text(tag),
                       onDeleted: () {
                         setState(() {
-                          _selectedTags.remove(tag); // ลบแฮชแท็กที่ถูกเลือกออก
+                          _selectedTags.remove(tag);
                         });
                       },
                     ))
                 .toList(),
           ),
-          TextFormField(
-            controller: controller,
-            decoration: InputDecoration(
-              contentPadding: EdgeInsets.fromLTRB(
-                  0, 15, 0, 0), // กำหนดขนาด padding ภายในฟิลด์
-              hintText: labelText, // ข้อความแนะนำในฟิลด์
-              fillColor:
-                  Color.fromARGB(255, 255, 255, 255), // กำหนดสีพื้นหลังฟิลด์
-              filled: true,
-              prefixIcon: Icon(icon, color: Colors.red), // ไอคอนด้านหน้าฟิลด์
-              border: OutlineInputBorder(
-                borderSide:
-                    BorderSide(color: Colors.black), // กำหนดสีของขอบฟิลด์
-                borderRadius:
-                    BorderRadius.circular(30), // ปรับความโค้งของขอบฟิลด์
+          TypeAheadFormField<String>(
+            textFieldConfiguration: TextFieldConfiguration(
+              controller: hashtagController,
+              decoration: InputDecoration(
+                hintText: 'แฮชแท็ก',
+                suffixIcon: Padding(
+                  padding: const EdgeInsets.only(right: 8.0),
+                  child: TextButton(
+                    onPressed: () {
+                      String newTag = hashtagController.text.trim();
+                      if (newTag.isNotEmpty &&
+                          newTag.length <= 20 &&
+                          _selectedTags.length < 3 &&
+                          !_selectedTags.contains('#$newTag')) {
+                        setState(() {
+                          _selectedTags.add('#$newTag');
+                          hashtagController.clear();
+                        });
+                      }
+                    },
+                    child: Text('เพิ่ม'),
+                  ),
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(30),
+                ),
               ),
             ),
-            onFieldSubmitted: (value) {
-              if (value.isNotEmpty && !_selectedTags.contains(value)) {
+            suggestionsCallback: (pattern) {
+              return _allHashtags.where((hashtag) =>
+                  hashtag.toLowerCase().contains(pattern.toLowerCase()));
+            },
+            itemBuilder: (context, suggestion) {
+              return ListTile(
+                title: Text(suggestion),
+              );
+            },
+            onSuggestionSelected: (suggestion) {
+              if (_selectedTags.length < 3 &&
+                  !_selectedTags.contains('#$suggestion')) {
                 setState(() {
-                  _selectedTags.add(value); // เพิ่มแฮชแท็กใหม่ลงในรายการ
-                  controller.clear(); // ล้างฟิลด์แฮชแท็กหลังจากเพิ่ม
+                  _selectedTags.add('#$suggestion');
+                  hashtagController.clear();
                 });
               }
+            },
+            noItemsFoundBuilder: (context) {
+              return Padding(
+                padding: EdgeInsets.all(8.0),
+                child: Text(
+                  'ไม่พบแฮชแท็ก',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.grey, fontSize: 18.0),
+                ),
+              );
             },
           ),
         ],
       ),
     );
   }
+
+  Widget detailsField() {
+    return Container(
+      margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
+      child: TextFormField(
+        controller: detailsController,
+        decoration: InputDecoration(
+          contentPadding: EdgeInsets.fromLTRB(0, 15, 0, 0),
+          hintText: 'รายละเอียดกิจกรรม',
+          fillColor: Colors.white,
+          filled: true,
+          prefixIcon: Icon(Icons.description, color: Colors.red),
+          border: OutlineInputBorder(
+            borderSide: BorderSide(color: Colors.black),
+            borderRadius: BorderRadius.circular(30),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget saveButton() {
+    return Container(
+      margin: EdgeInsets.fromLTRB(10, 20, 10, 0),
+      child: SizedBox(
+        width: 200,
+        child: ElevatedButton(
+          child: Text(
+            "บันทึกการเปลี่ยนแปลง",
+            style: TextStyle(color: Colors.white),
+          ),
+          style: ElevatedButton.styleFrom(
+            padding: EdgeInsets.fromLTRB(20, 10, 20, 10),
+            backgroundColor: Colors.red,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(30),
+              side: BorderSide(color: Colors.black),
+            ),
+          ),
+          onPressed: updateActivity,
+        ),
+      ),
+    );
+  }
 }
+
+  
