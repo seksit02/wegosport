@@ -69,11 +69,6 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
       backgroundColor:
           Color.fromARGB(255, 255, 255, 255), // กำหนดสีพื้นหลังของหน้าจอ
       appBar: AppBar(
-        title: Text(
-          'หน้าลืมรหัสผ่าน', // ชื่อหน้าจอ
-          style: TextStyle(color: Color.fromARGB(255, 255, 255, 255)),
-        ),
-        centerTitle: true, // จัดกึ่งกลางชื่อหน้าจอ
         backgroundColor:
             Color.fromARGB(255, 255, 0, 0), // กำหนดสีพื้นหลังของ AppBar
         leading: IconButton(

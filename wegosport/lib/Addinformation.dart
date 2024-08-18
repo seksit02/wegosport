@@ -576,8 +576,6 @@ class _editinformationState extends State<editinformation> {
             appBar: AppBar(
               backgroundColor:
                   Color.fromARGB(255, 255, 0, 0), // กำหนดสีพื้นหลังของ AppBar
-              title: Text("หน้าเพิ่มข้อมูลผู้ใช้",
-                  style: TextStyle(color: Colors.white)), // หัวข้อของ AppBar
               leading: backButton(), // ปุ่มย้อนกลับ
             ),
             body: SafeArea(
