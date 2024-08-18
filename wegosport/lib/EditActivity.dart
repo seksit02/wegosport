@@ -146,11 +146,12 @@ class _EditActivityState extends State<EditActivity> {
       "activity_details": detailsController.text,
       "activity_date": dateController.text,
       "location_name": selectedLocation ?? '',
-      "sport_name": sport.firstWhere((element) => element == selectedSport),
+      "sport_name": sport.firstWhere((element) => element == selectedSport,
+          orElse: () => '1' // ระบุค่าเริ่มต้นในกรณีที่ไม่มีองค์ประกอบตรงกัน
+          ),
       "hashtags": hashtagList,
     };
 
-    // พิมพ์ค่า dataPost ที่จะถูกส่งไปยังเซิร์ฟเวอร์
     print("DataPost: $dataPost");
 
     Map<String, String> headers = {
@@ -172,9 +173,8 @@ class _EditActivityState extends State<EditActivity> {
     print('Response body: ${response.body}');
 
     if (response.statusCode == 200) {
-      // Check if the response body indicates success
       var responseData = json.decode(response.body);
-      if (responseData["result"] == "success") {
+      if (responseData["message"] == "Activity updated successfully") {
         showDialog(
           context: context,
           builder: (BuildContext context) {
@@ -185,8 +185,9 @@ class _EditActivityState extends State<EditActivity> {
                 TextButton(
                   child: Text("ตกลง"),
                   onPressed: () {
-                    Navigator.of(context).pop();
-                    Navigator.of(context).pop();
+                    Navigator.of(context).pop(); // ปิด AlertDialog
+                    Navigator.of(context).pop(
+                        true); // กลับไปยังหน้าหลักพร้อมแจ้งว่าให้รีเฟรชข้อมูล
                   },
                 ),
               ],
@@ -201,7 +202,7 @@ class _EditActivityState extends State<EditActivity> {
             return AlertDialog(
               title: Text("ล้มเหลว"),
               content: Text("การแก้ไขกิจกรรมล้มเหลว"),
-              actions: <Widget>[
+              actions: [
                 TextButton(
                   child: Text("ตกลง"),
                   onPressed: () {
@@ -220,7 +221,7 @@ class _EditActivityState extends State<EditActivity> {
           return AlertDialog(
             title: Text("ล้มเหลว"),
             content: Text("การแก้ไขกิจกรรมล้มเหลว"),
-            actions: <Widget>[
+            actions: [
               TextButton(
                 child: Text("ตกลง"),
                 onPressed: () {
@@ -233,6 +234,7 @@ class _EditActivityState extends State<EditActivity> {
       );
     }
   }
+
 
   Future<void> deleteActivity() async {
     Map<String, dynamic> dataPost = {
@@ -272,8 +274,9 @@ class _EditActivityState extends State<EditActivity> {
                 TextButton(
                   child: Text("ตกลง"),
                   onPressed: () {
-                    Navigator.of(context).pop();
-                    Navigator.of(context).pop();
+                    Navigator.of(context).pop(); // ปิด AlertDialog
+                    Navigator.of(context).pop(
+                        true); // กลับไปยังหน้าหลักพร้อมแจ้งว่าให้รีเฟรชข้อมูล
                   },
                 ),
               ],
@@ -288,7 +291,7 @@ class _EditActivityState extends State<EditActivity> {
             return AlertDialog(
               title: Text("ล้มเหลว"),
               content: Text("การลบกิจกรรมล้มเหลว"),
-              actions: <Widget>[
+              actions: [
                 TextButton(
                   child: Text("ตกลง"),
                   onPressed: () {
@@ -307,7 +310,7 @@ class _EditActivityState extends State<EditActivity> {
           return AlertDialog(
             title: Text("ล้มเหลว"),
             content: Text("การลบกิจกรรมล้มเหลว"),
-            actions: <Widget>[
+            actions: [
               TextButton(
                 child: Text("ตกลง"),
                 onPressed: () {
@@ -320,6 +323,7 @@ class _EditActivityState extends State<EditActivity> {
       );
     }
   }
+
 
 
   @override

@@ -319,7 +319,7 @@ class _HomepageState extends State<Homepage> {
                         },
                         child: ActivityCardItem(
                           activity: activity,
-                          userData: userData,
+                          userData: userData, fetchActivities: fetchActivities,
                         ),
                       );
                     },
@@ -384,10 +384,12 @@ class ActivityCardItem extends StatelessWidget {
   final Color backgroundColor;
   final Color statusColor;
   final Color textColor;
+  final Function fetchActivities; // รับฟังก์ชัน fetchActivities
 
   ActivityCardItem({
     required this.activity,
     required this.userData,
+    required this.fetchActivities, // เพิ่มฟังก์ชัน fetchActivities
     this.backgroundColor = const Color.fromARGB(255, 255, 255, 255),
     this.statusColor = const Color.fromARGB(255, 255, 225, 1),
     this.textColor = Colors.black,
@@ -483,18 +485,23 @@ class ActivityCardItem extends StatelessWidget {
                   IconButton(
                     icon: Icon(Icons.more_vert,
                         color: const Color.fromARGB(255, 0, 0, 0)),
-                    onPressed: () {
+                    onPressed: () async {
                       if (userData != null &&
                           activity['creator_id'] == userData!['user_id']) {
-                        Navigator.push(
+                        final result = await Navigator.push(
                           context,
                           MaterialPageRoute(
                             builder: (context) => EditActivity(
                               activityId: activity['activity_id'].toString(),
-                              jwt: '',
+                              jwt: '', // ใช้ JWT ที่ถูกต้องที่คุณต้องการส่งไป
                             ),
                           ),
                         );
+
+                        if (result == true) {
+                          // รีเฟรชข้อมูลหลังจากกลับมาจากหน้า EditActivity
+                          fetchActivities(); // เรียกใช้ฟังก์ชันที่ส่งมาจาก Homepage
+                        }
                       } else {
                         showDialog(
                           context: context,
@@ -516,7 +523,9 @@ class ActivityCardItem extends StatelessWidget {
                         );
                       }
                     },
+
                   ),
+
                 ],
               ),
               SizedBox(height: 8),
