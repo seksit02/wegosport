@@ -9,16 +9,16 @@ import 'package:wegosport/groupchat.dart';
 import 'dart:convert';
 import 'package:wegosport/Login.dart';
 import 'dart:ui';
-import 'package:intl/intl.dart';
+import 'package:intl/intl.dart'; // นำเข้าไลบรารีที่จำเป็นสำหรับการทำงาน
 
 // หน้าจอ Homepage
 class Homepage extends StatefulWidget {
   final String jwt; // รับค่า JWT สำหรับการตรวจสอบสิทธิ์
-  
+
   const Homepage({Key? key, required this.jwt}) : super(key: key);
 
   @override
-  State<Homepage> createState() => _HomepageState();
+  State<Homepage> createState() => _HomepageState(); // สร้างสถานะของ Homepage
 }
 
 class _HomepageState extends State<Homepage> {
@@ -43,11 +43,11 @@ class _HomepageState extends State<Homepage> {
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
 
-      // จัดเรียงกิจกรรมตามวันที่สร้าง (assuming 'activity_date' contains the date)
+      // จัดเรียงกิจกรรมตามวันที่สร้าง
       data.sort((a, b) {
         final dateA = DateTime.parse(a['activity_date']);
         final dateB = DateTime.parse(b['activity_date']);
-        return dateB.compareTo(dateA); // Sort in descending order
+        return dateB.compareTo(dateA); // จัดเรียงตามลำดับวันที่
       });
 
       setState(() {
@@ -66,7 +66,7 @@ class _HomepageState extends State<Homepage> {
         Uri.parse('http://10.0.2.2/flutter_webservice/get_ShowDataUser.php');
 
     Map<String, String> headers = {
-      'Authorization': 'Bearer $jwt',
+      'Authorization': 'Bearer $jwt', // ใส่ JWT ในส่วนของ Authorization Header
     };
 
     print('Headers Homepage : $headers'); // พิมพ์ headers เพื่อการตรวจสอบ
@@ -74,7 +74,7 @@ class _HomepageState extends State<Homepage> {
     try {
       var response = await http.post(
         url,
-        headers: headers,
+        headers: headers, // ส่งค่า JWT ไปพร้อมกับคำขอ
       );
 
       print('Response status: ${response.statusCode}');
@@ -88,10 +88,9 @@ class _HomepageState extends State<Homepage> {
             data[0] is Map<String, dynamic> &&
             data[0].containsKey('user_id')) {
           setState(() {
-            userData = data[0];
+            userData = data[0]; // เก็บข้อมูลผู้ใช้ในตัวแปร userData
           });
           print('User data: $userData');
-          
         } else {
           print("No user data found");
           throw Exception('Failed to load user data');
@@ -112,7 +111,7 @@ class _HomepageState extends State<Homepage> {
       setState(() {
         searchQuery = query ?? '';
         filteredActivities = [
-          {'activity_name': 'ไม่มีกิจกรรม'}
+          {'activity_name': 'ไม่มีกิจกรรม'} // กำหนดค่าดีฟอลต์หากไม่มีผลลัพธ์
         ];
       });
       return;
@@ -135,7 +134,7 @@ class _HomepageState extends State<Homepage> {
       searchQuery = query;
       if (filtered.isEmpty) {
         filteredActivities = [
-          {'activity_name': 'ไม่มีกิจกรรม'}
+          {'activity_name': 'ไม่มีกิจกรรม'} // กำหนดค่าดีฟอลต์หากไม่มีผลลัพธ์
         ];
       } else {
         filteredActivities = filtered.map((activity) {
@@ -159,7 +158,8 @@ class _HomepageState extends State<Homepage> {
       });
     } else if (index == 1) {
       Navigator.of(context).push(
-        MaterialPageRoute(builder: (context) => groupchat()),
+        MaterialPageRoute(
+            builder: (context) => groupchat()), // เปลี่ยนไปยังหน้าแชท
       );
     }
   }
@@ -184,7 +184,8 @@ class _HomepageState extends State<Homepage> {
               onPressed: () {
                 Navigator.of(context).pop(); // ปิดกล่องข้อความ
                 Navigator.of(context).pushReplacement(
-                  MaterialPageRoute(builder: (context) => LoginPage()),
+                  MaterialPageRoute(
+                      builder: (context) => LoginPage()), // กลับไปยังหน้า Login
                 );
               },
             ),
@@ -200,7 +201,7 @@ class _HomepageState extends State<Homepage> {
       context,
       MaterialPageRoute(
         builder: (context) => ProfilePage(
-          jwt: widget.jwt,
+          jwt: widget.jwt, // ส่งค่า JWT ไปยังหน้า ProfilePage
         ),
       ),
     );
@@ -210,12 +211,14 @@ class _HomepageState extends State<Homepage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Color.fromARGB(255, 255, 255, 255),
-        iconTheme: IconThemeData(color: Colors.black),
-        toolbarHeight: 45.0,
+        backgroundColor:
+            Color.fromARGB(255, 255, 255, 255), // กำหนดสีพื้นหลัง AppBar
+        iconTheme:
+            IconThemeData(color: Colors.black), // กำหนดสีของไอคอนใน AppBar
+        toolbarHeight: 45.0, // กำหนดความสูงของ AppBar
         leading: IconButton(
           icon: Icon(Icons.logout),
-          onPressed: _logout,
+          onPressed: _logout, // เรียกใช้ฟังก์ชัน _logout เมื่อกดปุ่มออกจากระบบ
           tooltip: 'ออกจากระบบ',
         ),
         title: Row(
@@ -228,7 +231,8 @@ class _HomepageState extends State<Homepage> {
           Padding(
             padding: const EdgeInsets.only(right: 8.0),
             child: GestureDetector(
-              onTap: _navigateToProfile,
+              onTap:
+                  _navigateToProfile, // เรียกใช้ฟังก์ชัน _navigateToProfile เมื่อกดที่รูปโปรไฟล์
               child: CircleAvatar(
                 backgroundImage:
                     userData != null && userData!['user_photo'] != null
@@ -248,7 +252,8 @@ class _HomepageState extends State<Homepage> {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: <Widget>[
                 TextButton(
-                  onPressed: () => _onItemTapped(0),
+                  onPressed: () => _onItemTapped(
+                      0), // เรียกใช้ฟังก์ชัน _onItemTapped เมื่อกดปุ่มหน้าหลัก
                   child: Text(
                     'หน้าหลัก',
                     style: TextStyle(
@@ -261,7 +266,8 @@ class _HomepageState extends State<Homepage> {
                 VerticalDivider(
                     thickness: 1, color: Color.fromARGB(255, 146, 146, 146)),
                 TextButton(
-                  onPressed: () => _onItemTapped(1),
+                  onPressed: () => _onItemTapped(
+                      1), // เรียกใช้ฟังก์ชัน _onItemTapped เมื่อกดปุ่มแชท
                   child: Text(
                     'แชท',
                     style: TextStyle(
@@ -287,13 +293,14 @@ class _HomepageState extends State<Homepage> {
                 hintText: 'ค้นหา',
                 prefixIcon: Icon(Icons.search),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(50.0),
+                  borderRadius:
+                      BorderRadius.circular(50.0), // ปรับความโค้งของขอบ
                 ),
               ),
             ),
           ),
           Expanded(
-            // การ์ด
+            // การ์ดกิจกรรม
             child: filteredActivities.isEmpty
                 ? Center(child: CircularProgressIndicator())
                 : ListView.builder(
@@ -305,12 +312,14 @@ class _HomepageState extends State<Homepage> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) =>
-                                  ActivityPage(activity: activity),
+                              builder: (context) => ActivityPage(
+                                  activity: activity), // ไปยังหน้า ActivityPage
                             ),
                           );
                         },
-                        child: ActivityCardItem(activity: activity, userData: userData,
+                        child: ActivityCardItem(
+                          activity: activity,
+                          userData: userData,
                         ),
                       );
                     },
@@ -327,7 +336,8 @@ class _HomepageState extends State<Homepage> {
                       Navigator.of(context).push(
                         MaterialPageRoute(
                           builder: (context) => CreateActivityPage(
-                            jwt: widget.jwt, // ส่งค่า jwt ที่ได้รับจากฟังก์ชัน
+                            jwt: widget
+                                .jwt, // ส่งค่า jwt ไปยังหน้า CreateActivityPage
                           ),
                         ),
                       );
@@ -344,7 +354,8 @@ class _HomepageState extends State<Homepage> {
                       Navigator.of(context).push(
                         MaterialPageRoute(
                           builder: (context) => AddLocationPage(
-                            jwt: widget.jwt, // ส่งค่า jwt ที่ได้รับจากฟังก์ชัน
+                            jwt: widget
+                                .jwt, // ส่งค่า jwt ไปยังหน้า AddLocationPage
                           ),
                         ),
                       );
@@ -426,7 +437,7 @@ class ActivityCardItem extends StatelessWidget {
               actions: [
                 TextButton(
                   onPressed: () {
-                    Navigator.of(context).pop();
+                    Navigator.of(context).pop(); // ปิด popup
                   },
                   child: Text('ตกลง'),
                 ),
@@ -437,7 +448,7 @@ class ActivityCardItem extends StatelessWidget {
       },
       child: Card(
         color: backgroundColor,
-        margin: EdgeInsets.all(10),
+        margin: EdgeInsets.all(10), // กำหนดขอบของการ์ดกิจกรรม
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
@@ -513,7 +524,8 @@ class ActivityCardItem extends StatelessWidget {
               Wrap(
                 runSpacing: 5.0,
                 children: (activity['hashtags'] as List<dynamic>? ?? [])
-                    .map((tag) => TagWidget(text: tag['hashtag_message']))
+                    .map((tag) =>
+                        TagWidget(text: tag['hashtag_message'])) // แสดงแท็ก
                     .toList(),
               ),
               SizedBox(height: 8),
@@ -552,7 +564,8 @@ class ActivityCardItem extends StatelessWidget {
                     ...members.map((member) {
                       String imageUrl =
                           member['user_photo'] ?? 'images/logo.png';
-                      return MemberAvatar(imageUrl: imageUrl);
+                      return MemberAvatar(
+                          imageUrl: imageUrl); // แสดงรูปภาพของสมาชิก
                     }).toList()
                   else
                     Text('ไม่มีสมาชิก', style: TextStyle(color: Colors.grey)),
@@ -617,7 +630,6 @@ class ActivityCardItem extends StatelessWidget {
   }
 }
 
-
 // วิดเจ็ตแสดงแท็ก (hashtag)
 class TagWidget extends StatelessWidget {
   final String text;
@@ -630,14 +642,13 @@ class TagWidget extends StatelessWidget {
       margin: EdgeInsets.only(right: 8),
       padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       decoration: BoxDecoration(
-        color: Color.fromARGB(255, 175, 175, 175),
-        borderRadius: BorderRadius.circular(20),
+        color: Color.fromARGB(255, 175, 175, 175), // กำหนดสีพื้นหลังของแท็ก
+        borderRadius: BorderRadius.circular(20), // ปรับความโค้งของแท็ก
       ),
       child: Text(
         text,
         style: TextStyle(
-          color:
-              const Color.fromARGB(255, 0, 0, 0), // เปลี่ยนสีข้อความเป็นสีเทา
+          color: const Color.fromARGB(255, 0, 0, 0), // กำหนดสีข้อความเป็นสีดำ
         ),
       ),
     );
@@ -652,15 +663,16 @@ class MemberAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    bool isNetworkImage = imageUrl.startsWith('http');
+    bool isNetworkImage =
+        imageUrl.startsWith('http'); // ตรวจสอบว่าเป็น URL หรือไม่
 
     return Container(
       margin: EdgeInsets.only(right: 8),
       child: CircleAvatar(
         backgroundImage: isNetworkImage
-            ? NetworkImage(imageUrl)
-            : AssetImage(imageUrl) as ImageProvider,
-        radius: 16,
+            ? NetworkImage(imageUrl) // ถ้าเป็น URL ใช้ NetworkImage
+            : AssetImage(imageUrl) as ImageProvider, // ถ้าไม่เป็นใช้ AssetImage
+        radius: 16, // ขนาดของรูปภาพ
       ),
     );
   }

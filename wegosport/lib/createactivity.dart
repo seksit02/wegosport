@@ -13,7 +13,8 @@ class CreateActivityPage extends StatefulWidget {
   final String jwt; // รับค่า JWT สำหรับการตรวจสอบสิทธิ์
 
   @override
-  State<CreateActivityPage> createState() => _CreateActivityPageState();
+  State<CreateActivityPage> createState() =>
+      _CreateActivityPageState(); // สร้างสถานะของ CreateActivityPage
 }
 
 class _CreateActivityPageState extends State<CreateActivityPage> {
@@ -44,21 +45,27 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
   @override
   void initState() {
     super.initState();
-    fetchLocations();
-    fetchHashtags();
-    fetchUserData(widget.jwt);
+    fetchLocations(); // ดึงข้อมูลสถานที่เมื่อเริ่มต้น
+    fetchHashtags(); // ดึงข้อมูลแฮชแท็กเมื่อเริ่มต้น
+    fetchUserData(widget.jwt); // ดึงข้อมูลผู้ใช้เมื่อเริ่มต้น
   }
-  
+
   void _showTagPicker(BuildContext context) {
     showMaterialCheckboxPicker(
       context: context,
-      title: 'เลือกแฮชแท็ก',
-      items: ['กีฬา', 'ฟิตเนส', 'สุขภาพ', 'วิ่ง', 'ว่ายน้ำ'],
-      selectedItems: _selectedTags,
+      title: 'เลือกแฮชแท็ก', // แสดงชื่อของ picker
+      items: [
+        'กีฬา',
+        'ฟิตเนส',
+        'สุขภาพ',
+        'วิ่ง',
+        'ว่ายน้ำ'
+      ], // รายการแฮชแท็กที่สามารถเลือกได้
+      selectedItems: _selectedTags, // แสดงแฮชแท็กที่ถูกเลือกแล้ว
       onChanged: (List<String> value) {
         setState(() {
           _selectedTags.clear();
-          _selectedTags.addAll(value);
+          _selectedTags.addAll(value); // อัพเดทแฮชแท็กที่เลือก
         });
       },
     );
@@ -67,22 +74,23 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
   // ฟังก์ชันดึงข้อมูลสถานที่จากเซิร์ฟเวอร์
   Future<void> fetchLocations() async {
     final response = await http.get(Uri.parse(
-        'http://10.0.2.2/flutter_webservice/get_ShowDataLocation.php'));
+        'http://10.0.2.2/flutter_webservice/get_ShowDataLocation.php')); // เรียก API ดึงข้อมูลสถานที่
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
 
-      print('DataCreat :$data');
+      print('DataCreat :$data'); // พิมพ์ข้อมูลสถานที่เพื่อการตรวจสอบ
 
       setState(() {
-        locationData = List<Map<String, dynamic>>.from(
-            data.where((item) => item['status'] == 'approved'));
+        locationData = List<Map<String, dynamic>>.from(data.where((item) =>
+            item['status'] == 'approved')); // กรองสถานที่ที่ถูกอนุมัติเท่านั้น
         locations = locationData
             .map((item) => item['location_name'].toString())
-            .toList();
+            .toList(); // เก็บชื่อสถานที่ในรูปแบบของ List
       });
     } else {
-      print('Failed to load locations. Status code: ${response.statusCode}');
+      print(
+          'Failed to load locations. Status code: ${response.statusCode}'); // พิมพ์ข้อผิดพลาดหากไม่สามารถโหลดข้อมูลได้
       throw Exception('Failed to load locations');
     }
   }
@@ -114,7 +122,7 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
   // ฟังก์ชันดึงข้อมูลแฮชแท็กจากเซิร์ฟเวอร์
   Future<void> fetchHashtags() async {
     final response = await http.get(Uri.parse(
-        'http://10.0.2.2/flutter_webservice/get_ShowDataHashtag.php'));
+        'http://10.0.2.2/flutter_webservice/get_ShowDataHashtag.php')); // เรียก API ดึงข้อมูลแฮชแท็ก
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
@@ -122,21 +130,23 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
         _allHashtags = List<String>.from(data
             .map((item) => item['hashtag_message'])
             .where((item) => item != null)
-            .toSet());
+            .toSet()); // เก็บแฮชแท็กที่ดึงมาได้ใน List
       });
     } else {
-      print('Failed to load hashtags. Status code: ${response.statusCode}');
+      print(
+          'Failed to load hashtags. Status code: ${response.statusCode}'); // พิมพ์ข้อผิดพลาดหากไม่สามารถโหลดข้อมูลได้
       throw Exception('Failed to load hashtags');
     }
   }
 
   // ฟังก์ชันดึงข้อมูลผู้ใช้จากเซิร์ฟเวอร์
   Future<void> fetchUserData(String jwt) async {
-    var url =
-        Uri.parse('http://10.0.2.2/flutter_webservice/get_ShowDataUser.php');
+    var url = Uri.parse(
+        'http://10.0.2.2/flutter_webservice/get_ShowDataUser.php'); // เรียก API ดึงข้อมูลผู้ใช้
 
     Map<String, String> headers = {
-      'Authorization': 'Bearer $jwt',
+      'Authorization':
+          'Bearer $jwt', // เพิ่ม JWT ใน headers เพื่อการตรวจสอบสิทธิ์
     };
 
     print('Headers: $headers'); // พิมพ์ headers เพื่อการตรวจสอบ
@@ -147,8 +157,10 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
         headers: headers,
       );
 
-      print('Response status: ${response.statusCode}');
-      print('Response body: ${response.body}');
+      print(
+          'Response status: ${response.statusCode}'); // พิมพ์สถานะการตอบกลับของเซิร์ฟเวอร์
+      print(
+          'Response body: ${response.body}'); // พิมพ์ข้อมูลที่ได้รับจากเซิร์ฟเวอร์
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -158,7 +170,7 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
             data[0] is Map<String, dynamic> &&
             data[0].containsKey('user_id')) {
           setState(() {
-            userData = data[0];
+            userData = data[0]; // เก็บข้อมูลผู้ใช้ในตัวแปร userData
           });
           print('User data: $userData');
         } else {
@@ -166,11 +178,12 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
           throw Exception('Failed to load user data');
         }
       } else {
-        print("Failed to load user data: ${response.body}");
+        print(
+            "Failed to load user data: ${response.body}"); // พิมพ์ข้อผิดพลาดหากไม่สามารถโหลดข้อมูลได้
         throw Exception('Failed to load user data');
       }
     } catch (error) {
-      print("Error: $error");
+      print("Error: $error"); // พิมพ์ข้อผิดพลาดหากมีการ exception เกิดขึ้น
       throw Exception('Failed to load user data');
     }
   }
@@ -178,28 +191,29 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
   // วิดเจ็ตฟิลด์ชื่อกิจกรรม
   Widget nameActivity() {
     return Container(
-      margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
+      margin: EdgeInsets.fromLTRB(50, 20, 50, 0), // กำหนด margin รอบฟิลด์
       child: TextFormField(
         controller: nameController,
         decoration: InputDecoration(
-          contentPadding: EdgeInsets.fromLTRB(0, 15, 0, 0),
-          hintText: 'เพิ่มชื่อกิจกรรม',
-          fillColor: Color.fromARGB(255, 255, 255, 255),
+          contentPadding:
+              EdgeInsets.fromLTRB(0, 15, 0, 0), // กำหนด padding ภายในฟิลด์
+          hintText: 'เพิ่มชื่อกิจกรรม', // ข้อความแนะนำในฟิลด์
+          fillColor: Color.fromARGB(255, 255, 255, 255), // สีพื้นหลังของฟิลด์
           filled: true,
           prefixIcon: Padding(
             padding: const EdgeInsets.all(15.0), // เพิ่ม padding ให้ตัวอักษร
             child: Text(
               'A',
               style: TextStyle(
-                color: Colors.red,
+                color: Colors.red, // กำหนดสีของตัวอักษร
                 fontSize: 18.0, // ขนาดตัวอักษร
                 fontWeight: FontWeight.bold, // ทำให้ตัวอักษรหนา
               ),
             ),
           ),
           border: OutlineInputBorder(
-            borderSide: BorderSide(color: Colors.black),
-            borderRadius: BorderRadius.circular(30),
+            borderSide: BorderSide(color: Colors.black), // กำหนดสีของขอบฟิลด์
+            borderRadius: BorderRadius.circular(30), // ปรับความโค้งของขอบฟิลด์
           ),
         ),
       ),
@@ -209,40 +223,46 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
   // วิดเจ็ตฟิลด์เลือกสถานที่
   Widget location() {
     return Container(
-      margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
+      margin: EdgeInsets.fromLTRB(50, 20, 50, 0), // กำหนด margin รอบฟิลด์
       child: TypeAheadFormField(
         textFieldConfiguration: TextFieldConfiguration(
           controller: locationController,
           decoration: InputDecoration(
-            contentPadding: EdgeInsets.fromLTRB(0, 15, 0, 0),
-            hintText: 'เพิ่มสถานที่',
-            hintStyle: TextStyle(fontFamily: 'THSarabunNew'),
-            fillColor: Color.fromARGB(255, 255, 255, 255),
+            contentPadding:
+                EdgeInsets.fromLTRB(0, 15, 0, 0), // กำหนด padding ภายในฟิลด์
+            hintText: 'เพิ่มสถานที่', // ข้อความแนะนำในฟิลด์
+            hintStyle:
+                TextStyle(fontFamily: 'THSarabunNew'), // กำหนดสไตล์ข้อความ
+            fillColor: Color.fromARGB(255, 255, 255, 255), // สีพื้นหลังของฟิลด์
             filled: true,
             prefixIcon: Icon(
-              Icons.location_on,
-              color: Colors.red,
+              Icons.location_on, // ไอคอนสถานที่
+              color: Colors.red, // กำหนดสีของไอคอน
             ),
             border: OutlineInputBorder(
-              borderSide: BorderSide(color: Colors.black),
-              borderRadius: BorderRadius.circular(30),
+              borderSide: BorderSide(color: Colors.black), // กำหนดสีของขอบฟิลด์
+              borderRadius:
+                  BorderRadius.circular(30), // ปรับความโค้งของขอบฟิลด์
             ),
           ),
-          style: TextStyle(fontFamily: 'THSarabunNew'),
+          style: TextStyle(fontFamily: 'THSarabunNew'), // กำหนดสไตล์ข้อความ
         ),
         suggestionsCallback: (pattern) {
-          return locations.where((location) =>
-              location.toLowerCase().contains(pattern.toLowerCase()));
+          return locations.where((location) => location
+              .toLowerCase()
+              .contains(pattern.toLowerCase())); // กรองรายการตามคำค้นหา
         },
         itemBuilder: (context, suggestion) {
           return ListTile(
-            title:
-                Text(suggestion, style: TextStyle(fontFamily: 'THSarabunNew')),
+            title: Text(suggestion,
+                style: TextStyle(
+                    fontFamily: 'THSarabunNew')), // แสดงรายการที่แนะนำ
           );
         },
         onSuggestionSelected: (suggestion) {
           setState(() {
-            locationController.text = suggestion;
+            locationController.text =
+                suggestion; // อัพเดทข้อความในฟิลด์เมื่อเลือกสถานที่
             selectedLocation = suggestion;
             updateSportsForLocation(
                 suggestion); // อัพเดทข้อมูลกีฬาตามสถานที่ที่เลือก
@@ -250,14 +270,14 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
         },
         noItemsFoundBuilder: (context) {
           return Padding(
-            padding: EdgeInsets.all(8.0),
+            padding: EdgeInsets.all(8.0), // เพิ่ม padding รอบข้อความ
             child: Text(
-              'ไม่พบสถานที่',
+              'ไม่พบสถานที่', // ข้อความที่จะแสดงเมื่อไม่มีสถานที่ที่พบ
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: Colors.grey,
-                fontSize: 18.0,
-                fontFamily: 'THSarabunNew',
+                color: Colors.grey, // กำหนดสีของข้อความ
+                fontSize: 18.0, // ขนาดของข้อความ
+                fontFamily: 'THSarabunNew', // กำหนดฟอนต์
               ),
             ),
           );
@@ -269,53 +289,59 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
   // วิดเจ็ตฟิลด์กีฬา
   Widget field_name() {
     return Container(
-      margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
+      margin: EdgeInsets.fromLTRB(50, 20, 50, 0), // กำหนด margin รอบฟิลด์
       child: TypeAheadFormField(
         textFieldConfiguration: TextFieldConfiguration(
           controller: sportController,
           decoration: InputDecoration(
-            contentPadding: EdgeInsets.fromLTRB(0, 15, 0, 0),
-            hintText: 'เพิ่มกีฬา',
-            hintStyle: TextStyle(fontFamily: 'THSarabunNew'),
-            fillColor: Color.fromARGB(255, 255, 255, 255),
+            contentPadding:
+                EdgeInsets.fromLTRB(0, 15, 0, 0), // กำหนด padding ภายในฟิลด์
+            hintText: 'เพิ่มกีฬา', // ข้อความแนะนำในฟิลด์
+            hintStyle:
+                TextStyle(fontFamily: 'THSarabunNew'), // กำหนดสไตล์ข้อความ
+            fillColor: Color.fromARGB(255, 255, 255, 255), // สีพื้นหลังของฟิลด์
             filled: true,
             prefixIcon: Icon(
-              Icons.sports_soccer,
-              color: Colors.red,
+              Icons.sports_soccer, // ไอคอนกีฬาที่จะใช้
+              color: Colors.red, // กำหนดสีของไอคอน
             ),
             border: OutlineInputBorder(
-              borderSide: BorderSide(color: Colors.black),
-              borderRadius: BorderRadius.circular(30),
+              borderSide: BorderSide(color: Colors.black), // กำหนดสีของขอบฟิลด์
+              borderRadius:
+                  BorderRadius.circular(30), // ปรับความโค้งของขอบฟิลด์
             ),
           ),
-          style: TextStyle(fontFamily: 'THSarabunNew'),
+          style: TextStyle(fontFamily: 'THSarabunNew'), // กำหนดสไตล์ข้อความ
         ),
         suggestionsCallback: (pattern) {
-          return sport.where(
-              (sport) => sport.toLowerCase().contains(pattern.toLowerCase()));
+          return sport.where((sport) => sport
+              .toLowerCase()
+              .contains(pattern.toLowerCase())); // กรองรายการตามคำค้นหา
         },
         itemBuilder: (context, suggestion) {
           return ListTile(
-            title:
-                Text(suggestion, style: TextStyle(fontFamily: 'THSarabunNew')),
+            title: Text(suggestion,
+                style: TextStyle(
+                    fontFamily: 'THSarabunNew')), // แสดงรายการที่แนะนำ
           );
         },
         onSuggestionSelected: (suggestion) {
           setState(() {
-            sportController.text = suggestion;
+            sportController.text =
+                suggestion; // อัพเดทข้อความในฟิลด์เมื่อเลือกกีฬา
             selectedSport = suggestion;
           });
         },
         noItemsFoundBuilder: (context) {
           return Padding(
-            padding: EdgeInsets.all(8.0),
+            padding: EdgeInsets.all(8.0), // เพิ่ม padding รอบข้อความ
             child: Text(
-              'ไม่พบกีฬา',
+              'ไม่พบกีฬา', // ข้อความที่จะแสดงเมื่อไม่พบกีฬา
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: Colors.grey,
-                fontSize: 18.0,
-                fontFamily: 'THSarabunNew',
+                color: Colors.grey, // กำหนดสีของข้อความ
+                fontSize: 18.0, // ขนาดของข้อความ
+                fontFamily: 'THSarabunNew', // กำหนดฟอนต์
               ),
             ),
           );
@@ -327,31 +353,32 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
   // วิดเจ็ตฟิลด์วันที่และเวลา
   Widget date() {
     return Container(
-      margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
+      margin: EdgeInsets.fromLTRB(50, 20, 50, 0), // กำหนด margin รอบฟิลด์
       child: TextFormField(
         controller: dateController,
         decoration: InputDecoration(
-          contentPadding: EdgeInsets.fromLTRB(0, 15, 0, 0),
-          hintText: 'เพิ่มวันที่และเวลา',
-          fillColor: Color.fromARGB(255, 255, 255, 255),
+          contentPadding:
+              EdgeInsets.fromLTRB(0, 15, 0, 0), // กำหนด padding ภายในฟิลด์
+          hintText: 'เพิ่มวันที่และเวลา', // ข้อความแนะนำในฟิลด์
+          fillColor: Color.fromARGB(255, 255, 255, 255), // สีพื้นหลังของฟิลด์
           filled: true,
           prefixIcon: Icon(
-            Icons.calendar_today,
-            color: Colors.red,
+            Icons.calendar_today, // ไอคอนวันที่และเวลา
+            color: Colors.red, // กำหนดสีของไอคอน
           ),
           border: OutlineInputBorder(
-            borderSide: BorderSide(color: Colors.black),
-            borderRadius: BorderRadius.circular(30),
+            borderSide: BorderSide(color: Colors.black), // กำหนดสีของขอบฟิลด์
+            borderRadius: BorderRadius.circular(30), // ปรับความโค้งของขอบฟิลด์
           ),
         ),
-        readOnly: true,
+        readOnly: true, // ปิดการแก้ไขฟิลด์โดยตรง
         onTap: () async {
           DateTime now = DateTime.now();
           DateTime? pickedDate = await showDatePicker(
             context: context,
             initialDate: now,
             firstDate: now,
-            lastDate: DateTime(2101),
+            lastDate: DateTime(2101), // กำหนดช่วงวันที่สามารถเลือกได้
           );
 
           if (pickedDate != null) {
@@ -361,7 +388,7 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
               builder: (context, child) {
                 return MediaQuery(
                   data: MediaQuery.of(context).copyWith(
-                    alwaysUse24HourFormat: true,
+                    alwaysUse24HourFormat: true, // ใช้รูปแบบเวลา 24 ชั่วโมง
                   ),
                   child: child!,
                 );
@@ -379,20 +406,22 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
 
               if (finalDateTime.isAfter(now)) {
                 setState(() {
-                  dateController.text = finalDateTime.toString();
+                  dateController.text = finalDateTime
+                      .toString(); // แสดงวันที่และเวลาที่เลือกในฟิลด์
                 });
               } else {
                 showDialog(
                   context: context,
                   builder: (BuildContext context) {
                     return AlertDialog(
-                      title: Text('ข้อผิดพลาด'),
-                      content: Text('ไม่สามารถเลือกเวลาที่ผ่านมาแล้วได้'),
+                      title: Text('ข้อผิดพลาด'), // ชื่อของ dialog
+                      content: Text(
+                          'ไม่สามารถเลือกเวลาที่ผ่านมาแล้วได้'), // ข้อความแจ้งเตือน
                       actions: <Widget>[
                         TextButton(
                           child: Text('ตกลง'),
                           onPressed: () {
-                            Navigator.of(context).pop();
+                            Navigator.of(context).pop(); // ปิด dialog
                           },
                         ),
                       ],
@@ -410,18 +439,18 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
   // วิดเจ็ตฟิลด์แฮชแท็ก
   Widget hashtag() {
     return Container(
-      margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
+      margin: EdgeInsets.fromLTRB(50, 20, 50, 0), // กำหนด margin รอบฟิลด์
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Wrap(
-            spacing: 8.0,
+            spacing: 8.0, // กำหนดระยะห่างระหว่างแฮชแท็ก
             children: _selectedTags
                 .map((tag) => Chip(
-                      label: Text(tag),
+                      label: Text(tag), // ข้อความในแฮชแท็ก
                       onDeleted: () {
                         setState(() {
-                          _selectedTags.remove(tag);
+                          _selectedTags.remove(tag); // ลบแฮชแท็กที่ถูกเลือกออก
                         });
                       },
                     ))
@@ -431,9 +460,10 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
             textFieldConfiguration: TextFieldConfiguration(
               controller: hashtagController,
               decoration: InputDecoration(
-                hintText: 'เพิ่มแฮชแท็กที่ต้องการ',
+                hintText: 'เพิ่มแฮชแท็กที่ต้องการ', // ข้อความแนะนำในฟิลด์
                 suffixIcon: Padding(
-                  padding: const EdgeInsets.only(right: 8.0),
+                  padding: const EdgeInsets.only(
+                      right: 8.0), // เพิ่ม padding ด้านขวา
                   child: TextButton(
                     onPressed: () {
                       String newTag = hashtagController.text.trim();
@@ -442,46 +472,52 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
                           _selectedTags.length < 3 &&
                           !_selectedTags.contains('#$newTag')) {
                         setState(() {
-                          _selectedTags.add('#$newTag'); // เพิ่ม #
-                          hashtagController.clear();
+                          _selectedTags
+                              .add('#$newTag'); // เพิ่ม # ที่แฮชแท็กใหม่
+                          hashtagController
+                              .clear(); // ล้างฟิลด์หลังเพิ่มแฮชแท็ก
                         });
                       }
                     },
-                    child: Text('เพิ่ม'),
+                    child: Text('เพิ่ม'), // ข้อความบนปุ่ม
                   ),
                 ),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(30),
+                  borderRadius:
+                      BorderRadius.circular(30), // ปรับความโค้งของขอบฟิลด์
                 ),
               ),
             ),
             suggestionsCallback: (pattern) {
-              return _allHashtags.where((hashtag) =>
-                  hashtag.toLowerCase().contains(pattern.toLowerCase()));
+              return _allHashtags.where((hashtag) => hashtag
+                  .toLowerCase()
+                  .contains(
+                      pattern.toLowerCase())); // กรองรายการแฮชแท็กตามคำค้นหา
             },
             itemBuilder: (context, suggestion) {
               return ListTile(
-                title: Text(suggestion),
+                title: Text(suggestion), // แสดงแฮชแท็กที่แนะนำ
               );
             },
             onSuggestionSelected: (suggestion) {
               if (_selectedTags.length < 3 &&
                   !_selectedTags.contains('#$suggestion')) {
                 setState(() {
-                  _selectedTags.add('#$suggestion'); // เพิ่ม #
-                  hashtagController.clear();
+                  _selectedTags
+                      .add('#$suggestion'); // เพิ่ม # ที่แฮชแท็กที่เลือก
+                  hashtagController.clear(); // ล้างฟิลด์หลังเพิ่มแฮชแท็ก
                 });
               }
             },
             noItemsFoundBuilder: (context) {
               return Padding(
-                padding: EdgeInsets.all(8.0),
+                padding: EdgeInsets.all(8.0), // เพิ่ม padding รอบข้อความ
                 child: Text(
-                  'ไม่พบแฮชแท็ก',
+                  'ไม่พบแฮชแท็ก', // ข้อความที่จะแสดงเมื่อไม่พบแฮชแท็ก
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    color: Colors.grey,
-                    fontSize: 18.0,
+                    color: Colors.grey, // กำหนดสีของข้อความ
+                    fontSize: 18.0, // ขนาดของข้อความ
                   ),
                 ),
               );
@@ -495,28 +531,29 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
   // วิดเจ็ตฟิลด์รายละเอียดกิจกรรม
   Widget message() {
     return Container(
-      margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
+      margin: EdgeInsets.fromLTRB(50, 20, 50, 0), // กำหนด margin รอบฟิลด์
       child: TextFormField(
         controller: detailsController,
         decoration: InputDecoration(
-          contentPadding: EdgeInsets.fromLTRB(0, 15, 0, 0),
-          hintText: 'เพิ่มรายละเอียดกิจกรรม',
-          fillColor: Color.fromARGB(255, 255, 255, 255),
+          contentPadding:
+              EdgeInsets.fromLTRB(0, 15, 0, 0), // กำหนด padding ภายในฟิลด์
+          hintText: 'เพิ่มรายละเอียดกิจกรรม', // ข้อความแนะนำในฟิลด์
+          fillColor: Color.fromARGB(255, 255, 255, 255), // สีพื้นหลังของฟิลด์
           filled: true,
           prefixIcon: Container(
             margin: EdgeInsets.all(11), // จัดการระยะขอบให้เหมาะสม
             child: Text(
               'ABC', // ตัวอักษรที่ต้องการใช้
               style: TextStyle(
-                color: Colors.red,
+                color: Colors.red, // กำหนดสีของตัวอักษร
                 fontSize: 20, // ขนาดของตัวอักษร
                 fontWeight: FontWeight.bold, // ทำให้ตัวอักษรหนา
               ),
             ),
           ),
           border: OutlineInputBorder(
-            borderSide: BorderSide(color: Colors.black),
-            borderRadius: BorderRadius.circular(30),
+            borderSide: BorderSide(color: Colors.black), // กำหนดสีของขอบฟิลด์
+            borderRadius: BorderRadius.circular(30), // ปรับความโค้งของขอบฟิลด์
           ),
         ),
       ),
@@ -526,27 +563,30 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
   // วิดเจ็ตปุ่มสร้างกิจกรรม
   Widget createGroupButton() {
     return Container(
-      margin: EdgeInsets.fromLTRB(10, 20, 10, 0),
+      margin: EdgeInsets.fromLTRB(10, 20, 10, 0), // กำหนด margin รอบปุ่ม
       child: SizedBox(
         width: 200, // กำหนดความกว้างของปุ่มตามที่ต้องการ
         child: ElevatedButton(
           child: Text(
-            "สร้างกิจกรรม",
+            "สร้างกิจกรรม", // ข้อความบนปุ่ม
             style: TextStyle(
-              color: Colors.white,
+              color: Colors.white, // กำหนดสีของข้อความบนปุ่ม
             ),
           ),
           style: ElevatedButton.styleFrom(
-            padding: EdgeInsets.fromLTRB(20, 10, 20, 10),
-            backgroundColor: Color.fromARGB(249, 255, 4, 4),
-            shadowColor: Color.fromARGB(255, 255, 255, 255),
+            padding:
+                EdgeInsets.fromLTRB(20, 10, 20, 10), // กำหนด padding ภายในปุ่ม
+            backgroundColor:
+                Color.fromARGB(249, 255, 4, 4), // กำหนดสีพื้นหลังของปุ่ม
+            shadowColor:
+                Color.fromARGB(255, 255, 255, 255), // กำหนดสีเงาของปุ่ม
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(30),
-              side: BorderSide(color: Colors.black),
+              borderRadius: BorderRadius.circular(30), // ปรับความโค้งของขอบปุ่ม
+              side: BorderSide(color: Colors.black), // กำหนดสีของขอบปุ่ม
             ),
           ),
           onPressed: () {
-            functionCreateActivity();
+            functionCreateActivity(); // เรียกใช้ฟังก์ชันเมื่อกดปุ่ม
           },
         ),
       ),
@@ -555,87 +595,98 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
 
   // ฟังก์ชันสร้างกิจกรรม
   Future<void> functionCreateActivity() async {
-    String hashtags = _selectedTags.join(" ");
-    List<String> hashtagList =
-        hashtags.split(RegExp(r'\s+')).where((tag) => tag.isNotEmpty).toList();
+    String hashtags =
+        _selectedTags.join(" "); // รวมแฮชแท็กทั้งหมดเป็นสตริงเดียว
+    List<String> hashtagList = hashtags
+        .split(RegExp(r'\s+'))
+        .where((tag) => tag.isNotEmpty)
+        .toList(); // แยกแฮชแท็กเป็นรายการ
 
     if (hashtagList.length > 3 || hashtagList.any((tag) => tag.length > 20)) {
-      print("Invalid hashtag input");
+      print("Invalid hashtag input"); // ตรวจสอบความถูกต้องของแฮชแท็ก
       return;
     }
 
-    print("activity_name: ${nameController.text}");
-    print("activity_details: ${detailsController.text}");
-    print("activity_date: ${dateController.text}");
-    print("location_name: ${selectedLocation ?? ''}");
-    print("sport_id: $selectedSportId");
-    print("hashtags: $hashtagList");
-    print("user_id: ${userData!['user_id']}");
+    print(
+        "activity_name: ${nameController.text}"); // พิมพ์ชื่อกิจกรรมเพื่อการตรวจสอบ
+    print(
+        "activity_details: ${detailsController.text}"); // พิมพ์รายละเอียดกิจกรรมเพื่อการตรวจสอบ
+    print(
+        "activity_date: ${dateController.text}"); // พิมพ์วันที่และเวลาเพื่อการตรวจสอบ
+    print(
+        "location_name: ${selectedLocation ?? ''}"); // พิมพ์สถานที่เพื่อการตรวจสอบ
+    print("sport_id: $selectedSportId"); // พิมพ์ ID ของกีฬาเพื่อการตรวจสอบ
+    print("hashtags: $hashtagList"); // พิมพ์แฮชแท็กเพื่อการตรวจสอบ
+    print("user_id: ${userData!['user_id']}"); // พิมพ์ user_id เพื่อการตรวจสอบ
 
-    // สมมุติว่า userData มี user_id ของผู้ใช้ที่ล็อกอินอยู่
-    String userId = userData!['user_id'];
+    String userId = userData!['user_id']; // เก็บ user_id ของผู้ใช้
 
     // เพิ่ม user_id ในการส่งข้อมูล
     Map<String, dynamic> dataPost = {
       "activity_name": nameController.text,
       "activity_details": detailsController.text,
       "activity_date": dateController.text,
-      "location_name": selectedLocation ?? '',
+      "location_name":
+          selectedLocation ?? '', // ถ้าไม่ได้เลือกสถานที่จะแสดงเป็นค่าว่าง
       "sport_id": selectedSportId, // Ensure this value is set appropriately
       "hashtags": hashtagList,
       "user_id": userId, // ส่ง user_id ของผู้สร้างกิจกรรมไปด้วย
     };
 
     Map<String, String> headers = {
-      "Content-Type": "application/json",
-      "Accept": "application/json",
-      "Authorization": "Bearer ${widget.jwt}"
+      "Content-Type": "application/json", // กำหนดประเภทของเนื้อหาที่จะส่ง
+      "Accept": "application/json", // กำหนดประเภทของเนื้อหาที่จะรับ
+      "Authorization":
+          "Bearer ${widget.jwt}" // เพิ่ม JWT ใน headers เพื่อการตรวจสอบสิทธิ์
     };
 
-    var url =
-        Uri.parse("http://10.0.2.2/flutter_webservice/get_CreateActivity.php");
+    var url = Uri.parse(
+        "http://10.0.2.2/flutter_webservice/get_CreateActivity.php"); // เรียก API สำหรับสร้างกิจกรรม
 
     try {
       var response = await http.post(
         url,
         headers: headers,
-        body: json.encode(dataPost),
+        body: json.encode(dataPost), // แปลงข้อมูลเป็น JSON ก่อนส่ง
       );
 
-      print('Response status: ${response.statusCode}');
-      print('Response body: ${response.body}');
+      print(
+          'Response status: ${response.statusCode}'); // พิมพ์สถานะการตอบกลับของเซิร์ฟเวอร์
+      print(
+          'Response body: ${response.body}'); // พิมพ์ข้อมูลที่ได้รับจากเซิร์ฟเวอร์
 
       if (response.statusCode == 200) {
         Map<String, dynamic> jsonResponse = json.decode(response.body);
-        print(jsonResponse);
+        print(jsonResponse); // พิมพ์ข้อมูลตอบกลับเพื่อการตรวจสอบ
         if (jsonResponse["result"] == 1) {
           showSuccessDialog(); // แสดง dialog เมื่อสร้างกิจกรรมสำเร็จ
         }
       } else {
-        print("Request failed with status: ${response.statusCode}");
+        print(
+            "Request failed with status: ${response.statusCode}"); // พิมพ์ข้อผิดพลาดหากไม่สามารถส่งคำขอได้
       }
     } catch (error) {
-      print("Error: $error");
+      print("Error: $error"); // พิมพ์ข้อผิดพลาดหากมีการ exception เกิดขึ้น
     }
   }
-  
+
   // ฟังก์ชันแสดง dialog เมื่อสร้างกิจกรรมสำเร็จ
   Future<void> showSuccessDialog() async {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text("สำเร็จ"),
-          content: Text("สร้างกิจกรรมสำเร็จ"),
+          title: Text("สำเร็จ"), // ชื่อของ dialog
+          content: Text("สร้างกิจกรรมสำเร็จ"), // ข้อความใน dialog
           actions: <Widget>[
             TextButton(
-              child: Text("ตกลง"),
+              child: Text("ตกลง"), // ข้อความบนปุ่ม
               onPressed: () {
                 Navigator.of(context).pop(); // ปิด dialog
                 Navigator.of(context).pushReplacement(
                   MaterialPageRoute(
                       builder: (context) =>
-                          Homepage(jwt: widget.jwt)), // แก้ไขตรงนี้
+                          Homepage(jwt: widget.jwt)), // กลับไปยังหน้า Homepage
                 );
               },
             ),
@@ -644,43 +695,48 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
       },
     );
   }
-  
+
   // วิดเจ็ตปุ่มกลับไปหน้าหลัก
   Widget backButton() {
     return IconButton(
       icon: Icon(Icons.arrow_back,
-          color: const Color.fromARGB(255, 255, 255, 255)),
+          color: const Color.fromARGB(255, 255, 255, 255)), // กำหนดสีของไอคอน
       onPressed: () {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
-              builder: (context) => Homepage(jwt: widget.jwt)), // แก้ไขตรงนี้
+              builder: (context) =>
+                  Homepage(jwt: widget.jwt)), // กลับไปยังหน้า Homepage
         );
       },
     );
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Stack(
         children: [
           Scaffold(
-            backgroundColor: Color.fromARGB(255, 255, 255, 255),
+            backgroundColor:
+                Color.fromARGB(255, 255, 255, 255), // สีพื้นหลังของหน้า
             appBar: AppBar(
               title: Text(
-                "หน้าสร้างกิจกรรม",
-                style:
-                    TextStyle(color: const Color.fromARGB(255, 255, 255, 255)),
+                "หน้าสร้างกิจกรรม", // ชื่อของหน้าจอ
+                style: TextStyle(
+                    color: const Color.fromARGB(
+                        255, 255, 255, 255)), // กำหนดสีของข้อความ
               ),
-              leading: backButton(),
-              backgroundColor: Color.fromARGB(255, 255, 0, 0),
+              leading: backButton(), // แสดงปุ่มกลับ
+              backgroundColor: Color.fromARGB(
+                  255, 255, 0, 0), // กำหนดสีพื้นหลังของแถบ AppBar
             ),
             body: SafeArea(
               child: ListView(
                 children: [
                   Center(
-                      child:
-                          Column(mainAxisSize: MainAxisSize.max, children: [])),
+                      child: Column(
+                          mainAxisSize: MainAxisSize.max,
+                          children: [])), // แสดงข้อความหรือรูปภาพเพิ่มเติม
                   nameActivity(), // แสดงฟิลด์ชื่อกิจกรรม
                   location(), // แสดงฟิลด์สถานที่
                   field_name(), // แสดงฟิลด์กีฬา

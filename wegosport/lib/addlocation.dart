@@ -1,28 +1,31 @@
-import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'package:image_picker/image_picker.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:flutter_google_places/flutter_google_places.dart';
-import 'package:google_maps_webservice/places.dart';
-import 'package:permission_handler/permission_handler.dart';
-import 'dart:async';
-import 'dart:convert';
-import 'dart:io';
-import 'package:image_cropper/image_cropper.dart';
-import 'package:image/image.dart' as img;
-import 'package:wegosport/Homepage.dart';
+import 'package:flutter/material.dart'; // นำเข้าไลบรารีสำหรับการสร้าง UI ด้วย Flutter
+import 'package:http/http.dart'
+    as http; // นำเข้าไลบรารีสำหรับการทำ HTTP requests
+import 'package:image_picker/image_picker.dart'; // นำเข้าไลบรารีสำหรับการเลือกรูปภาพจากแกลเลอรี่หรือกล้อง
+import 'package:google_maps_flutter/google_maps_flutter.dart'; // นำเข้าไลบรารีสำหรับใช้งาน Google Maps ใน Flutter
+import 'package:flutter_google_places/flutter_google_places.dart'; // นำเข้าไลบรารีสำหรับการค้นหาสถานที่ด้วย Google Places
+import 'package:google_maps_webservice/places.dart'; // นำเข้าไลบรารีสำหรับการใช้งาน Google Places API
+import 'package:permission_handler/permission_handler.dart'; // นำเข้าไลบรารีสำหรับการขออนุญาตการเข้าถึงทรัพยากรของอุปกรณ์
+import 'dart:async'; // นำเข้าไลบรารีสำหรับการทำงานแบบอะซิงโครนัส (asynchronous)
+import 'dart:convert'; // นำเข้าไลบรารีสำหรับการแปลงข้อมูล JSON
+import 'dart:io'; // นำเข้าไลบรารีสำหรับการทำงานกับไฟล์
+import 'package:image_cropper/image_cropper.dart'; // นำเข้าไลบรารีสำหรับการครอปรูปภาพ
+import 'package:image/image.dart'
+    as img; // นำเข้าไลบรารีสำหรับการจัดการรูปภาพในรูปแบบที่ต่างกัน
+import 'package:wegosport/Homepage.dart'; // นำเข้าหน้าหลักของแอปพลิเคชัน
 
 const kGoogleApiKey =
     "AIzaSyD7Okt5SymXMu3nocso2FJb5_2dSgGhL-s"; // แทนที่ด้วย API Key ของคุณ
 
-
 class AddLocationPage extends StatefulWidget {
-  const AddLocationPage({Key? key, required this.jwt}) : super(key: key);
+  const AddLocationPage({Key? key, required this.jwt})
+      : super(key: key); // กำหนดคอนสตรัคเตอร์และกำหนดค่า JWT
 
-  final String jwt;
+  final String jwt; // กำหนดตัวแปร jwt เพื่อใช้งานในการพิสูจน์ตัวตน
 
   @override
-  State<AddLocationPage> createState() => _AddLocationState();
+  State<AddLocationPage> createState() =>
+      _AddLocationState(); // สร้าง State สำหรับ AddLocationPage
 }
 
 class _AddLocationState extends State<AddLocationPage> {
@@ -44,15 +47,17 @@ class _AddLocationState extends State<AddLocationPage> {
   @override
   void initState() {
     super.initState();
-    fetchType();
-    _requestLocationPermission();
+    fetchType(); // เรียกใช้งานฟังก์ชัน fetchType เพื่อดึงข้อมูลประเภทสนาม
+    _requestLocationPermission(); // ขออนุญาตการเข้าถึงตำแหน่ง
   }
 
   // ขออนุญาตการเข้าถึงตำแหน่ง
   Future<void> _requestLocationPermission() async {
-    var status = await Permission.locationWhenInUse.status;
+    var status =
+        await Permission.locationWhenInUse.status; // ตรวจสอบสถานะการอนุญาต
     if (!status.isGranted) {
-      status = await Permission.locationWhenInUse.request();
+      status = await Permission.locationWhenInUse
+          .request(); // ขออนุญาตถ้ายังไม่ได้รับ
       if (!status.isGranted) {
         // จัดการกรณีที่ผู้ใช้ปฏิเสธการอนุญาต
         print('ไม่ได้รับอนุญาติให้ระบุตำแหน่ง');
@@ -64,79 +69,92 @@ class _AddLocationState extends State<AddLocationPage> {
 
   // ดึงข้อมูลประเภทสนามจากเซิร์ฟเวอร์
   Future<void> fetchType() async {
-    final response = await http.get(
-        Uri.parse('http://10.0.2.2/flutter_webservice/get_ShowDataType.php'));
+    final response = await http.get(Uri.parse(
+        'http://10.0.2.2/flutter_webservice/get_ShowDataType.php')); // ส่งคำขอ HTTP เพื่อดึงข้อมูลประเภทสนาม
 
     if (response.statusCode == 200) {
-      final data = json.decode(response.body);
+      final data = json.decode(response.body); // ถอดรหัส JSON จากการตอบกลับ
       setState(() {
-        fieldTypes = List<Map<String, dynamic>>.from(data);
+        fieldTypes = List<Map<String, dynamic>>.from(
+            data); // เก็บข้อมูลประเภทสนามในตัวแปร fieldTypes
       });
     } else {
-      print('Failed to load field types. Status code: ${response.statusCode}');
-      throw Exception('Failed to load field types');
+      print(
+          'Failed to load field types. Status code: ${response.statusCode}'); // แสดงข้อผิดพลาดถ้าดึงข้อมูลล้มเหลว
+      throw Exception(
+          'Failed to load field types'); // โยนข้อยกเว้นเมื่อเกิดข้อผิดพลาด
     }
   }
 
   // เลือกรูปภาพและแสดงรูปภาพ
   Future<void> _pickImage() async {
-    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+    final pickedFile = await _picker.pickImage(
+        source: ImageSource.gallery); // เลือกรูปภาพจากแกลเลอรี
     if (pickedFile != null) {
       File? croppedFile = await ImageCropper().cropImage(
-        sourcePath: pickedFile.path,
-        aspectRatio: CropAspectRatio(ratioX: 1.0, ratioY: 1.0),
+        sourcePath: pickedFile.path, // กำหนดเส้นทางของรูปภาพที่เลือก
+        aspectRatio: CropAspectRatio(
+            ratioX: 1.0, ratioY: 1.0), // กำหนดอัตราส่วนของการครอปรูปภาพ
         androidUiSettings: AndroidUiSettings(
-          toolbarTitle: 'Crop Image',
-          toolbarColor: Colors.red,
-          toolbarWidgetColor: Colors.white,
-          initAspectRatio: CropAspectRatioPreset.square,
-          lockAspectRatio: true,
+          toolbarTitle: 'Crop Image', // ชื่อของแถบเครื่องมือสำหรับการครอปรูปภาพ
+          toolbarColor: Colors.red, // กำหนดสีของแถบเครื่องมือ
+          toolbarWidgetColor:
+              Colors.white, // กำหนดสีของไอคอนและข้อความในแถบเครื่องมือ
+          initAspectRatio: CropAspectRatioPreset
+              .square, // กำหนดค่าเริ่มต้นของอัตราส่วนการครอปเป็นสี่เหลี่ยมจัตุรัส
+          lockAspectRatio: true, // ล็อคอัตราส่วนการครอปไม่ให้เปลี่ยนแปลงได้
         ),
         iosUiSettings: IOSUiSettings(
-          minimumAspectRatio: 1.0,
+          minimumAspectRatio: 1.0, // กำหนดอัตราส่วนขั้นต่ำของการครอปสำหรับ iOS
         ),
       );
 
       if (croppedFile != null) {
         setState(() {
-          _imageFile = croppedFile;
+          _imageFile = croppedFile; // เก็บไฟล์ที่ครอปแล้วไว้ในตัวแปร _imageFile
         });
       }
     } else {
-      print('No image selected.');
+      print('No image selected.'); // แสดงข้อความเมื่อไม่ได้เลือกรูปภาพ
     }
   }
 
   // ค้นหาสถานที่โดยใช้ Google Places API
   Future<void> _handlePressButton() async {
     try {
-      String searchQuery = input1.text;
+      String searchQuery =
+          input1.text; // รับค่าที่ผู้ใช้พิมพ์ในฟิลด์ชื่อสถานที่
       if (searchQuery.isEmpty) {
-        print('Search query is empty.');
+        print('Search query is empty.'); // แสดงข้อความเมื่อช่องค้นหาว่างเปล่า
         return;
       }
 
       print('Showing PlacesAutocomplete');
       final response = await http.get(Uri.parse(
-          'https://maps.googleapis.com/maps/api/place/autocomplete/json?input=$searchQuery&key=$kGoogleApiKey&components=country:th'));
+          'https://maps.googleapis.com/maps/api/place/autocomplete/json?input=$searchQuery&key=$kGoogleApiKey&components=country:th')); // ส่งคำขอไปยัง Google Places API เพื่อค้นหาสถานที่
 
       if (response.statusCode == 200) {
-        final predictions = json.decode(response.body)['predictions'];
+        final predictions = json.decode(
+            response.body)['predictions']; // ถอดรหัสการทำนายผลลัพธ์จาก JSON
         if (predictions.isNotEmpty) {
           final place = predictions[0];
-          final placeId = place['place_id'];
-          final description = place['description'];
+          final placeId =
+              place['place_id']; // เก็บ place_id ของสถานที่แรกที่ถูกทำนาย
+          final description = place['description']; // เก็บคำอธิบายของสถานที่
           print('Prediction: $description');
-          displayPrediction(placeId);
+          displayPrediction(
+              placeId); // เรียกใช้ฟังก์ชันเพื่อแสดงรายละเอียดสถานที่
         } else {
-          print('No predictions found.');
+          print(
+              'No predictions found.'); // แสดงข้อความเมื่อไม่พบผลลัพธ์จากการค้นหา
         }
       } else {
         print(
-            'Failed to load predictions. Status code: ${response.statusCode}');
+            'Failed to load predictions. Status code: ${response.statusCode}'); // แสดงข้อความเมื่อการโหลดการทำนายล้มเหลว
       }
     } catch (error) {
-      print('Error in _handlePressButton: $error');
+      print(
+          'Error in _handlePressButton: $error'); // แสดงข้อความเมื่อเกิดข้อผิดพลาดในฟังก์ชัน
     }
   }
 
@@ -144,27 +162,32 @@ class _AddLocationState extends State<AddLocationPage> {
   Future<void> displayPrediction(String placeId) async {
     try {
       final response = await http.get(Uri.parse(
-          'https://maps.googleapis.com/maps/api/place/details/json?place_id=$placeId&key=$kGoogleApiKey'));
+          'https://maps.googleapis.com/maps/api/place/details/json?place_id=$placeId&key=$kGoogleApiKey')); // ส่งคำขอไปยัง Google Places API เพื่อรับรายละเอียดของสถานที่
 
       if (response.statusCode == 200) {
-        final details = json.decode(response.body)['result'];
-        final lat = details['geometry']['location']['lat'];
-        final lng = details['geometry']['location']['lng'];
+        final details =
+            json.decode(response.body)['result']; // ถอดรหัสผลลัพธ์จาก JSON
+        final lat =
+            details['geometry']['location']['lat']; // ดึงละติจูดจากผลลัพธ์
+        final lng =
+            details['geometry']['location']['lng']; // ดึงลองจิจูดจากผลลัพธ์
         print('Location: ($lat, $lng)');
 
         setState(() {
-          _selectedLocation = LatLng(lat, lng);
+          _selectedLocation = LatLng(
+              lat, lng); // เก็บตำแหน่งที่เลือกไว้ในตัวแปร _selectedLocation
           if (_selectedLocation != null) {
-            _mapController
-                ?.animateCamera(CameraUpdate.newLatLng(_selectedLocation!));
+            _mapController?.animateCamera(CameraUpdate.newLatLng(
+                _selectedLocation!)); // ปรับกล้องไปยังตำแหน่งที่เลือก
           }
         });
       } else {
         print(
-            'Failed to load place details. Status code: ${response.statusCode}');
+            'Failed to load place details. Status code: ${response.statusCode}'); // แสดงข้อความเมื่อการโหลดรายละเอียดสถานที่ล้มเหลว
       }
     } catch (error) {
-      print('Error in displayPrediction: $error');
+      print(
+          'Error in displayPrediction: $error'); // แสดงข้อความเมื่อเกิดข้อผิดพลาดในฟังก์ชัน
     }
   }
 
@@ -192,11 +215,13 @@ class _AddLocationState extends State<AddLocationPage> {
   Widget backButton() {
     return IconButton(
       icon: Icon(Icons.arrow_back,
-          color: const Color.fromARGB(255, 255, 255, 255)),
+          color: const Color.fromARGB(
+              255, 255, 255, 255)), // กำหนดไอคอนของปุ่มกลับไปหน้าหลัก
       onPressed: () {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
-              builder: (context) => Homepage(jwt: widget.jwt)), // แก้ไขตรงนี้
+              builder: (context) =>
+                  Homepage(jwt: widget.jwt)), // สร้างเส้นทางไปยังหน้า Homepage
         );
       },
     );
@@ -205,21 +230,28 @@ class _AddLocationState extends State<AddLocationPage> {
   // วิดเจ็ตฟิลด์ชื่อสถานที่
   Widget namelocation() {
     return Container(
-      margin: EdgeInsets.fromLTRB(20, 20, 20, 0),
+      margin: EdgeInsets.fromLTRB(20, 20, 20, 0), // กำหนดระยะขอบของฟิลด์
       child: TextFormField(
-        controller: input1,
+        controller: input1, // กำหนดตัวควบคุมให้กับฟิลด์ชื่อสถานที่
         decoration: InputDecoration(
-          contentPadding: EdgeInsets.fromLTRB(15, 10, 15, 10),
-          hintText: 'ชื่อสถานที่',
-          fillColor: const Color.fromARGB(255, 255, 255, 255),
-          filled: true,
-          hintStyle: TextStyle(color: Color.fromARGB(255, 102, 102, 102)),
+          contentPadding: EdgeInsets.fromLTRB(
+              15, 10, 15, 10), // กำหนด padding ของเนื้อหาภายในฟิลด์
+          hintText: 'ชื่อสถานที่', // ข้อความแนะนำในฟิลด์
+          fillColor: const Color.fromARGB(
+              255, 255, 255, 255), // กำหนดสีพื้นหลังของฟิลด์
+          filled: true, // กำหนดให้ฟิลด์มีสีพื้นหลัง
+          hintStyle: TextStyle(
+              color:
+                  Color.fromARGB(255, 102, 102, 102)), // กำหนดสีของข้อความแนะนำ
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(40),
+            borderRadius: BorderRadius.circular(40), // กำหนดความโค้งของขอบฟิลด์
           ),
-          prefixIcon: Icon(Icons.abc, color: Color.fromARGB(255, 255, 0, 0)),
+          prefixIcon: Icon(Icons.abc,
+              color: Color.fromARGB(255, 255, 0, 0)), // กำหนดไอคอนของฟิลด์
         ),
-        style: TextStyle(color: const Color.fromARGB(255, 0, 0, 0)),
+        style: TextStyle(
+            color: const Color.fromARGB(
+                255, 0, 0, 0)), // กำหนดสีของข้อความภายในฟิลด์
       ),
     );
   }
@@ -227,22 +259,27 @@ class _AddLocationState extends State<AddLocationPage> {
   // วิดเจ็ตฟิลด์เวลาเปิด-ปิด
   Widget time() {
     return Container(
-      margin: EdgeInsets.fromLTRB(20, 20, 20, 0),
+      margin: EdgeInsets.fromLTRB(20, 20, 20, 0), // กำหนดระยะขอบของฟิลด์
       child: TextFormField(
-        controller: input2,
+        controller: input2, // กำหนดตัวควบคุมให้กับฟิลด์เวลาเปิด-ปิด
         decoration: InputDecoration(
-          contentPadding: EdgeInsets.fromLTRB(15, 10, 15, 10),
-          hintText: 'เวลาเปิด - ปิด',
-          fillColor: Color.fromARGB(255, 255, 255, 255),
-          filled: true,
-          hintStyle: TextStyle(color: Color.fromARGB(255, 102, 102, 102)),
+          contentPadding: EdgeInsets.fromLTRB(
+              15, 10, 15, 10), // กำหนด padding ของเนื้อหาภายในฟิลด์
+          hintText: 'เวลาเปิด - ปิด', // ข้อความแนะนำในฟิลด์
+          fillColor:
+              Color.fromARGB(255, 255, 255, 255), // กำหนดสีพื้นหลังของฟิลด์
+          filled: true, // กำหนดให้ฟิลด์มีสีพื้นหลัง
+          hintStyle: TextStyle(
+              color:
+                  Color.fromARGB(255, 102, 102, 102)), // กำหนดสีของข้อความแนะนำ
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(40),
+            borderRadius: BorderRadius.circular(40), // กำหนดความโค้งของขอบฟิลด์
           ),
           prefixIcon: Icon(Icons.calendar_today,
               color: Color.fromARGB(255, 255, 0, 0)), // เปลี่ยนไอคอนเป็นปฏิทิน
         ),
-        style: TextStyle(color: Color.fromARGB(255, 0, 0, 0)),
+        style: TextStyle(
+            color: Color.fromARGB(255, 0, 0, 0)), // กำหนดสีของข้อความภายในฟิลด์
       ),
     );
   }
@@ -250,23 +287,29 @@ class _AddLocationState extends State<AddLocationPage> {
   // วิดเจ็ตฟิลด์ประเภทสนาม
   Widget type() {
     return Container(
-      margin: EdgeInsets.fromLTRB(20, 20, 20, 0),
+      margin: EdgeInsets.fromLTRB(20, 20, 20, 0), // กำหนดระยะขอบของฟิลด์
       child: TextFormField(
-        controller: typeController,
-        readOnly: true,
+        controller: typeController, // กำหนดตัวควบคุมให้กับฟิลด์ประเภทสนาม
+        readOnly: true, // ตั้งค่าให้ฟิลด์เป็นแบบอ่านอย่างเดียว
         decoration: InputDecoration(
-          contentPadding: EdgeInsets.fromLTRB(15, 10, 15, 10),
-          hintText: 'เลือกประเภทสนาม',
-          fillColor: Color.fromARGB(255, 255, 255, 255),
-          filled: true,
-          hintStyle: TextStyle(color: Color.fromARGB(255, 102, 102, 102)),
+          contentPadding: EdgeInsets.fromLTRB(
+              15, 10, 15, 10), // กำหนด padding ของเนื้อหาภายในฟิลด์
+          hintText: 'เลือกประเภทสนาม', // ข้อความแนะนำในฟิลด์
+          fillColor:
+              Color.fromARGB(255, 255, 255, 255), // กำหนดสีพื้นหลังของฟิลด์
+          filled: true, // กำหนดให้ฟิลด์มีสีพื้นหลัง
+          hintStyle: TextStyle(
+              color:
+                  Color.fromARGB(255, 102, 102, 102)), // กำหนดสีของข้อความแนะนำ
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(40),
+            borderRadius: BorderRadius.circular(40), // กำหนดความโค้งของขอบฟิลด์
           ),
-          prefixIcon: Icon(Icons.add, color: Color.fromARGB(255, 255, 0, 0)),
+          prefixIcon: Icon(Icons.add,
+              color: Color.fromARGB(255, 255, 0, 0)), // กำหนดไอคอนของฟิลด์
         ),
-        onTap: _showTypeDialog,
-        style: TextStyle(color: Color.fromARGB(255, 0, 0, 0)),
+        onTap: _showTypeDialog, // เรียกฟังก์ชัน _showTypeDialog เมื่อกดที่ฟิลด์
+        style: TextStyle(
+            color: Color.fromARGB(255, 0, 0, 0)), // กำหนดสีของข้อความภายในฟิลด์
       ),
     );
   }
@@ -274,35 +317,45 @@ class _AddLocationState extends State<AddLocationPage> {
   // วิดเจ็ตปุ่มเลือกรูปภาพ
   Widget addImage() {
     return Container(
-      margin: EdgeInsets.fromLTRB(20, 20, 20, 0),
+      margin: EdgeInsets.fromLTRB(20, 20, 20, 0), // กำหนดระยะขอบของปุ่ม
       child: ElevatedButton.icon(
-        icon: Icon(Icons.image, color: Color.fromARGB(255, 255, 0, 0)),
+        icon: Icon(Icons.image,
+            color:
+                Color.fromARGB(255, 255, 0, 0)), // กำหนดไอคอนของปุ่มเลือกรูปภาพ
         label: Text("เลือกรูปภาพ",
-            style: TextStyle(color: const Color.fromARGB(255, 29, 29, 29))),
+            style: TextStyle(
+                color: const Color.fromARGB(
+                    255, 29, 29, 29))), // กำหนดข้อความของปุ่ม
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color.fromARGB(255, 255, 255, 255),
-          padding: EdgeInsets.symmetric(vertical: 15),
+          backgroundColor: const Color.fromARGB(
+              255, 255, 255, 255), // กำหนดสีพื้นหลังของปุ่ม
+          padding: EdgeInsets.symmetric(vertical: 15), // กำหนด padding ของปุ่ม
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(40),
+            borderRadius: BorderRadius.circular(40), // กำหนดความโค้งของขอบปุ่ม
           ),
         ),
-        onPressed: _pickImage,
+        onPressed: _pickImage, // เรียกฟังก์ชัน _pickImage เมื่อกดปุ่ม
       ),
     );
   }
 
+  // วิดเจ็ตปุ่มค้นหาสถานที่
   Widget searchlocation() {
     return Container(
-      margin: EdgeInsets.fromLTRB(20, 20, 20, 0),
+      margin: EdgeInsets.fromLTRB(20, 20, 20, 0), // กำหนดระยะขอบของปุ่ม
       child: ElevatedButton.icon(
-        onPressed: _handlePressButton,
-        icon: Icon(Icons.search),
+        onPressed:
+            _handlePressButton, // เรียกฟังก์ชัน _handlePressButton เมื่อกดปุ่ม
+        icon: Icon(Icons.search), // กำหนดไอคอนของปุ่มค้นหาสถานที่
         label: Text('ค้นหาสถานที่',
-            style: TextStyle(color: const Color.fromARGB(255, 29, 29, 29))),
+            style: TextStyle(
+                color: const Color.fromARGB(
+                    255, 29, 29, 29))), // กำหนดข้อความของปุ่ม
         style: ElevatedButton.styleFrom(
-          backgroundColor: Color.fromARGB(255, 255, 255, 255),
+          backgroundColor:
+              Color.fromARGB(255, 255, 255, 255), // กำหนดสีพื้นหลังของปุ่ม
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(40),
+            borderRadius: BorderRadius.circular(40), // กำหนดความโค้งของขอบปุ่ม
           ),
         ),
       ),
@@ -312,32 +365,35 @@ class _AddLocationState extends State<AddLocationPage> {
   // วิดเจ็ตแผนที่
   Widget map() {
     return Container(
-      margin: EdgeInsets.fromLTRB(20, 20, 20, 0),
-      width: double.infinity,
-      height: 500,
+      margin: EdgeInsets.fromLTRB(20, 20, 20, 0), // กำหนดระยะขอบของแผนที่
+      width: double.infinity, // กำหนดความกว้างของแผนที่
+      height: 500, // กำหนดความสูงของแผนที่
       child: GoogleMap(
         onMapCreated: (GoogleMapController controller) {
-          _mapController = controller;
+          _mapController =
+              controller; // กำหนดตัวควบคุมแผนที่เมื่อสร้างแผนที่เสร็จสิ้น
         },
         initialCameraPosition: CameraPosition(
-          target: LatLng(13.736717, 100.523186), // Initial position (Bangkok)
-          zoom: 10,
+          target:
+              LatLng(13.736717, 100.523186), // กำหนดตำแหน่งเริ่มต้น (กรุงเทพฯ)
+          zoom: 10, // กำหนดระดับการซูมเริ่มต้น
         ),
         onTap: (LatLng location) {
           setState(() {
-            _selectedLocation = location;
+            _selectedLocation =
+                location; // กำหนดตำแหน่งที่เลือกเมื่อแตะที่แผนที่
           });
         },
         markers: _selectedLocation != null
             ? {
                 Marker(
-                  markerId: MarkerId('เลือกสถานที่'),
-                  position: _selectedLocation!,
+                  markerId: MarkerId('เลือกสถานที่'), // กำหนด ID ของ Marker
+                  position: _selectedLocation!, // กำหนดตำแหน่งของ Marker
                 ),
               }
             : {},
-        myLocationEnabled: true,
-        myLocationButtonEnabled: true,
+        myLocationEnabled: true, // แสดงปุ่มตำแหน่งปัจจุบัน
+        myLocationButtonEnabled: true, // เปิดใช้งานปุ่มตำแหน่งปัจจุบัน
       ),
     );
   }
@@ -346,25 +402,25 @@ class _AddLocationState extends State<AddLocationPage> {
   Widget imageDisplay() {
     return _imageFile == null
         ? Container(
-            margin: EdgeInsets.fromLTRB(20, 20, 20, 0),
-            width: 200,
-            height: 200,
+            margin: EdgeInsets.fromLTRB(20, 20, 20, 0), // กำหนดระยะขอบของรูปภาพ
+            width: 200, // กำหนดความกว้างของรูปภาพ
+            height: 200, // กำหนดความสูงของรูปภาพ
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(40),
+              borderRadius:
+                  BorderRadius.circular(40), // กำหนดความโค้งของขอบรูปภาพ
               child: Image.asset(
-                'images/logo.png',
+                'images/logo.png', // ใช้โลโก้เป็นรูปภาพเริ่มต้น
               ),
             ),
           )
         : Container(
-            margin: EdgeInsets.fromLTRB(20, 20, 20, 0),
-            //width: 300,
-            //height: 300,
+            margin: EdgeInsets.fromLTRB(20, 20, 20, 0), // กำหนดระยะขอบของรูปภาพ
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(0),
+              borderRadius: BorderRadius.circular(
+                  0), // กำหนดความโค้งของขอบรูปภาพ (0 = ไม่โค้ง)
               child: Image.file(
-                _imageFile!,
-                fit: BoxFit.cover,
+                _imageFile!, // แสดงรูปภาพที่เลือก
+                fit: BoxFit.cover, // กำหนดรูปแบบการแสดงผลของรูปภาพ
               ),
             ),
           );
@@ -376,13 +432,13 @@ class _AddLocationState extends State<AddLocationPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('ข้อผิดพลาด'),
-          content: Text(message),
+          title: Text('ข้อผิดพลาด'), // กำหนดหัวข้อของ dialog
+          content: Text(message), // กำหนดเนื้อหาของ dialog
           actions: <Widget>[
             TextButton(
-              child: Text('ตกลง'),
+              child: Text('ตกลง'), // ข้อความของปุ่มตกลง
               onPressed: () {
-                Navigator.of(context).pop();
+                Navigator.of(context).pop(); // ปิด dialog เมื่อกดปุ่ม
               },
             ),
           ],
@@ -393,28 +449,31 @@ class _AddLocationState extends State<AddLocationPage> {
 
   // ฟังก์ชันแสดง dialog เลือกประเภทสนาม
   void _showTypeDialog() {
-    //เลือกประเภทสนาม
+    // เลือกประเภทสนาม
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('เลือกประเภทสนาม'),
+          title: Text('เลือกประเภทสนาม'), // กำหนดหัวข้อของ dialog
           content: SingleChildScrollView(
             child: ListBody(
               children: fieldTypes.map((type) {
                 return CheckboxListTile(
-                  title: Text(type['type_name']),
-                  value: selectedTypes.contains(type['type_name']),
+                  title: Text(type['type_name']), // แสดงชื่อประเภทสนาม
+                  value: selectedTypes.contains(
+                      type['type_name']), // กำหนดสถานะการเลือกของ Checkbox
                   onChanged: (bool? value) {
                     setState(() {
                       if (value == true) {
-                        selectedTypes.add(type['type_name']);
+                        selectedTypes.add(type[
+                            'type_name']); // เพิ่มประเภทสนามใน selectedTypes ถ้าเลือก
                       } else {
-                        selectedTypes.remove(type['type_name']);
+                        selectedTypes.remove(type[
+                            'type_name']); // ลบประเภทสนามจาก selectedTypes ถ้าไม่เลือก
                       }
                     });
-                    Navigator.of(context).pop();
-                    _showTypeDialog(); // เปิดใหม่เพื่อรีเฟรช
+                    Navigator.of(context).pop(); // ปิด dialog ปัจจุบัน
+                    _showTypeDialog(); // เปิด dialog ใหม่เพื่อรีเฟรช
                   },
                 );
               }).toList(),
@@ -422,11 +481,11 @@ class _AddLocationState extends State<AddLocationPage> {
           ),
           actions: <Widget>[
             TextButton(
-              child: Text('ตกลง'),
+              child: Text('ตกลง'), // ข้อความของปุ่มตกลง
               onPressed: () {
-                Navigator.of(context).pop();
-                typeController.text =
-                    selectedTypes.join(', '); // แสดงประเภทที่เลือก
+                Navigator.of(context).pop(); // ปิด dialog เมื่อกดปุ่มตกลง
+                typeController.text = selectedTypes
+                    .join(', '); // แสดงประเภทที่เลือกในฟิลด์ประเภทสนาม
               },
             ),
           ],
@@ -438,25 +497,31 @@ class _AddLocationState extends State<AddLocationPage> {
   // วิดเจ็ตปุ่มเพิ่มสถานที่
   Widget buttonAddLocation(BuildContext context) {
     return Container(
-      margin: EdgeInsets.fromLTRB(20, 20, 20, 0),
+      margin: EdgeInsets.fromLTRB(20, 20, 20, 0), // กำหนดระยะขอบของปุ่ม
       child: ElevatedButton(
-        child: Text("เพิ่มสถานที่", style: TextStyle(color: Colors.white)),
+        child: Text("เพิ่มสถานที่",
+            style: TextStyle(
+                color: Colors.white)), // ข้อความของปุ่มและกำหนดสีของข้อความ
         style: ElevatedButton.styleFrom(
-          backgroundColor: Color.fromARGB(255, 255, 0, 0),
-          padding: EdgeInsets.symmetric(vertical: 15),
+          backgroundColor:
+              Color.fromARGB(255, 255, 0, 0), // กำหนดสีพื้นหลังของปุ่ม
+          padding: EdgeInsets.symmetric(vertical: 15), // กำหนด padding ของปุ่ม
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(40),
+            borderRadius: BorderRadius.circular(40), // กำหนดความโค้งของขอบปุ่ม
           ),
         ),
         onPressed: () {
           if (input1.text.isEmpty || input2.text.isEmpty) {
-            showErrorDialog(context, 'กรุณากรอกข้อมูล');
+            showErrorDialog(
+                context, 'กรุณากรอกข้อมูล'); // แสดงข้อผิดพลาดเมื่อข้อมูลไม่ครบ
           } else if (_imageFile == null) {
-            showErrorDialog(context, 'กรุณาเลือกรูปภาพ');
+            showErrorDialog(context,
+                'กรุณาเลือกรูปภาพ'); // แสดงข้อผิดพลาดเมื่อไม่ได้เลือกรูปภาพ
           } else if (_selectedLocation == null) {
-            showErrorDialog(context, 'กรุณาเลือกสถานที่บนแผนที่');
+            showErrorDialog(context,
+                'กรุณาเลือกสถานที่บนแผนที่'); // แสดงข้อผิดพลาดเมื่อไม่ได้เลือกสถานที่บนแผนที่
           } else {
-            functionAddLocation();
+            functionAddLocation(); // เรียกใช้ฟังก์ชัน functionAddLocation เพื่อเพิ่มสถานที่
           }
         },
       ),
@@ -466,40 +531,51 @@ class _AddLocationState extends State<AddLocationPage> {
   // ฟังก์ชันเพิ่มสถานที่
   Future<void> functionAddLocation() async {
     if (_imageFile == null || _selectedLocation == null) {
-      print("No image or location selected.");
+      print(
+          "No image or location selected."); // แสดงข้อความเมื่อไม่ได้เลือกรูปภาพหรือสถานที่
       return;
     }
 
     var request = http.MultipartRequest(
       'POST',
-      Uri.parse("http://10.0.2.2/flutter_webservice/get_AddLocation.php"),
+      Uri.parse(
+          "http://10.0.2.2/flutter_webservice/get_AddLocation.php"), // กำหนด URL สำหรับส่งคำขอ POST
     );
 
-    request.fields['location_name'] = input1.text;
-    request.fields['location_time'] = input2.text;
+    request.fields['location_name'] =
+        input1.text; // ใส่ชื่อสถานที่ลงในฟิลด์ 'location_name'
+    request.fields['location_time'] =
+        input2.text; // ใส่เวลาเปิด-ปิดลงในฟิลด์ 'location_time'
 
     request.fields['types_id'] = json.encode(selectedTypes.map((type) {
-      final typeMap =
-          fieldTypes.firstWhere((element) => element['type_name'] == type);
-      return typeMap['type_id'];
+      final typeMap = fieldTypes.firstWhere((element) =>
+          element['type_name'] == type); // ค้นหา type_id ที่ตรงกับ type_name
+      return typeMap['type_id']; // ส่งคืน type_id สำหรับแต่ละประเภท
     }).toList());
 
-    request.fields['latitude'] = _selectedLocation!.latitude.toString();
-    request.fields['longitude'] = _selectedLocation!.longitude.toString();
+    request.fields['latitude'] = _selectedLocation!.latitude
+        .toString(); // ใส่ค่าละติจูดของสถานที่ลงในฟิลด์ 'latitude'
+    request.fields['longitude'] = _selectedLocation!.longitude
+        .toString(); // ใส่ค่าลองจิจูดของสถานที่ลงในฟิลด์ 'longitude'
 
-    request.files
-        .add(await http.MultipartFile.fromPath('image', _imageFile!.path));
+    request.files.add(await http.MultipartFile.fromPath(
+        'image', _imageFile!.path)); // เพิ่มไฟล์รูปภาพในฟิลด์ 'image'
 
-    print('Fields : ${request.fields}');
-    print('File : ${_imageFile!.path}');
+    print(
+        'Fields : ${request.fields}'); // แสดงข้อมูลฟิลด์ทั้งหมดที่ถูกส่งไปในคำขอ HTTP
+    print(
+        'File : ${_imageFile!.path}'); // แสดง path ของไฟล์รูปภาพที่ถูกส่งไปในคำขอ HTTP
 
     try {
-      var response = await request.send();
+      var response = await request.send(); // ส่งคำขอไปยังเซิร์ฟเวอร์
 
       if (response.statusCode == 200) {
-        var responseData = await response.stream.bytesToString();
-        var responseDataJson = json.decode(responseData);
-        print('Response Data Addlocation : $responseData');
+        var responseData = await response.stream
+            .bytesToString(); // รับข้อมูลการตอบกลับจากเซิร์ฟเวอร์
+        var responseDataJson =
+            json.decode(responseData); // ถอดรหัสข้อมูลการตอบกลับเป็น JSON
+        print(
+            'Response Data Addlocation : $responseData'); // แสดงข้อมูลการตอบกลับ
 
         // รับ location_id จากการตอบกลับ
         String locationId = responseDataJson['location_id']
@@ -507,36 +583,39 @@ class _AddLocationState extends State<AddLocationPage> {
 
         // ส่งคำขอเพื่อรับสถานะของสถานที่ที่เพิ่งเพิ่ม
         var statusResponse = await http.post(
-          Uri.parse('http://10.0.2.2/flutter_webservice/get_Chackapprove.php'),
+          Uri.parse(
+              'http://10.0.2.2/flutter_webservice/get_Chackapprove.php'), // URL สำหรับตรวจสอบสถานะการอนุมัติ
           body: {
-            'location_id': locationId,
+            'location_id': locationId, // ส่ง location_id เพื่อเช็คสถานะ
           },
         );
 
         if (statusResponse.statusCode == 200) {
-          var statusData = json.decode(statusResponse.body);
+          var statusData =
+              json.decode(statusResponse.body); // ถอดรหัสข้อมูลสถานะจาก JSON
           String status =
-              statusData['status'].toString(); // ใช้จาก statusResponse
+              statusData['status'].toString(); // แปลงสถานะเป็น String
 
-          print('สถานะการอนุมัติ: $status');
+          print('สถานะการอนุมัติ: $status'); // แสดงสถานะการอนุมัติ
 
-          // Show success dialog
+          // แสดง dialog แจ้งเตือนเมื่อเพิ่มสถานที่สำเร็จ
           showDialog(
             context: context,
             builder: (BuildContext context) {
               return AlertDialog(
-                title: Text('สำเร็จ'),
-                content:
-                    Text('เพิ่มสถานที่สำเร็จแล้ว สถานะการอนุมัติ: $status'),
+                title: Text('สำเร็จ'), // หัวข้อของ dialog
+                content: Text(
+                    'เพิ่มสถานที่สำเร็จแล้ว สถานะการอนุมัติ: $status'), // เนื้อหาของ dialog
                 actions: <Widget>[
                   TextButton(
-                    child: Text('ตกลง'),
+                    child: Text('ตกลง'), // ข้อความของปุ่มใน dialog
                     onPressed: () {
-                      Navigator.of(context).pop();
+                      Navigator.of(context).pop(); // ปิด dialog เมื่อกดปุ่มตกลง
                       Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => Homepage(jwt: widget.jwt)),
+                            builder: (context) => Homepage(
+                                jwt: widget.jwt)), // กลับไปที่หน้า Homepage
                       );
                     },
                   ),
@@ -545,38 +624,45 @@ class _AddLocationState extends State<AddLocationPage> {
             },
           );
         } else {
-          print("Failed to get status: ${statusResponse.statusCode}");
+          print(
+              "Failed to get status: ${statusResponse.statusCode}"); // แสดงข้อความเมื่อการตรวจสอบสถานะล้มเหลว
         }
       } else {
-        print("Request failed with status: ${response.statusCode}");
+        print(
+            "Request failed with status: ${response.statusCode}"); // แสดงข้อความเมื่อคำขอล้มเหลว
       }
     } catch (error) {
-      print("Error: $error");
+      print(
+          "Error: $error"); // แสดงข้อความเมื่อเกิดข้อผิดพลาดในกระบวนการส่งคำขอ
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color.fromARGB(255, 222, 222, 222),
+      backgroundColor:
+          Color.fromARGB(255, 222, 222, 222), // กำหนดสีพื้นหลังของหน้า
       appBar: AppBar(
         title: Text("เพิ่มสถานที่",
-            style: TextStyle(color: const Color.fromARGB(255, 255, 255, 255))),
-        leading: backButton(),
-        backgroundColor: Color.fromARGB(255, 255, 0, 0),
+            style: TextStyle(
+                color: const Color.fromARGB(
+                    255, 255, 255, 255))), // หัวข้อของ AppBar
+        leading: backButton(), // ปุ่มกลับไปที่หน้าก่อนหน้า
+        backgroundColor:
+            Color.fromARGB(255, 255, 0, 0), // กำหนดสีพื้นหลังของ AppBar
       ),
       body: SafeArea(
         child: ListView(
           children: [
-            namelocation(),
-            time(),
-            type(),
-            addImage(),
-            imageDisplay(),
-            searchlocation(),
-            map(),
-            buttonAddLocation(context),
-            SizedBox(height: 20)
+            namelocation(), // วิดเจ็ตฟิลด์ชื่อสถานที่
+            time(), // วิดเจ็ตฟิลด์เวลาเปิด-ปิด
+            type(), // วิดเจ็ตฟิลด์ประเภทสนาม
+            addImage(), // วิดเจ็ตปุ่มเลือกรูปภาพ
+            imageDisplay(), // วิดเจ็ตแสดงรูปภาพที่เลือกหรือโลโก้
+            searchlocation(), // วิดเจ็ตปุ่มค้นหาสถานที่
+            map(), // วิดเจ็ตแผนที่
+            buttonAddLocation(context), // วิดเจ็ตปุ่มเพิ่มสถานที่
+            SizedBox(height: 20) // เพิ่มช่องว่างด้านล่าง
           ],
         ),
       ),

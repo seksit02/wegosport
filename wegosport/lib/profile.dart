@@ -14,7 +14,8 @@ class ProfilePage extends StatefulWidget {
   final String jwt; // รับค่า JWT สำหรับการตรวจสอบสิทธิ์
 
   @override
-  State<ProfilePage> createState() => _ProfilePageState();
+  State<ProfilePage> createState() =>
+      _ProfilePageState(); // สร้างสถานะของ ProfilePage
 }
 
 class _ProfilePageState extends State<ProfilePage> {
@@ -32,7 +33,7 @@ class _ProfilePageState extends State<ProfilePage> {
         Uri.parse('http://10.0.2.2/flutter_webservice/get_ShowDataUser.php');
 
     Map<String, String> headers = {
-      'Authorization': 'Bearer $jwt',
+      'Authorization': 'Bearer $jwt', // ใส่ JWT ในส่วนของ Authorization Header
     };
 
     print('Headers profile : $headers');
@@ -40,7 +41,7 @@ class _ProfilePageState extends State<ProfilePage> {
     try {
       var response = await http.post(
         url,
-        headers: headers,
+        headers: headers, // ส่งค่า JWT ไปพร้อมกับคำขอ
       );
 
       print('Response status profile : ${response.statusCode}');
@@ -132,10 +133,10 @@ class _ProfilePageState extends State<ProfilePage> {
         toolbarColor: Colors.deepOrange,
         toolbarWidgetColor: Colors.white,
         initAspectRatio: CropAspectRatioPreset.square,
-        lockAspectRatio: true,
+        lockAspectRatio: true, // ล็อกอัตราส่วนภาพให้เป็นสี่เหลี่ยมจตุรัส
       ),
       iosUiSettings: IOSUiSettings(
-        minimumAspectRatio: 1.0,
+        minimumAspectRatio: 1.0, // กำหนดอัตราส่วนขั้นต่ำสำหรับ iOS
       ),
     );
     return croppedFile;
@@ -199,19 +200,22 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Color.fromARGB(255, 255, 0, 0),
+        backgroundColor: Color.fromARGB(
+            255, 255, 0, 0), // กำหนดสีพื้นหลังของ AppBar เป็นสีแดง
         title: Text(
-          "หน้าโปรไฟล์",
-          style: TextStyle(color: Colors.white),
+          "หน้าโปรไฟล์", // ชื่อหน้าจอ
+          style: TextStyle(color: Colors.white), // กำหนดสีข้อความเป็นสีขาว
         ),
         leading: IconButton(
           icon: Icon(Icons.arrow_back,
-              color: const Color.fromARGB(255, 255, 255, 255)),
+              color: const Color.fromARGB(
+                  255, 255, 255, 255)), // กำหนดสีไอคอนเป็นสีขาว
           onPressed: () {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
-                builder: (context) => Homepage(jwt: widget.jwt),
+                builder: (context) =>
+                    Homepage(jwt: widget.jwt), // กลับไปที่หน้า Homepage
               ),
             );
           },
@@ -237,7 +241,7 @@ class _ProfilePageState extends State<ProfilePage> {
                               as ImageProvider, // แสดงภาพดีฟอลต์ถ้าไม่มีภาพโปรไฟล์
                     ),
                   ),
-                  SizedBox(height: 16),
+                  SizedBox(height: 16), // เพิ่มระยะห่าง
                   Text(
                     userData!['user_name'] ?? 'ไม่มีข้อมูล', // แสดงชื่อผู้ใช้
                     style: TextStyle(
@@ -252,10 +256,10 @@ class _ProfilePageState extends State<ProfilePage> {
                       color: const Color.fromARGB(255, 18, 18, 18),
                     ),
                   ),
-                  SizedBox(height: 16),
+                  SizedBox(height: 16), // เพิ่มระยะห่าง
                   userData!['user_text']?.isNotEmpty == true
                       ? Text(
-                          userData!['user_text'],
+                          userData!['user_text'], // แสดงข้อความของผู้ใช้
                           style: TextStyle(
                             fontSize: 14,
                             color: const Color.fromARGB(255, 0, 0, 0),
@@ -268,7 +272,7 @@ class _ProfilePageState extends State<ProfilePage> {
                             color: const Color.fromARGB(255, 0, 0, 0),
                           ),
                         ),
-                  SizedBox(height: 16),
+                  SizedBox(height: 16), // เพิ่มระยะห่าง
                   Text(
                     formatDate(userData!['user_age'] ??
                         'ไม่มีข้อมูล'), // แสดงผลวันที่ในรูปแบบ DD/MM/YYYY
@@ -277,7 +281,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       color: const Color.fromARGB(255, 0, 0, 0),
                     ),
                   ),
-                  SizedBox(height: 16),
+                  SizedBox(height: 16), // เพิ่มระยะห่าง
                   ElevatedButton(
                     onPressed: () {
                       Navigator.push(
