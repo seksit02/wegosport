@@ -55,7 +55,7 @@ class _LoginPageState extends State<LoginPage> {
         decoration: InputDecoration(
           contentPadding: EdgeInsets.fromLTRB(
               0, 15, 0, 0), // กำหนดระยะห่างภายในฟิลด์ (ซ้าย, บน, ขวา, ล่าง)
-          hintText: 'ชื่อผู้ใช้', // ข้อความที่แสดงเมื่อฟิลด์ว่าง
+          hintText: 'อีเมล', // ข้อความที่แสดงเมื่อฟิลด์ว่าง
           fillColor: Colors.white, // กำหนดสีพื้นหลังเป็นสีขาว
           filled: true, // เปิดการใช้งานสีพื้นหลัง
           prefixIcon: Icon(
@@ -134,17 +134,14 @@ class _LoginPageState extends State<LoginPage> {
               var loginResult =
                   await FunctionLogin(); // เรียกใช้ฟังก์ชันล็อกอิน
 
-              bool loginSuccess = loginResult['success'] ??
-                  false; // กำหนดค่าดีฟอลต์เป็น false หาก 'success' เป็น null
-              String jwt = loginResult['jwt'] ??
-                  ''; // กำหนดค่าดีฟอลต์เป็นสตริงว่างหาก 'jwt' เป็น null
-
+              bool loginSuccess = loginResult['success'] ?? false; // กำหนดค่าดีฟอลต์เป็น false หาก 'success' เป็น null
+              String jwt = loginResult['jwt'] ?? ''; // กำหนดค่าดีฟอลต์เป็นสตริงว่างหาก 'jwt' เป็น null
+                  
               if (loginSuccess) {
                 Navigator.of(context).pushReplacement(
                   MaterialPageRoute(
                     builder: (context) => Homepage(
-                        jwt:
-                            jwt), // ส่งค่า jwt ที่ได้รับจากฟังก์ชันไปยังหน้า Homepage
+                        jwt:jwt), // ส่งค่า jwt ที่ได้รับจากฟังก์ชันไปยังหน้า Homepage
                   ),
                 );
               } else {
@@ -180,12 +177,12 @@ class _LoginPageState extends State<LoginPage> {
 
   // ฟังก์ชันล็อกอินธรรมดา
   Future<Map<String, dynamic>> FunctionLogin() async {
-    print("user_id: ${inputone.text}"); // แสดง user_id ในคอนโซลสำหรับดีบัก
+    print("user_email: ${inputone.text}"); // แสดง user_id ในคอนโซลสำหรับดีบัก
     print("user_pass: ${inputtwo.text}"); // แสดง user_pass ในคอนโซลสำหรับดีบัก
 
     // เตรียมข้อมูลที่จะส่ง
     Map<String, String> dataPost = {
-      "user_id": inputone.text, // เก็บ user_id ที่ผู้ใช้กรอก
+      "user_email": inputone.text, // เก็บ user_id ที่ผู้ใช้กรอก
       "user_pass": inputtwo.text, // เก็บ user_pass ที่ผู้ใช้กรอก
     };
 
@@ -222,7 +219,7 @@ class _LoginPageState extends State<LoginPage> {
 
         // ตรวจสอบว่าการเข้าสู่ระบบสำเร็จหรือไม่
         if (jsonResponse['result'] == "1") {
-          String userId = jsonResponse['user_id']; // ดึง user_id จากการตอบกลับ
+          String userEmail = jsonResponse['user_email']; // ดึง user_id จากการตอบกลับ
           String jwt = jsonResponse['jwt']; // ดึง JWT จากการตอบกลับ
 
           // เก็บ JWT ลงในฐานข้อมูล
@@ -231,16 +228,15 @@ class _LoginPageState extends State<LoginPage> {
                 'http://10.0.2.2/flutter_webservice/get_Savejwt.php'), // กำหนด URL ของ API ที่ใช้เก็บ JWT
             headers: headers, // แนบ headers ไปกับคำขอ
             body: json.encode({
-              "user_id": userId, // ส่ง user_id ที่ได้รับจากการล็อกอิน
+              "user_email": userEmail, // ส่ง user_id ที่ได้รับจากการล็อกอิน
               "jwt": jwt, // ส่ง JWT ที่ได้รับจากการล็อกอิน
             }),
           );
 
           if (saveJwtResponse.statusCode == 200) {
             // ตรวจสอบว่าการบันทึก JWT สำเร็จหรือไม่
-            Map<String, dynamic> saveJwtJsonResponse = json.decode(
-                saveJwtResponse.body); // แปลงการตอบกลับจาก JSON เป็น Map
-
+            Map<String, dynamic> saveJwtJsonResponse = json.decode(saveJwtResponse.body); // แปลงการตอบกลับจาก JSON เป็น Map
+                
             if (saveJwtJsonResponse['result'] == "1") {
               return {
                 'success': true, // การเข้าสู่ระบบสำเร็จ
@@ -281,7 +277,7 @@ class _LoginPageState extends State<LoginPage> {
           color: Colors.white, // กำหนดสีไอคอนเป็นสีขาว
         ),
         label: Text(
-          "Sign up with Facebook", // ข้อความบนปุ่ม
+          "ลงทะเบียนด้วยเฟซบุ๊ค", // ข้อความบนปุ่ม
           style: TextStyle(
             color: Colors.white, // กำหนดสีข้อความเป็นสีขาว
           ),
@@ -304,6 +300,7 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
+  // ฟังก์ชันล็อกอิน facebook
   // ฟังก์ชันล็อกอิน facebook
   Future<void> facebookLogin(BuildContext context) async {
     try {
@@ -343,112 +340,50 @@ class _LoginPageState extends State<LoginPage> {
 
         if (response.statusCode == 200) {
           // ตรวจสอบว่าการตอบกลับจากเซิร์ฟเวอร์สำเร็จหรือไม่
-          var jsonResponse =
-              jsonDecode(response.body); // แปลงการตอบกลับจาก JSON เป็น Map
 
-          print(
-              'ข้อมูลจาก ChackToken : $jsonResponse'); // แสดงข้อมูลจากการตรวจสอบในคอนโซลสำหรับดีบัก
+          try {
+            var jsonResponse =
+                jsonDecode(response.body); // แปลงการตอบกลับจาก JSON เป็น Map
 
-          // ตรวจสอบสถานะก่อน
-          if (jsonResponse['status'] == 'inactive') {
-            _showErrorDialog(
-                "บัญชีของคุณถูกระงับ"); // แสดงกล่องข้อความแจ้งเตือนว่าบัญชีถูกระงับ
-            return;
-          }
+            print(
+                'ข้อมูลจาก ChackToken : $jsonResponse'); // แสดงข้อมูลจากการตรวจสอบในคอนโซลสำหรับดีบัก
 
-          if (jsonResponse['exists']) {
-            // ตรวจสอบว่ามี user_token อยู่ในฐานข้อมูลหรือไม่
-            // ตรวจสอบว่า jwt ไม่มีค่า
-            if (jsonResponse['jwt'] == null || jsonResponse['jwt'].isEmpty) {
-              print("เข้าเงื่อนไขไม่มี jwt");
-
-              // ถ้ามี user_token แต่ไม่มี user_jwt ให้สร้าง jwt ก่อนและบันทึกลง database แล้วส่งไปหน้า home
-              String jwt =
-                  generateJwt(jsonResponse['user_id']); // สร้าง JWT จาก user_id
-
-              // เก็บ JWT ลงในฐานข้อมูล
-              var saveJwtResponse = await http.post(
-                Uri.parse(
-                    'http://10.0.2.2/flutter_webservice/get_Savejwt.php'), // กำหนด URL ของ API ที่ใช้เก็บ JWT
-                headers: {
-                  "Content-Type": "application/json"
-                }, // กำหนด Content-Type เป็น JSON
-                body: jsonEncode({
-                  "user_id": jsonResponse[
-                      'user_id'], // ส่ง user_id ที่ได้รับจากการตรวจสอบ
-                  "jwt": jwt, // ส่ง JWT ที่สร้างขึ้น
-                }),
-              );
-
-              print('ข้อมูล saveJwt : $saveJwtResponse[result]');
-
-              if (jwt.isNotEmpty) {
-                var saveJwtJsonResponse = jsonDecode(
-                    saveJwtResponse.body); // แปลงการตอบกลับจาก JSON เป็น Map
-
-                if (saveJwtJsonResponse['result'] == "1") {
-                  // แสดงป๊อปอัพเพื่อแจ้งให้ผู้ใช้เข้าสู่ระบบอีกครั้ง
-                  showDialog(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return AlertDialog(
-                        title: Text("บันทึกข้อมูลสำเร็จ"), // หัวข้อของป๊อปอัพ
-                        content: Text(
-                            "กรุณาเข้าสู่ระบบอีกครั้ง"), // ข้อความในป๊อปอัพ
-                        actions: [
-                          TextButton(
-                            child: Text("ตกลง"), // ข้อความบนปุ่ม
-                            onPressed: () {
-                              Navigator.of(context)
-                                  .pop(); // ปิดป๊อปอัพเมื่อกดปุ่ม "ตกลง"
-                              // ส่งผู้ใช้กลับไปหน้า login
-                              Navigator.pushReplacement(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      LoginPage(), // นำทางไปยังหน้า LoginPage
-                                ),
-                              );
-                            },
-                          ),
-                        ],
-                      );
-                    },
-                  );
-                } else {
-                  _showErrorDialog(
-                      "การเก็บ JWT ล้มเหลว"); // แสดงกล่องข้อความแจ้งเตือนว่าการเก็บ JWT ล้มเหลว
-                }
-              } else {
-                _showErrorDialog(
-                    "การเก็บ JWT ล้มเหลว"); // แสดงกล่องข้อความแจ้งเตือนว่าการเก็บ JWT ล้มเหลว
-              }
+            // ตรวจสอบสถานะก่อน
+            if (jsonResponse['status'] == 'inactive') {
+              _showErrorDialog(
+                  "บัญชีของคุณถูกระงับ"); // แสดงกล่องข้อความแจ้งเตือนว่าบัญชีถูกระงับ
+              return;
             } else {
-              print("เข้าเงื่อนไขมี jwt");
-
-              // ถ้ามี user_token และ user_jwt อยู่ในฐานข้อมูล
-              String jwt = jsonResponse['jwt']; // ดึง JWT จากการตอบกลับ
-
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => Homepage(
-                      jwt: jwt), // นำทางไปยังหน้า Homepage พร้อมส่ง JWT
-                ),
-              );
+              // ตรวจสอบว่ามี user_token และ jwt หรือไม่
+              String? jwt = jsonResponse['jwt'];
+              if (jsonResponse['user_token'] != null && jwt != null) {
+                // นำทางไปยังหน้า homepage พร้อมส่งค่า jwt
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        Homepage(jwt: jwt), // ไปยังหน้า homepage และส่ง jwt
+                  ),
+                );
+              } else {
+                // นำทางไปยังหน้า AddInformation พร้อมส่งค่า jwt
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => editinformation(
+                      six_value:
+                          facebookUserId, // ส่ง user_id ของ Facebook ไปยังหน้า AddInformation
+                      name: name, // ส่งชื่อไปยังหน้า AddInformation
+                      email: email, // ส่งอีเมลไปยังหน้า AddInformation
+                    ),
+                  ),
+                );
+              }
             }
-          } else {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => editinformation(
-                  six_value:
-                      facebookUserId, // ส่ง user_id ของ Facebook ไปยังหน้า editinformation
-                  name: name, // ส่งชื่อไปยังหน้า editinformation
-                  email: email, // ส่งอีเมลไปยังหน้า editinformation
-                ),
-              ),
-            );
+          } catch (e) {
+            print('JSON Decode Error: $e');
+            print(
+                'Response Body: ${response.body}'); // แสดงการตอบสนองในกรณีที่เกิดข้อผิดพลาด
           }
         } else {
           // จัดการข้อผิดพลาดของเซิร์ฟเวอร์
@@ -457,7 +392,8 @@ class _LoginPageState extends State<LoginPage> {
         }
       }
     } catch (error) {
-      print(error); // แสดงข้อผิดพลาดในคอนโซลสำหรับดีบัก
+      print(
+          'Facebook Login Error: $error'); // แสดงข้อผิดพลาดในคอนโซลสำหรับดีบัก
     }
   }
 

@@ -1,3 +1,4 @@
+import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
 import 'package:flutter/services.dart'; // นำเข้าไลบรารีสำหรับจัดการระบบบริการ เช่น การจัดการรูปแบบการป้อนข้อมูล
 import 'package:flutter/material.dart'; // นำเข้าไลบรารีสำหรับสร้าง UI ใน Flutter
 import 'package:http/http.dart'
@@ -79,7 +80,7 @@ class _editinformationState extends State<editinformation> {
             decoration: InputDecoration(
               contentPadding: EdgeInsets.fromLTRB(
                   0, 15, 0, 0), // กำหนด padding ของเนื้อหาภายในฟิลด์
-              hintText: 'ชื่อผู้ใช้งาน "มากกว่า 6 ตัว"', // ข้อความแนะนำในฟิลด์
+              hintText: 'ชื่อผู้ใช้งาน', // ข้อความแนะนำในฟิลด์
               fillColor: Colors.white, // กำหนดสีพื้นหลังของฟิลด์
               filled: true, // กำหนดให้ฟิลด์มีสีพื้นหลัง
               prefixIcon: Icon(
@@ -199,7 +200,7 @@ class _editinformationState extends State<editinformation> {
             decoration: InputDecoration(
               contentPadding: EdgeInsets.fromLTRB(
                   0, 15, 0, 0), // กำหนด padding ของเนื้อหาภายในฟิลด์
-              hintText: 'รหัสผ่าน "มากกว่า 6 ตัว"', // ข้อความแนะนำในฟิลด์
+              hintText: 'รหัสผ่าน "อย่างน้อย 6 หลัก"', // ข้อความแนะนำในฟิลด์
               fillColor: Colors.white, // กำหนดสีพื้นหลังของฟิลด์
               filled: true, // กำหนดให้ฟิลด์มีสีพื้นหลัง
               prefixIcon: Icon(
@@ -324,7 +325,7 @@ class _editinformationState extends State<editinformation> {
           Padding(
             padding: EdgeInsets.only(left: 20.0), // เพิ่มระยะทางซ้ายของข้อความ
             child: Text(
-              'ตัวอย่าง: 01/01/1990', // ข้อความตัวอย่าง
+              'ตัวอย่าง: 01/01/2540', // ข้อความตัวอย่าง
               style: TextStyle(color: Colors.grey), // กำหนดสีข้อความเป็นสีเทา
             ),
           ),
@@ -341,8 +342,6 @@ class _editinformationState extends State<editinformation> {
     );
 
     return one_value.text.isNotEmpty && // ตรวจสอบว่าฟิลด์ชื่อผู้ใช้ไม่ว่าง
-        one_value.text.length >=
-            6 && // ตรวจสอบว่าชื่อผู้ใช้มีอย่างน้อย 6 ตัวอักษร
         one_value.text.contains(
             RegExp(r'[a-zA-Z]')) && // ตรวจสอบว่าชื่อผู้ใช้มีตัวอักษรหรือไม่
         two_value.text.isNotEmpty && // ตรวจสอบว่าฟิลด์อีเมลไม่ว่าง
@@ -427,6 +426,51 @@ class _editinformationState extends State<editinformation> {
     return date; // คืนค่ากลับถ้ารูปแบบไม่ถูกต้อง
   }
 
+  // ฟังก์ชันบันทึก JWT
+  Future<void> saveJwt(String jwt, String userEmail) async {
+
+    // เตรียมหัวเรื่อง
+    Map<String, String> headers = {
+      "Content-Type": "application/json", // กำหนด Content-Type เป็น JSON
+      "Accept": "application/json" // ยอมรับการตอบกลับเป็น JSON
+    };
+
+    var saveJwtResponse = await http.post(
+      Uri.parse(
+          'http://10.0.2.2/flutter_webservice/get_Savejwt.php'), // URL ของ API ที่ใช้เก็บ JWT
+
+      headers: headers,
+      body: jsonEncode({
+        "user_email": userEmail, // ส่ง user_email
+        "jwt": jwt, // ส่ง JWT
+      }),
+    );
+
+    if (saveJwtResponse.statusCode == 200) {
+      print("บันทึก JWT สำเร็จ");
+    } else {
+      print("การบันทึก JWT ล้มเหลว");
+    }
+  }
+
+  // ฟังก์ชันสร้าง JWT
+  String generateJwt(String userEmail) {
+    final jwt = JWT(
+      {
+        'user_email': userEmail, // กำหนดข้อมูลผู้ใช้ภายใน JWT
+      },
+    );
+
+    final secretKey = 'your_secret_key'; // กำหนดคีย์ลับสำหรับการเซ็น JWT
+    final token = jwt.sign(SecretKey(secretKey),
+        algorithm: JWTAlgorithm
+            .HS256); // สร้างและเซ็น JWT ด้วยคีย์ลับและอัลกอริธึม HS256
+
+    print("Generated JWT ad : $token"); // แสดง JWT ที่สร้างขึ้นในคอนโซลสำหรับดีบัก
+
+    return token; // ส่ง JWT กลับ
+  }
+
   // ฟังก์ชันสมัครสมาชิก
   Future<void> functionregister(BuildContext context) async {
     print("user_id: ${one_value.text}"); // แสดง user_id ที่กรอก
@@ -468,28 +512,53 @@ class _editinformationState extends State<editinformation> {
       if (response.statusCode == 200) {
         Map<String, dynamic> jsonResponse =
             json.decode(response.body); // แปลงข้อมูลการตอบกลับจาก JSON
-        print(jsonResponse); // แสดงข้อมูลการตอบกลับ
+
+        print('ข้อมูลจากการสมัคร : $jsonResponse'); // แสดงข้อมูลการตอบกลับ
 
         // เช็คผลลัพธ์ที่ได้จากเซิร์ฟเวอร์
         if (jsonResponse['result'] == 1) {
-          showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return AlertDialog(
-                title: Text("กรอกข้อมูลสำเร็จ"), // หัวข้อของ dialog
-                actions: <Widget>[
-                  TextButton(
-                    child: Text("ตกลง"), // ข้อความของปุ่มตกลงใน dialog
-                    onPressed: () {
-                      Navigator.of(context).pushReplacement(MaterialPageRoute(
-                          builder: (context) =>
-                              LoginPage())); // เปลี่ยนหน้าไปยังหน้า Login
-                    },
-                  ),
-                ],
+
+          // ดึงข้อมูล user_email จาก datalist
+          List<dynamic> datalist = jsonResponse['datalist'];
+
+          if (datalist.isNotEmpty) {
+            String userEmail = datalist[0]
+                ['user_email']; // ดึง user_email จากรายการแรกของ datalist
+          print(userEmail);
+
+            if (userEmail != null) {
+              // ตรวจสอบว่า user_email ไม่เป็น null
+              showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    title: Text("ยืนยัน JWT"), // หัวข้อของ dialog
+                    content: Text("กรุณายืนยัน JWT"), // ข้อความภายใน dialog
+                    actions: <Widget>[
+                      TextButton(
+                        child: Text("ยืนยัน"), // ข้อความของปุ่มยืนยันใน dialog
+
+                        onPressed: () async {
+
+                          String jwt = generateJwt(userEmail); // สร้าง JWT จาก user_email
+
+                          await saveJwt(jwt,userEmail); // เก็บ JWT ลงในฐานข้อมูล
+
+                          Navigator.of(context).pushReplacement(MaterialPageRoute(
+                              builder: (context) =>
+                                  LoginPage())); // กลับไปยังหน้า Login หลังจากยืนยัน JWT สำเร็จ
+                                   
+                        },
+                      ),
+                    ],
+                  );
+                },
               );
-            },
-          );
+            } else {
+              _showDialog(context, 'ผิดพลาด',
+                  'ไม่สามารถรับข้อมูล user_email ได้'); // แสดงข้อผิดพลาดเมื่อ user_email เป็น null
+            }
+          }
         } else {
           // ตรวจสอบข้อความข้อผิดพลาด
           if (jsonResponse['message'] == "ชื่อผู้ใช้หรืออีเมลนี้มีผู้ใช้แล้ว") {
