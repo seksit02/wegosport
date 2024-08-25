@@ -470,10 +470,13 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
                       if (newTag.isNotEmpty &&
                           newTag.length <= 20 &&
                           _selectedTags.length < 3 &&
+                          !_selectedTags.contains(newTag) &&
                           !_selectedTags.contains('#$newTag')) {
                         setState(() {
-                          _selectedTags
-                              .add('#$newTag'); // เพิ่ม # ที่แฮชแท็กใหม่
+                          if (!newTag.startsWith('#')) {
+                            newTag = '#$newTag';
+                          }
+                          _selectedTags.add(newTag); // เพิ่มแฮชแท็กใหม่
                           hashtagController
                               .clear(); // ล้างฟิลด์หลังเพิ่มแฮชแท็ก
                         });
@@ -501,10 +504,13 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
             },
             onSuggestionSelected: (suggestion) {
               if (_selectedTags.length < 3 &&
+                  !_selectedTags.contains(suggestion) &&
                   !_selectedTags.contains('#$suggestion')) {
                 setState(() {
-                  _selectedTags
-                      .add('#$suggestion'); // เพิ่ม # ที่แฮชแท็กที่เลือก
+                  if (!suggestion.startsWith('#')) {
+                    suggestion = '#$suggestion';
+                  }
+                  _selectedTags.add(suggestion); // เพิ่มแฮชแท็กที่เลือก
                   hashtagController.clear(); // ล้างฟิลด์หลังเพิ่มแฮชแท็ก
                 });
               }
@@ -527,6 +533,7 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
       ),
     );
   }
+
 
   // วิดเจ็ตฟิลด์รายละเอียดกิจกรรม
   Widget message() {
