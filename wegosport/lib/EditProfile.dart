@@ -92,6 +92,15 @@ class _EditProfileState extends State<EditProfile> {
     return formattedDate; // ส่งคืนสตริงวันที่ในรูปแบบ DD/MM/YYYY
   }
 
+  // แปลงรูปแบบวันที่ให้เป็น YYYY-MM-DD ก่อนส่งไปยัง PHP
+  String formatDate1(String date) {
+    List<String> parts = date.split('/'); // แยกวันที่ตาม '/'
+    if (parts.length == 3) {
+      return '${parts[2]}-${parts[1]}-${parts[0]}'; // คืนค่าวันที่ในรูปแบบ YYYY-MM-DD
+    }
+    return date; // คืนค่ากลับถ้ารูปแบบไม่ถูกต้อง
+  }
+
   // ฟังก์ชันอัปเดตโปรไฟล์ผู้ใช้
   Future<void> updateUserProfile() async {
     var url = Uri.parse(
@@ -109,6 +118,7 @@ class _EditProfileState extends State<EditProfile> {
       'user_text': _userTextController.text, // ใส่ค่า user_text ใน body ของคำขอ
       'user_age': _userAgeController.text, // ใส่ค่า user_age ใน body ของคำขอ
     };
+
 
     print('ข้อมูล headers : $headers'); // พิมพ์ headers เพื่อการตรวจสอบ
     print('ข้อมูล body : $body'); // พิมพ์ body เพื่อการตรวจสอบ
@@ -210,10 +220,15 @@ class _EditProfileState extends State<EditProfile> {
               ),
               SizedBox(height: 20), // ระยะห่างระหว่างฟิลด์กับปุ่ม
               ElevatedButton(
-                onPressed:
-                    updateUserProfile, // เรียกใช้ฟังก์ชัน updateUserProfile เมื่อกดปุ่ม
+                onPressed: () {
+                  // แปลงวันที่จาก DD/MM/YYYY ให้เป็น YYYY-MM-DD ก่อนส่งไปอัปเดต
+                  _userAgeController.text =
+                      formatDate1(_userAgeController.text);
+                  updateUserProfile(); // เรียกใช้ฟังก์ชัน updateUserProfile เมื่อกดปุ่ม
+                },
                 child: Text('อัปเดตข้อมูล'), // ข้อความในปุ่ม
               ),
+
             ],
           ),
         ),
