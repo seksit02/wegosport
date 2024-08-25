@@ -121,12 +121,16 @@ class _HomepageState extends State<Homepage> {
 
     final filtered = activities.where((activity) {
       final activityName = activity['activity_name']?.toLowerCase() ?? '';
+      final locationName = activity['location_name']?.toLowerCase() ?? '';
+      final sportName = activity['sport_name']?.toLowerCase() ?? '';
       final hashtags = activity['hashtags'] as List<dynamic>? ?? [];
       final hashtagMessages = hashtags
           .map((tag) => tag['hashtag_message']?.toLowerCase() ?? '')
           .toList();
 
       return activityName.contains(searchLower) ||
+          locationName.contains(searchLower) ||
+          sportName.contains(searchLower) ||
           hashtagMessages.any((hashtag) => hashtag.contains(searchLower));
     }).toList();
 
@@ -149,6 +153,7 @@ class _HomepageState extends State<Homepage> {
       }
     });
   }
+
 
   // ฟังก์ชันเปลี่ยนแท็บ
   void _onItemTapped(int index) {
@@ -523,9 +528,7 @@ class ActivityCardItem extends StatelessWidget {
                         );
                       }
                     },
-
                   ),
-
                 ],
               ),
               SizedBox(height: 8),
@@ -558,9 +561,9 @@ class ActivityCardItem extends StatelessWidget {
                 ),
               ),
               SizedBox(height: 4),
-              // สถานที่
+              // สถานที่เล่นกีฬาและชื่อกีฬา
               Text(
-                activity['location_name'] ?? '',
+                '${activity['location_name'] ?? ''} - ${activity['sport_name'] ?? ''}',
                 style: TextStyle(
                   color: Colors.grey,
                 ),
@@ -638,6 +641,7 @@ class ActivityCardItem extends StatelessWidget {
     );
   }
 }
+
 
 // วิดเจ็ตแสดงแท็ก (hashtag)
 class TagWidget extends StatelessWidget {
