@@ -630,9 +630,9 @@ class _EditActivityState extends State<EditActivity> {
             },
             onSuggestionSelected: (suggestion) {
               if (_selectedTags.length < 3 &&
-                  !_selectedTags.contains('#$suggestion')) {
+                  !_selectedTags.contains(suggestion)) {
                 setState(() {
-                  _selectedTags.add('#$suggestion');
+                  _selectedTags.add(suggestion);
                   hashtagController.clear();
                 });
               }

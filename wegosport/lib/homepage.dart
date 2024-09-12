@@ -318,13 +318,19 @@ class _HomepageState extends State<Homepage> {
                             context,
                             MaterialPageRoute(
                               builder: (context) => ActivityPage(
-                                  activity: activity), // ไปยังหน้า ActivityPage
+                                activity: activity,
+                                jwt: widget.jwt, // ส่ง JWT ไปยัง ActivityPage ด้วย
+                                userId: userData != null
+                                    ? userData!['user_id']
+                                    : 'ไม่พบข้อมูล', // ส่ง user_id ไปยัง ActivityPage
+                              ),
                             ),
                           );
                         },
                         child: ActivityCardItem(
                           activity: activity,
-                          userData: userData, fetchActivities: fetchActivities,
+                          userData: userData,
+                          fetchActivities: fetchActivities,
                         ),
                       );
                     },
@@ -429,12 +435,18 @@ class ActivityCardItem extends StatelessWidget {
     return GestureDetector(
       onTap: () {
         if (isActive) {
+
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => ActivityPage(activity: activity),
+              builder: (context) => ActivityPage(
+                activity: activity,
+                jwt: '',
+                userId: userData != null ? userData!['user_id'] : 'ไม่พบข้อมูล', // ตรวจสอบว่าค่า userData มีข้อมูลจริง
+              ),
             ),
           );
+
         } else {
           showDialog(
             context: context,
@@ -492,7 +504,7 @@ class ActivityCardItem extends StatelessWidget {
                         color: const Color.fromARGB(255, 0, 0, 0)),
                     onPressed: () async {
                       if (userData != null &&
-                          activity['creator_id'] == userData!['user_id']) {
+                          activity['creator'] == userData!['user_id']) {
                         final result = await Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -641,7 +653,6 @@ class ActivityCardItem extends StatelessWidget {
     );
   }
 }
-
 
 // วิดเจ็ตแสดงแท็ก (hashtag)
 class TagWidget extends StatelessWidget {

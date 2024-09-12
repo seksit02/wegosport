@@ -3,6 +3,7 @@ import 'package:flutter/services.dart'; // นำเข้าไลบราร�
 import 'package:flutter/material.dart'; // นำเข้าไลบรารีสำหรับสร้าง UI ใน Flutter
 import 'package:http/http.dart'
     as http; // นำเข้าไลบรารีสำหรับการทำ HTTP requests
+import 'package:wegosport/Homepage.dart';
 import 'dart:async'; // นำเข้าไลบรารีสำหรับการทำงานแบบอะซิงโครนัส
 import 'dart:convert'; // นำเข้าไลบรารีสำหรับการแปลงข้อมูล JSON
 import 'package:wegosport/Login.dart'; // นำเข้าหน้า Login
@@ -532,11 +533,11 @@ class _editinformationState extends State<editinformation> {
                 context: context,
                 builder: (BuildContext context) {
                   return AlertDialog(
-                    title: Text("ยืนยัน JWT"), // หัวข้อของ dialog
-                    content: Text("กรุณายืนยัน JWT"), // ข้อความภายใน dialog
+                    title: Text("บันทึกข้อมูลสำเร็จ"), // หัวข้อของ dialog
+                    content: Text("มาสร้างกิจกรรมกันเถอะ"), // ข้อความภายใน dialog
                     actions: <Widget>[
                       TextButton(
-                        child: Text("ยืนยัน"), // ข้อความของปุ่มยืนยันใน dialog
+                        child: Text("ตกลง"), // ข้อความของปุ่มยืนยันใน dialog
 
                         onPressed: () async {
 
@@ -546,7 +547,9 @@ class _editinformationState extends State<editinformation> {
 
                           Navigator.of(context).pushReplacement(MaterialPageRoute(
                               builder: (context) =>
-                                  LoginPage())); // กลับไปยังหน้า Login หลังจากยืนยัน JWT สำเร็จ
+                                  Homepage(
+                                  jwt:
+                                      jwt))); // กลับไปยังหน้า Login หลังจากยืนยัน JWT สำเร็จ
                                    
                         },
                       ),

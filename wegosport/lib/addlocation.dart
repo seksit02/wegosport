@@ -15,7 +15,7 @@ import 'package:image/image.dart'
 import 'package:wegosport/Homepage.dart'; // นำเข้าหน้าหลักของแอปพลิเคชัน
 
 const kGoogleApiKey =
-    "AIzaSyD7Okt5SymXMu3nocso2FJb5_2dSgGhL-s"; // แทนที่ด้วย API Key ของคุณ
+    "AIzaSyA0fREem2DS-afsu3zFC-yH6a7sz4B7Z3Y"; // แทนที่ด้วย API Key ของคุณ
 
 class AddLocationPage extends StatefulWidget {
   const AddLocationPage({Key? key, required this.jwt})
@@ -51,21 +51,7 @@ class _AddLocationState extends State<AddLocationPage> {
     _requestLocationPermission(); // ขออนุญาตการเข้าถึงตำแหน่ง
   }
 
-  // ขออนุญาตการเข้าถึงตำแหน่ง
-  Future<void> _requestLocationPermission() async {
-    var status =
-        await Permission.locationWhenInUse.status; // ตรวจสอบสถานะการอนุญาต
-    if (!status.isGranted) {
-      status = await Permission.locationWhenInUse
-          .request(); // ขออนุญาตถ้ายังไม่ได้รับ
-      if (!status.isGranted) {
-        // จัดการกรณีที่ผู้ใช้ปฏิเสธการอนุญาต
-        print('ไม่ได้รับอนุญาติให้ระบุตำแหน่ง');
-        return;
-      }
-    }
-    print('ได้รับอนุญาติให้จัดสถานที่แล้ว');
-  }
+  
 
   // ดึงข้อมูลประเภทสนามจากเซิร์ฟเวอร์
   Future<void> fetchType() async {
@@ -118,6 +104,22 @@ class _AddLocationState extends State<AddLocationPage> {
       print('No image selected.'); // แสดงข้อความเมื่อไม่ได้เลือกรูปภาพ
     }
   }
+  
+  // ขออนุญาตการเข้าถึงตำแหน่ง
+    Future<void> _requestLocationPermission() async {
+      var status =
+          await Permission.locationWhenInUse.status; // ตรวจสอบสถานะการอนุญาต
+      if (!status.isGranted) {
+        status = await Permission.locationWhenInUse.request(); // ขออนุญาตถ้ายังไม่ได้รับ
+            
+        if (!status.isGranted) {
+          // จัดการกรณีที่ผู้ใช้ปฏิเสธการอนุญาต
+          print('ไม่ได้รับอนุญาติให้ระบุตำแหน่ง');
+          return;
+        }
+      }
+      print('ได้รับอนุญาติให้จัดสถานที่แล้ว');
+    }
 
   // ค้นหาสถานที่โดยใช้ Google Places API
   Future<void> _handlePressButton() async {
@@ -380,8 +382,8 @@ class _AddLocationState extends State<AddLocationPage> {
         ),
         onTap: (LatLng location) {
           setState(() {
-            _selectedLocation =
-                location; // กำหนดตำแหน่งที่เลือกเมื่อแตะที่แผนที่
+            _selectedLocation = location; // กำหนดตำแหน่งที่เลือกเมื่อแตะที่แผนที่
+                
           });
         },
         markers: _selectedLocation != null

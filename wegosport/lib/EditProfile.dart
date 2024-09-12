@@ -119,7 +119,6 @@ class _EditProfileState extends State<EditProfile> {
       'user_age': _userAgeController.text, // ใส่ค่า user_age ใน body ของคำขอ
     };
 
-
     print('ข้อมูล headers : $headers'); // พิมพ์ headers เพื่อการตรวจสอบ
     print('ข้อมูล body : $body'); // พิมพ์ body เพื่อการตรวจสอบ
 
@@ -133,13 +132,31 @@ class _EditProfileState extends State<EditProfile> {
       if (response.statusCode == 200) {
         print('Response status edit : ${response.statusCode}');
         print('Response body edit : ${response.body}');
-        // อัปเดตสำเร็จ
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ProfilePage(
-                jwt: widget.jwt), // กลับไปที่หน้า ProfilePage พร้อม JWT
-          ),
+
+        // แสดงป๊อปอัปแจ้งเตือนเมื่อแก้ไขข้อมูลสำเร็จ
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text("แก้ไขข้อมูลสำเร็จ"),
+              content: Text("ข้อมูลของคุณได้รับการอัปเดตเรียบร้อยแล้ว"),
+              actions: <Widget>[
+                TextButton(
+                  child: Text("ตกลง"),
+                  onPressed: () {
+                    Navigator.of(context).pop(); // ปิดป๊อปอัป
+                    // กลับไปที่หน้า ProfilePage พร้อม JWT
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ProfilePage(jwt: widget.jwt),
+                      ),
+                    );
+                  },
+                ),
+              ],
+            );
+          },
         );
       } else {
         throw Exception(
@@ -150,6 +167,7 @@ class _EditProfileState extends State<EditProfile> {
           'Failed to update user data'); // โยนข้อผิดพลาดหากมีข้อผิดพลาดเกิดขึ้น
     }
   }
+
 
   @override
   Widget build(BuildContext context) {

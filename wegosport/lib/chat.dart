@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class chat extends StatefulWidget {
-  const chat({super.key});
+  const chat({super.key, required activity});
 
   @override
   State<chat> createState() => _chatState();

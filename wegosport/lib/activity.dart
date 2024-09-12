@@ -1,17 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart'; // นำเข้าไลบรารี Google Maps
 import 'package:url_launcher/url_launcher.dart'; // นำเข้าไลบรารีสำหรับเปิดลิงก์ในเบราว์เซอร์
-import 'package:wegosport/Homepage.dart'; // นำเข้าหน้า Homepage
+import 'package:http/http.dart' as http; // นำเข้าไลบรารีสำหรับ HTTP requests
+import 'package:wegosport/Homepage.dart';
+import 'package:wegosport/chat.dart'; // นำเข้าหน้า Homepage
 
 // หน้ากิจกรรม
 class ActivityPage extends StatelessWidget {
-  final dynamic activity; // ตัวแปรเก็บข้อมูลกิจกรรมที่ส่งเข้ามา
+  final dynamic activity;
+  final String jwt;
+  final String userId; // รับค่าจากหน้า Home
 
-  ActivityPage(
-      {super.key, required this.activity}); // Constructor รับข้อมูลกิจกรรม
+  ActivityPage({
+    super.key,
+    required this.activity,
+    required this.jwt,
+    required this.userId, // กำหนดให้รับ userId จาก Home
+  });
 
   @override
   Widget build(BuildContext context) {
+    print(
+        'userId ที่ได้รับใน ActivityPage: $userId'); // พิมพ์ค่า userId เพื่อตรวจสอบ
+
     // แปลงค่าจาก String เป็น double สำหรับพิกัดแผนที่
     double latitude = double.tryParse(activity['latitude'] ?? '0.0') ?? 0.0;
     double longitude = double.tryParse(activity['longitude'] ?? '0.0') ?? 0.0;
@@ -25,6 +36,61 @@ class ActivityPage extends StatelessWidget {
       } else {
         throw 'Could not open the map.'; // แสดงข้อผิดพลาดหากเปิดไม่ได้
       }
+    }
+
+    void _joinActivity() async {
+      // แปลง activity_id จาก String เป็น int
+      int activityId = int.tryParse(activity['activity_id'] ?? '0') ?? 0;
+
+      // URL สำหรับส่งข้อมูลไปยังเซิร์ฟเวอร์
+      String url = 'http://10.0.2.2/flutter_webservice/addmember.php';
+
+      print('ข้อมูล user_id : $userId');
+      print('ข้อมูล activity_id : $activityId');
+
+      // ข้อมูลที่จะส่งไป
+      Map<String, dynamic> body = {
+        'user_id': userId,
+        'activity_id': activityId.toString(), // ส่งเป็น String ใน HTTP POST
+      };
+
+      // ส่งข้อมูลด้วย HTTP POST
+      var response = await http.post(Uri.parse(url), body: body);
+
+      if (response.statusCode == 200) {
+        print('เข้าร่วมกิจกรรมสำเร็จ');
+      } else {
+        print('เกิดข้อผิดพลาดในการเข้าร่วมกิจกรรม');
+      }
+    }
+
+    // ฟังก์ชันป๊อปอัปยืนยันการเข้าร่วมกิจกรรม
+    void _confirmJoinActivity(BuildContext context) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('ยืนยันการเข้าร่วมกิจกรรม'),
+            content: Text('คุณต้องการเข้าร่วมกิจกรรมนี้หรือไม่?'),
+            actions: <Widget>[
+              TextButton(
+                child: Text('ยกเลิก'),
+                onPressed: () {
+                  Navigator.of(context).pop(); // ปิดป๊อปอัป
+                },
+              ),
+              TextButton(
+                child: Text('ตกลง'),
+                onPressed: () {
+                  // เรียกใช้ฟังก์ชันในการเพิ่มสมาชิก
+                  _joinActivity();
+                  Navigator.of(context).pop(); // ปิดป๊อปอัป
+                },
+              ),
+            ],
+          );
+        },
+      );
     }
 
     // ดึงชื่อผู้ใช้จาก members
@@ -86,17 +152,22 @@ class ActivityPage extends StatelessWidget {
             Row(
               children: [
                 CircleAvatar(
-                  backgroundImage:
-                      AssetImage('images/logo.png'), // แสดงรูปภาพผู้ใช้ (โลโก้)
+                  backgroundImage: activity['members'] != null &&
+                          activity['members'].isNotEmpty &&
+                          (activity['members'] as List).any((member) =>
+                              member['user_id'] == activity['creator'])
+                      ? NetworkImage(
+                          (activity['members'] as List).firstWhere((member) =>
+                              member['user_id'] ==
+                              activity['creator'])['user_photo'],
+                        )
+                      : AssetImage('images/logo.png')
+                          as ImageProvider, // ถ้าไม่พบรูปให้แสดงโลโก้
                   radius: 16, // ขนาดของ Avatar
                 ),
                 SizedBox(width: 8),
-                Text(activity['members'] != null &&
-                        activity['members'].isNotEmpty
-                    ? (activity['members'] as List)
-                        .map((member) => member['user_name'])
-                        .join(', ') // รวมชื่อสมาชิกด้วยเครื่องหมายคอมมา
-                    : 'ไม่ระบุชื่อ'), // แสดงชื่อสมาชิก
+                Text(activity['creator'] ??
+                    'ไม่ระบุชื่อ'), // แสดงชื่อผู้สร้างกิจกรรม
               ],
             ),
             SizedBox(height: 16),
@@ -158,8 +229,12 @@ class ActivityPage extends StatelessWidget {
                 ...List<Widget>.from(
                   (activity['members'] as List<dynamic>).map(
                     (member) => CircleAvatar(
-                      backgroundImage: AssetImage(
-                          'images/logo.png'), // แทนที่ด้วย URL รูปภาพจริงของสมาชิกถ้ามี
+                      backgroundImage: member['user_photo'] != null &&
+                              member['user_photo'].isNotEmpty
+                          ? NetworkImage(member[
+                              'user_photo']) // แสดงรูปภาพจาก URL ของสมาชิก
+                          : AssetImage('images/logo.png')
+                              as ImageProvider, // ใช้โลโก้ถ้าไม่มีรูป
                       radius: 16, // ขนาดของ Avatar
                     ),
                   ),
@@ -169,19 +244,42 @@ class ActivityPage extends StatelessWidget {
             SizedBox(height: 16),
             // ปุ่มเข้าร่วมกิจกรรม
             Center(
-              child: ElevatedButton(
-                onPressed: () {
-                  // Add action for joining chat
-                },
-                style: ElevatedButton.styleFrom(
-                  foregroundColor: const Color.fromARGB(
-                      255, 255, 255, 255), // สีข้อความในปุ่ม
-                  backgroundColor:
-                      Color.fromARGB(255, 255, 0, 0), // สีพื้นหลังของปุ่ม
-                  minimumSize: Size(double.infinity, 50), // ขนาดของปุ่ม
-                ),
-                child: Text('เข้าร่วมกิจกรรม'), // ข้อความในปุ่ม
-              ),
+              child: (activity['members'] as List<dynamic>)
+                      .any((member) => member['user_id'] == userId)
+                  ? ElevatedButton(
+                      onPressed: () {
+                        // ไปยังหน้าห้องแชท (คุณต้องสร้างฟังก์ชันสำหรับแชทที่นี่)
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => chat(
+                                activity: activity), // ไปยังหน้า ChatPage
+                          ),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        foregroundColor: const Color.fromARGB(
+                            255, 255, 255, 255), // สีข้อความในปุ่ม
+                        backgroundColor: Color.fromARGB(255, 44, 177, 0), // สีพื้นหลังของปุ่มแชท (สีฟ้า)
+                        minimumSize: Size(double.infinity, 50), // ขนาดของปุ่ม
+                      ),
+                      child: Text('แชท'), // ข้อความในปุ่มสำหรับแชท
+                    )
+                  : ElevatedButton(
+                      onPressed: () {
+                        _confirmJoinActivity(
+                            context); // แสดงป๊อปอัปเมื่อกดปุ่มเข้าร่วมกิจกรรม
+                      },
+                      style: ElevatedButton.styleFrom(
+                        foregroundColor: const Color.fromARGB(
+                            255, 255, 255, 255), // สีข้อความในปุ่ม
+                        backgroundColor: Color.fromARGB(255, 255, 0,
+                            0), // สีพื้นหลังของปุ่มเข้าร่วมกิจกรรม (สีแดง)
+                        minimumSize: Size(double.infinity, 50), // ขนาดของปุ่ม
+                      ),
+                      child: Text(
+                          'เข้าร่วมกิจกรรม'), // ข้อความในปุ่มเข้าร่วมกิจกรรม
+                    ),
             ),
           ],
         ),
