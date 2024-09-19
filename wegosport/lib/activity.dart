@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart'; // นำเข้าไลบรารี Google Maps
 import 'package:url_launcher/url_launcher.dart'; // นำเข้าไลบรารีสำหรับเปิดลิงก์ในเบราว์เซอร์
 import 'package:http/http.dart' as http; // นำเข้าไลบรารีสำหรับ HTTP requests
+import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:wegosport/Homepage.dart';
 import 'package:wegosport/chat.dart'; // นำเข้าหน้า Homepage
+
 
 // หน้ากิจกรรม
 class ActivityPage extends StatelessWidget {
@@ -20,8 +22,9 @@ class ActivityPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    print(
-        'userId ที่ได้รับใน ActivityPage: $userId'); // พิมพ์ค่า userId เพื่อตรวจสอบ
+    print('userId ที่ได้รับใน ActivityPage: $userId'); // พิมพ์ค่า userId เพื่อตรวจสอบ
+    print('JWT ที่ได้รับใน ActivityPage: $jwt');
+
 
     // แปลงค่าจาก String เป็น double สำหรับพิกัดแผนที่
     double latitude = double.tryParse(activity['latitude'] ?? '0.0') ?? 0.0;
@@ -248,12 +251,18 @@ class ActivityPage extends StatelessWidget {
                       .any((member) => member['user_id'] == userId)
                   ? ElevatedButton(
                       onPressed: () {
-                        // ไปยังหน้าห้องแชท (คุณต้องสร้างฟังก์ชันสำหรับแชทที่นี่)
+                        // ไปยังหน้าห้องแชท
+                        var channel = WebSocketChannel.connect(
+                          Uri.parse('ws://10.0.2.2:8080'),
+                        );
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => chat(
-                                activity: activity), // ไปยังหน้า ChatPage
+                            builder: (context) => ChatPage(
+                              channel: channel,
+                              activity: activity,
+                              jwt: jwt, // ส่งค่า jwt ไปด้วย
+                            ),
                           ),
                         );
                       },

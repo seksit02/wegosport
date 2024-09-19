@@ -1,3 +1,4 @@
+import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:wegosport/Addlocation.dart';
@@ -330,7 +331,8 @@ class _HomepageState extends State<Homepage> {
                         child: ActivityCardItem(
                           activity: activity,
                           userData: userData,
-                          fetchActivities: fetchActivities,
+                          fetchActivities: fetchActivities, 
+                          jwt: widget.jwt,
                         ),
                       );
                     },
@@ -392,14 +394,17 @@ class _HomepageState extends State<Homepage> {
 class ActivityCardItem extends StatelessWidget {
   final dynamic activity;
   final dynamic userData;
+  final dynamic jwt;
   final Color backgroundColor;
   final Color statusColor;
   final Color textColor;
   final Function fetchActivities; // รับฟังก์ชัน fetchActivities
+  
 
   ActivityCardItem({
     required this.activity,
     required this.userData,
+     required this.jwt,
     required this.fetchActivities, // เพิ่มฟังก์ชัน fetchActivities
     this.backgroundColor = const Color.fromARGB(255, 255, 255, 255),
     this.statusColor = const Color.fromARGB(255, 255, 225, 1),
@@ -441,7 +446,7 @@ class ActivityCardItem extends StatelessWidget {
             MaterialPageRoute(
               builder: (context) => ActivityPage(
                 activity: activity,
-                jwt: '',
+                jwt: jwt,
                 userId: userData != null ? userData!['user_id'] : 'ไม่พบข้อมูล', // ตรวจสอบว่าค่า userData มีข้อมูลจริง
               ),
             ),
