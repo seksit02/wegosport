@@ -30,6 +30,8 @@ server.on("connection", (ws) => {
     let action = parsedMessage.action;
     let activityId = parsedMessage.activity_id;
     let userId = parsedMessage.user_id;
+    let userName = parsedMessage.user_name;
+    let userPhoto = parsedMessage.user_photo;
 
     // กรณีที่ client ต้องการดึงข้อความของ activity นั้นๆ
     if (action === "get_messages") {
@@ -56,22 +58,26 @@ server.on("connection", (ws) => {
 
       // บันทึกข้อความลงในฐานข้อมูล
       const query =
-        "INSERT INTO messages (user_id, activity_id, message, timestamp, status) VALUES (?, ?, ?, NOW(), 'sent')";
-      db.query(query, [userId, activityId, msgContent], (err, res) => {
-        if (err) {
-          console.log("Error saving message to DB:", err);
-          ws.send("Error saving message");
-        } else {
-          console.log("Message saved to DB for activityId:", activityId);
+        "INSERT INTO messages (user_id, user_name, user_photo, activity_id, message, timestamp, status) VALUES (?, ?, ?, ?, ?, NOW(), 'sent')";
+      db.query(
+        query,
+        [userId, userName, userPhoto, activityId, msgContent],
+        (err, res) => {
+          if (err) {
+            console.log("Error saving message to DB:", err);
+            ws.send("Error saving message");
+          } else {
+            console.log("Message saved to DB for activityId:", activityId);
 
-          // Broadcast ข้อความให้กับทุก client ที่เชื่อมต่ออยู่
-          clients.forEach((client) => {
-            if (client.readyState === WebSocket.OPEN) {
-              client.send(`${userId}: ${msgContent}`);
-            }
-          });
+            // Broadcast ข้อความให้กับทุก client ที่เชื่อมต่ออยู่
+            clients.forEach((client) => {
+              if (client.readyState === WebSocket.OPEN) {
+                client.send(`${userId}: ${msgContent}`);
+              }
+            });
+          }
         }
-      });
+      );
     }
   });
 
