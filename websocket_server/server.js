@@ -3,10 +3,10 @@ const mysql = require("mysql");
 
 // สร้างการเชื่อมต่อกับฐานข้อมูล MySQL
 const db = mysql.createConnection({
-  host: "localhost", // ตั้งค่าตามเซิร์ฟเวอร์ของคุณ
-  user: "root", // ชื่อผู้ใช้ฐานข้อมูล
-  password: "", // รหัสผ่าน
-  database: "wegosport", // ชื่อฐานข้อมูล
+  host: "localhost",
+  user: "root",
+  password: "",
+  database: "wegosport",
 });
 
 db.connect((err) => {
@@ -16,71 +16,68 @@ db.connect((err) => {
 
 const server = new WebSocket.Server({ port: 8080 });
 
+// เก็บ connection ของ clients ที่เชื่อมต่อทั้งหมด
+const clients = new Set();
+
 server.on("connection", (ws) => {
   console.log("Client connected");
+  clients.add(ws); // เพิ่ม client ที่เชื่อมต่อใหม่ลงใน set
 
-  // ดึงข้อความเก่าจากฐานข้อมูล
-  db.query(
-    "SELECT * FROM messages ORDER BY timestamp DESC LIMIT 50",
-    (err, rows) => {
-      if (err) {
-        console.log("Error retrieving messages:", err);
-        ws.send("Error retrieving messages");
-      } else {
-        // ส่งข้อความเก่ากลับไปยัง client
-        rows.forEach((row) => {
-          ws.send(`${row.user_id}: ${row.message}`);
-        });
-      }
-    }
-  );
+  ws.send("Welcome to WegoSport!");
 
-  // ส่งข้อความต้อนรับไปยัง client
-  ws.send("Welcome to the WebSocket server!");
-
-  // รับข้อความจาก client และบันทึกลงฐานข้อมูล
   ws.on("message", (message) => {
-    console.log(`ได้รับ: ${message}`);
-
-    // แปลงข้อความ JSON เป็นอ็อบเจกต์
     let parsedMessage = JSON.parse(message);
-
+    let action = parsedMessage.action;
+    let activityId = parsedMessage.activity_id;
     let userId = parsedMessage.user_id;
-    let msgContent = parsedMessage.message;
 
-    // ดึง member_id จากตาราง member_in_activity ตาม user_id
-    db.query(
-      "SELECT member_id FROM member_in_activity WHERE user_id = ?",
-      [userId],
-      (err, result) => {
-        if (err || result.length === 0) {
-          console.log(
-            "Error retrieving member_id or member_id not found:",
-            err
-          );
-          ws.send("Error retrieving member_id");
+    // กรณีที่ client ต้องการดึงข้อความของ activity นั้นๆ
+    if (action === "get_messages") {
+      // ในโค้ดเซิร์ฟเวอร์ส่วนการดึงข้อความ
+      db.query(
+        "SELECT * FROM messages WHERE activity_id = ? ORDER BY timestamp ASC LIMIT 50",
+        [activityId], // ส่ง activity_id เพื่อกรองข้อมูล
+        (err, rows) => {
+          if (err) {
+            console.log("Error retrieving messages:", err);
+            ws.send("Error retrieving messages");
+          } else {
+            rows.forEach((row) => {
+              ws.send(`${row.user_id}: ${row.message}`);
+            });
+          }
+        }
+      );
+    }
+
+    // กรณีที่ client ส่งข้อความใหม่
+    if (action === "send_message") {
+      let msgContent = parsedMessage.message;
+
+      // บันทึกข้อความลงในฐานข้อมูล
+      const query =
+        "INSERT INTO messages (user_id, activity_id, message, timestamp, status) VALUES (?, ?, ?, NOW(), 'sent')";
+      db.query(query, [userId, activityId, msgContent], (err, res) => {
+        if (err) {
+          console.log("Error saving message to DB:", err);
+          ws.send("Error saving message");
         } else {
-          let memberId = result[0].member_id;
+          console.log("Message saved to DB for activityId:", activityId);
 
-          // เพิ่มข้อมูลลงในฐานข้อมูล
-          const query =
-            "INSERT INTO messages (user_id, member_id, message, timestamp, status) VALUES (?, ?, ?, NOW(), 'sent')";
-          db.query(query, [userId, memberId, msgContent], (err, result) => {
-            if (err) {
-              console.log("Error saving message to DB:", err);
-              ws.send("Error saving message");
-            } else {
-              console.log("Message saved to DB");
-              ws.send(`เซิร์ฟเวอร์ได้รับแล้ว: ${msgContent}`);
+          // Broadcast ข้อความให้กับทุก client ที่เชื่อมต่ออยู่
+          clients.forEach((client) => {
+            if (client.readyState === WebSocket.OPEN) {
+              client.send(`${userId}: ${msgContent}`);
             }
           });
         }
-      }
-    );
+      });
+    }
   });
 
   ws.on("close", () => {
     console.log("Client disconnected");
+    clients.delete(ws); // ลบ client ที่ตัดการเชื่อมต่อ
   });
 });
 

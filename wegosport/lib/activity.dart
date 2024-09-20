@@ -269,10 +269,15 @@ class ActivityPage extends StatelessWidget {
                       style: ElevatedButton.styleFrom(
                         foregroundColor: const Color.fromARGB(
                             255, 255, 255, 255), // สีข้อความในปุ่ม
-                        backgroundColor: Color.fromARGB(255, 44, 177, 0), // สีพื้นหลังของปุ่มแชท (สีฟ้า)
+                        backgroundColor: Color.fromARGB(255, 255, 0, 0), // สีพื้นหลังของปุ่มแชท (สีฟ้า)
                         minimumSize: Size(double.infinity, 50), // ขนาดของปุ่ม
                       ),
-                      child: Text('แชท'), // ข้อความในปุ่มสำหรับแชท
+                      child: Text('แชท',
+                      style: TextStyle(
+                          fontSize: 18.0, // ปรับขนาดฟอนต์ตามที่ต้องการ
+                          fontWeight: FontWeight.bold, // ทำให้ฟอนต์หนา
+                        ),
+                      ), // ข้อความในปุ่มสำหรับแชท
                     )
                   : ElevatedButton(
                       onPressed: () {
@@ -287,7 +292,12 @@ class ActivityPage extends StatelessWidget {
                         minimumSize: Size(double.infinity, 50), // ขนาดของปุ่ม
                       ),
                       child: Text(
-                          'เข้าร่วมกิจกรรม'), // ข้อความในปุ่มเข้าร่วมกิจกรรม
+                        'เข้าร่วมกิจกรรม',
+                        style: TextStyle(
+                          fontSize: 18.0, // ปรับขนาดฟอนต์ตามที่ต้องการ
+                          fontWeight: FontWeight.bold, // ทำให้ฟอนต์หนา
+                        ),
+                      ), // ข้อความในปุ่มเข้าร่วมกิจกรรม
                     ),
             ),
           ],

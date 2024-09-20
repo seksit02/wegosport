@@ -360,7 +360,12 @@ class _HomepageState extends State<Homepage> {
                       backgroundColor: Color.fromARGB(255, 255, 0, 0),
                       minimumSize: Size(double.infinity, 30), // ปรับขนาดของปุ่ม
                     ),
-                    child: Text('สร้างกิจกรรม'),
+                    child: Text('สร้างกิจกรรม',
+                    style: TextStyle(
+                        fontSize: 18.0, // ปรับขนาดฟอนต์ตามที่ต้องการ
+                        fontWeight: FontWeight.bold, // ทำให้ฟอนต์หนา
+                      ),
+                    ),
                   ),
                   ElevatedButton(
                     onPressed: () {
@@ -378,7 +383,12 @@ class _HomepageState extends State<Homepage> {
                       backgroundColor: Color.fromARGB(255, 255, 0, 0),
                       minimumSize: Size(double.infinity, 30), // ปรับขนาดของปุ่ม
                     ),
-                    child: Text('เพิ่มสถานที่'),
+                    child: Text('เพิ่มสถานที่',
+                    style: TextStyle(
+                        fontSize: 18.0, // ปรับขนาดฟอนต์ตามที่ต้องการ
+                        fontWeight: FontWeight.bold, // ทำให้ฟอนต์หนา
+                      ),
+                    ),
                   ),
                 ],
               ),

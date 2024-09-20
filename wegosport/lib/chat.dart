@@ -1,12 +1,14 @@
-import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
-import 'package:web_socket_channel/web_socket_channel.dart';
+import 'package:flutter/material.dart'; // นำเข้าชุดคำสั่งที่ใช้สร้าง UI ใน Flutter
+import 'package:http/http.dart'
+    as http; // นำเข้าแพ็กเกจ HTTP สำหรับเรียกใช้งาน API
+import 'dart:convert'; // นำเข้าแพ็กเกจสำหรับแปลงข้อมูล JSON
+import 'package:web_socket_channel/web_socket_channel.dart'; // นำเข้าชุดคำสั่งที่ใช้ในการเชื่อมต่อ WebSocket
 
 class ChatPage extends StatefulWidget {
-  final WebSocketChannel channel;
-  final dynamic activity;
-  final String jwt;
+  final WebSocketChannel
+      channel; // กำหนดตัวแปร WebSocket channel ที่ใช้สำหรับเชื่อมต่อ WebSocket
+  final dynamic activity; // ตัวแปรที่เก็บข้อมูลกิจกรรม (activity) ที่ถูกส่งผ่าน
+  final String jwt; // ตัวแปร JWT (JSON Web Token) สำหรับตรวจสอบตัวตนผู้ใช้
 
   const ChatPage({
     super.key,
@@ -16,189 +18,136 @@ class ChatPage extends StatefulWidget {
   });
 
   @override
-  _ChatPageState createState() => _ChatPageState();
+  _ChatPageState createState() =>
+      _ChatPageState(); // สร้างสถานะ (State) สำหรับ ChatPage
 }
 
 class _ChatPageState extends State<ChatPage> {
-  final TextEditingController _controller = TextEditingController();
-  final List<String> _messages = [];
+  final TextEditingController _controller =
+      TextEditingController(); // สร้าง controller สำหรับ TextField เพื่อจัดการข้อความที่พิมพ์
+  final List<String> _messages = []; // กำหนด list เพื่อเก็บข้อความแชทที่ได้รับ
+  final ScrollController _scrollController =
+      ScrollController(); // สร้าง ScrollController สำหรับควบคุมการเลื่อน
 
-  Map<String, dynamic>? userData;
-  List<dynamic> activities = [];
+  Map<String, dynamic>? userData; // ตัวแปรเก็บข้อมูลผู้ใช้ที่ได้จาก JWT
 
   @override
   void initState() {
-    super.initState();
-    fetchActivities();
-    fetchUserData(widget.jwt);
+    super.initState(); // เรียกใช้ initState ของ class พื้นฐาน
+    fetchUserData(widget.jwt).then((_) {
+      // เมื่อดึงข้อมูลผู้ใช้สำเร็จ
+      connectToWebSocket(); // เรียกฟังก์ชัน connectToWebSocket เพื่อส่ง user_id และ activity_id ไปยังเซิร์ฟเวอร์
 
-    // ตรวจสอบค่าของตัวแปรที่ส่งมาจาก ActivityPage
-    print("chat Activity data: ${widget.activity}");
-    print("chat JWT: ${widget.jwt}");
-    print("chat Activity data 1: ${activities}");
-    print("chat JWT 1: ${userData}");
+      // ส่ง activity_id ไปยังเซิร์ฟเวอร์เพื่อดึงข้อความที่เกี่ยวข้อง
+      widget.channel.sink.add(jsonEncode({
+        'action': 'get_messages', // บอกว่าเราต้องการดึงข้อความ
+        'activity_id': widget.activity['activity_id'], // ส่ง activity_id
+        'user_id':
+            userData?['user_id'], // ส่ง user_id เพื่อกรองข้อความตามผู้ใช้
+      }));
+    });
 
     widget.channel.stream.listen((message) {
-      setState(() {
-        _messages.add(message);
-      });
+      if (!_messages.contains(message)) {
+        // เพิ่มเงื่อนไขนี้เพื่อตรวจสอบว่าข้อความยังไม่ถูกเพิ่มใน _messages
+        setState(() {
+          _messages.add(message); // เพิ่มข้อความใหม่ที่ได้รับ
+          _scrollToBottom(); // เลื่อนข้อความไปที่ข้อความล่าสุด
+        });
+      }
     });
   }
 
-  // ฟังก์ชันดึงข้อมูลกิจกรรมจากเซิร์ฟเวอร์
-  Future<void> fetchActivities() async {
-    final response = await http.get(Uri.parse(
-        'http://10.0.2.2/flutter_webservice/get_ShowDataActivity.php'));
+  /// ฟังก์ชันเพื่อเลื่อนไปที่ข้อความล่าสุด
+  void _scrollToBottom() {
+    if (_scrollController.hasClients) {
+      _scrollController.animateTo(
+        _scrollController
+            .position.maxScrollExtent, // เลื่อนลงไปที่ข้อความล่างสุด
+        duration: Duration(milliseconds: 500), // กำหนดความเร็วในการเลื่อน
+        curve: Curves.easeOut, // ใช้เอฟเฟกต์การเลื่อนแบบนุ่มนวล
+      );
+    }
+  }
+
+  // ฟังก์ชันส่ง user_id และ activity_id ไปยัง WebSocket Server
+  void connectToWebSocket() {
+    widget.channel.sink.add(jsonEncode({
+      'action': 'get_messages',
+      'user_id': userData?['user_id'], // user_id ของผู้ใช้
+      'activity_id': widget.activity['activity_id'], // activity_id ของกิจกรรม
+    }));
+  }
+
+  // ฟังก์ชันดึงข้อมูลผู้ใช้จาก JWT
+  Future<void> fetchUserData(String jwt) async {
+    final response = await http.post(
+      // เรียกใช้ API เพื่อตรวจสอบ JWT และดึงข้อมูลผู้ใช้
+      Uri.parse('http://10.0.2.2/flutter_webservice/get_ShowDataUser.php'),
+      headers: {
+        'Authorization': 'Bearer $jwt', // ส่ง JWT เพื่อเป็นการยืนยันตัวตน
+      },
+    );
 
     if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-
-      // ดึงเฉพาะ user_id ของสมาชิกในกิจกรรม
-      List<dynamic> members = widget.activity['members'];
-      List<String> memberIds =
-          members.map((member) => member['user_id'].toString()).toList();
-
-      // เก็บเฉพาะกิจกรรมที่สมาชิกเป็น user_id
-      setState(() {
-        activities = data.where((activity) {
-          List<dynamic> activityMembers = activity['members'];
-          return activityMembers
-              .any((member) => memberIds.contains(member['user_id']));
-        }).toList();
-      });
-
-      print("Filtered Activities: $activities");
-    } else {
-      throw Exception('Failed to load activities');
-    }
-  }
-
-  Future<void> fetchUserData(String jwt) async {
-    var url =
-        Uri.parse('http://10.0.2.2/flutter_webservice/get_ShowDataUser.php');
-
-    Map<String, String> headers = {
-      'Authorization': 'Bearer $jwt', // ใส่ JWT ในส่วนของ Authorization Header
-    };
-
-    print('Headers Homepage : $headers'); // พิมพ์ headers เพื่อการตรวจสอบ
-
-    try {
-      var response = await http.post(
-        url,
-        headers: headers, // ส่งค่า JWT ไปพร้อมกับคำขอ
-      );
-
-      print('Response status: ${response.statusCode}');
-      print('Response body: ${response.body}');
-
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-
-        if (data is List<dynamic> &&
-            data.isNotEmpty &&
-            data[0] is Map<String, dynamic> &&
-            data[0].containsKey('user_id')) {
-          setState(() {
-            userData = data[0]; // เก็บข้อมูลทั้งหมดใน userData
-          });
-          print('User ID: ${userData!['user_id']}');
-        } else {
-          print("No user data found");
-        }
+      // ตรวจสอบว่าคำขอสำเร็จหรือไม่
+      final data = json.decode(
+          response.body); // แปลงข้อมูล JSON ที่ได้รับจาก API เป็น Map หรือ List
+      if (data is List && data.isNotEmpty) {
+        // ตรวจสอบว่าข้อมูลที่ได้เป็น List และไม่ว่างเปล่า
+        setState(() {
+          userData = data[
+              0]; // ดึงข้อมูลผู้ใช้ที่ index 0 (ในกรณีที่ List มีหลายรายการ)
+          print('User data: $userData'); // แสดงข้อมูลผู้ใช้ที่ได้รับ
+        });
       } else {
-        print("Failed to load user data: ${response.body}");
+        print('No user data found'); // แสดงข้อความถ้าไม่พบข้อมูลผู้ใช้
       }
-    } catch (error) {
-      print("Error: $error");
+    } else {
+      print('Failed to fetch user data'); // แสดงข้อผิดพลาดถ้าคำขอไม่สำเร็จ
     }
   }
 
-  Future<void> sendMessageToDatabase(String message) async {
-    if (userData == null) {
-      print("User data not ready yet");
-      return;
-    }
-
-    // ดึง user_id ของผู้ใช้จาก userData
-    String userId = userData!['user_id'];
-
-    // ดึงเฉพาะสมาชิกจาก `members` ใน `widget.activity`
-    List<String> memberIds = widget.activity['members']
-        .map<String>((member) => member['user_id'].toString())
-        .toList();
-
-    // แสดงข้อมูลที่กำลังจะถูกส่งไปในคอนโซล
-    print("Preparing to send the following data to the database:");
-    print("user_id : $userId");
-    print("member_id : $memberIds"); // ส่งข้อความให้สมาชิกทั้งหมดใน activity นี้
-    print("message : $message");
-
-    try {
-      // วนลูปเพื่อส่งข้อความไปยังสมาชิกแต่ละคน
-      for (String memberId in memberIds) {
-        final response = await http.post(
-          Uri.parse(
-              'http://10.0.2.2/flutter_webservice/message.php'), // เปลี่ยน URL ของคุณ
-          body: {
-            'user_id': userId, // ส่ง user_id ของผู้ส่ง
-            'member_id': memberId, // ส่ง member_id ของผู้รับแต่ละคน
-            'message': message, // ส่งข้อความ
-          },
-        );
-
-        if (response.body == 'Message sent successfully') {
-          print('Message saved to database for member: $memberId');
-        } else {
-          print(
-              'Failed to save message for member: $memberId. Status code: ${response.statusCode}');
-        }
-      }
-    } catch (e) {
-      print('Error: $e');
-    }
-  }
-
-  // ฟังก์ชันส่งข้อความผ่าน WebSocket และบันทึกในฐานข้อมูล
+  // ฟังก์ชันส่งข้อความผ่าน WebSocket
   void sendMessage(String message) {
-    if (message.isNotEmpty) {
-      // ส่งข้อมูลในรูปแบบ JSON
-      widget.channel.sink.add(jsonEncode(
-          {'user_id': 'admin', 'member_id': 'beem21', 'message': message}));
+    if (message.isNotEmpty && userData != null) {
+      // ตรวจสอบว่าข้อความไม่ว่างและมีข้อมูลผู้ใช้
+      widget.channel.sink.add(jsonEncode({
+        // ส่งข้อมูลผ่าน WebSocket ในรูปแบบ JSON
+        'action': 'send_message',
+        'user_id': userData?['user_id'], // ส่ง user_id ของผู้ส่ง
+        'user_name': userData?['user_name'], // ส่งชื่อผู้ใช้
+        'user_photo': userData?['user_photo'], // ส่งรูปผู้ใช้
+        'activity_id':
+            widget.activity['activity_id'], // ส่ง activity_id ของกิจกรรมนี้
+        'message': message // ส่งข้อความที่ผู้ใช้พิมพ์
+      }));
     }
   }
 
+  // ฟังก์ชันเพื่อเรียกใช้การส่งข้อความ
   void _sendMessage() {
-    if (_controller.text.isNotEmpty) {
-      // เรียกใช้ฟังก์ชัน sendMessage โดยส่งข้อความจาก TextField
-      sendMessage(_controller.text);
-
-      // ล้างข้อความใน TextField หลังจากส่ง
-      _controller.clear();
+    if (_controller.text.isNotEmpty && userData != null) {
+      sendMessage(_controller.text); // เรียกใช้ฟังก์ชันส่งข้อความ
+      _controller.clear(); // ล้างข้อความใน TextField หลังจากส่ง
+      _scrollToBottom(); // เลื่อนข้อความไปที่ข้อความล่าสุด
     }
   }
 
   @override
   void dispose() {
-    widget.channel.sink.close();
-    super.dispose();
+    widget.channel.sink
+        .close(); // ปิด WebSocket เมื่อ widget ถูกทำลาย (เพื่อป้องกัน memory leak)
+    super.dispose(); // เรียก dispose ของ class พื้นฐาน
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: true, // ช่วยให้หน้าจอเลื่อนตามแป้นพิมพ์
       appBar: AppBar(
-        title: Text("หน้าแชท",
-          style: TextStyle(
-            color: Colors.white
-          ),
-        ),
-        backgroundColor:Color.fromARGB(255, 255, 0, 0), // กำหนดสีพื้นหลัง AppBar
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back,color: const Color.fromARGB(255, 255, 255, 255)), // กำหนดสีของไอคอน,
-          onPressed: () {
-            Navigator.pop(context);
-          },
+        title: Text(
+          'แชทของ : ${widget.activity['activity_name']}',
         ),
       ),
       body: Padding(
@@ -207,6 +156,7 @@ class _ChatPageState extends State<ChatPage> {
           children: [
             Expanded(
               child: ListView.builder(
+                controller: _scrollController,
                 itemCount: _messages.length,
                 itemBuilder: (context, index) {
                   return ListTile(
@@ -215,6 +165,7 @@ class _ChatPageState extends State<ChatPage> {
                 },
               ),
             ),
+            
             Row(
               children: [
                 Expanded(
