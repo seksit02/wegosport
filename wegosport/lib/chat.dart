@@ -47,6 +47,11 @@ class _ChatPageState extends State<ChatPage> {
       }));
     });
 
+    // เลื่อนไปที่ข้อความล่างสุดเมื่อโหลดเสร็จ
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scrollToBottom();
+    });
+
     widget.channel.stream.listen((message) {
       if (!_messages.contains(message)) {
         // เพิ่มเงื่อนไขนี้เพื่อตรวจสอบว่าข้อความยังไม่ถูกเพิ่มใน _messages
