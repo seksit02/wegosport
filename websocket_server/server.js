@@ -23,8 +23,6 @@ server.on("connection", (ws) => {
   console.log("Client connected");
   clients.add(ws); // เพิ่ม client ที่เชื่อมต่อใหม่ลงใน set
 
-  ws.send("Welcome to WegoSport!");
-
   ws.on("message", (message) => {
     let parsedMessage = JSON.parse(message);
     let action = parsedMessage.action;
