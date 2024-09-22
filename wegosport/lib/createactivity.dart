@@ -18,12 +18,18 @@ class CreateActivityPage extends StatefulWidget {
 }
 
 class _CreateActivityPageState extends State<CreateActivityPage> {
-  TextEditingController nameController = TextEditingController(); // ตัวควบคุมสำหรับชื่อกิจกรรม
-  TextEditingController detailsController = TextEditingController(); // ตัวควบคุมสำหรับรายละเอียดกิจกรรม    
-  TextEditingController dateController = TextEditingController(); // ตัวควบคุมสำหรับวันที่และเวลา  
-  TextEditingController hashtagController = TextEditingController(); // ตัวควบคุมสำหรับแฮชแท็ก
-  TextEditingController locationController = TextEditingController(); // ตัวควบคุมสำหรับสถานที่  
-  TextEditingController sportController = TextEditingController(); // ตัวควบคุมสำหรับกีฬา
+  TextEditingController nameController =
+      TextEditingController(); // ตัวควบคุมสำหรับชื่อกิจกรรม
+  TextEditingController detailsController =
+      TextEditingController(); // ตัวควบคุมสำหรับรายละเอียดกิจกรรม
+  TextEditingController dateController =
+      TextEditingController(); // ตัวควบคุมสำหรับวันที่และเวลา
+  TextEditingController hashtagController =
+      TextEditingController(); // ตัวควบคุมสำหรับแฮชแท็ก
+  TextEditingController locationController =
+      TextEditingController(); // ตัวควบคุมสำหรับสถานที่
+  TextEditingController sportController =
+      TextEditingController(); // ตัวควบคุมสำหรับกีฬา
   Map<String, dynamic>? userData; // เก็บข้อมูลผู้ใช้
   final List<String> _selectedTags = []; // เก็บแฮชแท็กที่เลือก
   List<String> _allHashtags = []; // เก็บแฮชแท็กทั้งหมด
@@ -31,7 +37,8 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
   String? selectedSport; // กีฬาที่เลือก
   List<String> locations = []; // เก็บสถานที่ทั้งหมด
   List<String> sport = []; // เก็บกีฬาทั้งหมด
-  List<Map<String, dynamic>> locationData = []; // เก็บข้อมูลทั้งหมดของสถานที่และกีฬา
+  List<Map<String, dynamic>> locationData =
+      []; // เก็บข้อมูลทั้งหมดของสถานที่และกีฬา
   get selectedSportId => 1; // ID ของกีฬาที่เลือก (แก้ไขตามความเหมาะสม)
 
   @override
@@ -593,6 +600,37 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
 
   // ฟังก์ชันสร้างกิจกรรม
   Future<void> functionCreateActivity() async {
+    String activityName = nameController.text.trim();
+    String locationName = selectedLocation ?? '';
+    String sportName = selectedSport ?? '';
+    String activityDate = dateController.text.trim();
+
+    // ตรวจสอบว่ากรอกข้อมูลครบทุกช่องหรือไม่
+    if (activityName.isEmpty ||
+        locationName.isEmpty ||
+        sportName.isEmpty ||
+        activityDate.isEmpty) {
+      // แสดงการแจ้งเตือนถ้าข้อมูลไม่ครบ
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('ข้อผิดพลาด'),
+            content: Text('กรุณากรอกข้อมูลให้ครบถ้วน'),
+            actions: <Widget>[
+              TextButton(
+                child: Text('ตกลง'),
+                onPressed: () {
+                  Navigator.of(context).pop(); // ปิด dialog
+                },
+              ),
+            ],
+          );
+        },
+      );
+      return; // ออกจากฟังก์ชันถ้าข้อมูลไม่ครบ
+    }
+
     String hashtags =
         _selectedTags.join(" "); // รวมแฮชแท็กทั้งหมดเป็นสตริงเดียว
     List<String> hashtagList = hashtags
@@ -605,10 +643,11 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
       return;
     }
 
-    print("activity_name: ${nameController.text}"); // พิมพ์ชื่อกิจกรรมเพื่อการตรวจสอบ  
-    print("activity_details: ${detailsController.text}"); // พิมพ์รายละเอียดกิจกรรมเพื่อการตรวจสอบ
-    print("activity_date: ${dateController.text}"); // พิมพ์วันที่และเวลาเพื่อการตรวจสอบ
-    print("location_name: ${selectedLocation ?? ''}"); // พิมพ์สถานที่เพื่อการตรวจสอบ 
+    print("activity_name: $activityName"); // พิมพ์ชื่อกิจกรรมเพื่อการตรวจสอบ
+    print(
+        "activity_details: ${detailsController.text}"); // พิมพ์รายละเอียดกิจกรรมเพื่อการตรวจสอบ
+    print("activity_date: $activityDate"); // พิมพ์วันที่และเวลาเพื่อการตรวจสอบ
+    print("location_name: $locationName"); // พิมพ์สถานที่เพื่อการตรวจสอบ
     print("sport_id: $selectedSportId"); // พิมพ์ ID ของกีฬาเพื่อการตรวจสอบ
     print("hashtags: $hashtagList"); // พิมพ์แฮชแท็กเพื่อการตรวจสอบ
     print("user_id: ${userData!['user_id']}"); // พิมพ์ user_id เพื่อการตรวจสอบ
@@ -617,22 +656,25 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
 
     // เพิ่ม user_id ในการส่งข้อมูล
     Map<String, dynamic> dataPost = {
-      "activity_name": nameController.text,
+      "activity_name": activityName,
       "activity_details": detailsController.text,
-      "activity_date": dateController.text,
-      "location_name":selectedLocation ?? '', // ถ้าไม่ได้เลือกสถานที่จะแสดงเป็นค่าว่าง
-      "sport_id": selectedSportId, // Ensure this value is set appropriately
+      "activity_date": activityDate,
+      "location_name": locationName,
+      "sport_id": selectedSportId,
       "hashtags": hashtagList,
       "user_id": userId, // ส่ง user_id ของผู้สร้างกิจกรรมไปด้วย
+      "status": "active"
     };
 
     Map<String, String> headers = {
       "Content-Type": "application/json", // กำหนดประเภทของเนื้อหาที่จะส่ง
       "Accept": "application/json", // กำหนดประเภทของเนื้อหาที่จะรับ
-      "Authorization": "Bearer ${widget.jwt}" // เพิ่ม JWT ใน headers เพื่อการตรวจสอบสิทธิ์
+      "Authorization":
+          "Bearer ${widget.jwt}" // เพิ่ม JWT ใน headers เพื่อการตรวจสอบสิทธิ์
     };
 
-    var url = Uri.parse("http://10.0.2.2/flutter_webservice/get_CreateActivity.php"); // เรียก API สำหรับสร้างกิจกรรม
+    var url = Uri.parse(
+        "http://10.0.2.2/flutter_webservice/get_CreateActivity.php"); // เรียก API สำหรับสร้างกิจกรรม
 
     try {
       var response = await http.post(
@@ -641,15 +683,16 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
         body: json.encode(dataPost), // แปลงข้อมูลเป็น JSON ก่อนส่ง
       );
 
-      print('Response status: ${response.statusCode}'); // พิมพ์สถานะการตอบกลับของเซิร์ฟเวอร์
-      print('Response body: ${response.body}'); // พิมพ์ข้อมูลที่ได้รับจากเซิร์ฟเวอร์
+      print(
+          'Response status: ${response.statusCode}'); // พิมพ์สถานะการตอบกลับของเซิร์ฟเวอร์
+      print(
+          'Response body: ${response.body}'); // พิมพ์ข้อมูลที่ได้รับจากเซิร์ฟเวอร์
 
       if (response.statusCode == 200) {
-
         Map<String, dynamic> jsonResponse = json.decode(response.body);
 
         print(jsonResponse); // พิมพ์ข้อมูลตอบกลับเพื่อการตรวจสอบ
-        
+
         if (jsonResponse["result"] == 1) {
           showSuccessDialog(); // แสดง dialog เมื่อสร้างกิจกรรมสำเร็จ
         }
