@@ -148,6 +148,8 @@ class _ChatPageState extends State<ChatPage> {
 
   @override
   Widget build(BuildContext context) {
+    print(
+        'ข้อมูลของ _messages : ${_messages}'); // พิมพ์ข้อมูล _messages เพื่อตรวจสอบ
     return Scaffold(
       resizeToAvoidBottomInset: true, // ช่วยให้หน้าจอเลื่อนตามแป้นพิมพ์
       appBar: AppBar(
@@ -164,13 +166,75 @@ class _ChatPageState extends State<ChatPage> {
                 controller: _scrollController,
                 itemCount: _messages.length,
                 itemBuilder: (context, index) {
-                  return ListTile(
-                    title: Text(_messages[index]),
+                  // แยก user_id และ message จาก _messages[index]
+                  String rawMessage = _messages[index];
+                  List<String> splitMessage = rawMessage
+                      .split(': '); // แยกข้อความโดยใช้ ": " เป็นตัวคั่น
+
+                  if (splitMessage.length < 2) {
+                    return ListTile(
+                      title: Text(rawMessage),
+                    );
+                  }
+
+                  String sender =
+                      splitMessage[0]; // ส่วนที่เป็น user_id หรือชื่อผู้ส่ง
+                  String message = splitMessage[1]; // ส่วนที่เป็นข้อความจริง
+
+                  // ตรวจสอบว่า user_id ตรงกับผู้ใช้ที่ล็อกอินอยู่หรือไม่
+                  bool isLoggedInUser = sender == userData?['user_id'];
+
+                  return Align(
+                    alignment: isLoggedInUser
+                        ? Alignment
+                            .centerRight // จัดข้อความของผู้ที่ล็อกอินทางขวา
+                        : Alignment.centerLeft, // จัดข้อความของคนอื่นทางซ้าย
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (!isLoggedInUser)
+                          CircleAvatar(
+                            backgroundImage:
+                                NetworkImage(userData?['user_photo'] ?? ''),
+                            radius: 20,
+                          ), // แสดงรูปภาพของผู้ใช้ฝั่งซ้าย (เฉพาะคนอื่น)
+                        Container(
+                          margin: EdgeInsets.symmetric(
+                              vertical: 4.0, horizontal: 8.0),
+                          padding: EdgeInsets.all(12.0),
+                          decoration: BoxDecoration(
+                            color: isLoggedInUser
+                                ? Colors.lightGreen[
+                                    100] // สีข้อความของผู้ที่ล็อกอิน
+                                : Colors.grey[300], // สีข้อความของคนอื่น
+                            borderRadius: BorderRadius.circular(10.0),
+                            border: Border.all(color: Colors.grey),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              if (!isLoggedInUser)
+                                Text(
+                                  userData?['user_name'] ??
+                                      'Unknown', // ชื่อผู้ใช้ (คนอื่น)
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                              Text(
+                                message, // แสดงข้อความจริง
+                                style: TextStyle(fontSize: 16.0),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   );
                 },
               ),
             ),
-            
             Row(
               children: [
                 Expanded(
