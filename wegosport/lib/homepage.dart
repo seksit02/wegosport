@@ -6,11 +6,12 @@ import 'package:wegosport/Createactivity.dart';
 import 'package:wegosport/EditActivity.dart';
 import 'package:wegosport/Profile.dart';
 import 'package:wegosport/Activity.dart';
-import 'package:wegosport/groupchat.dart';
+import 'package:wegosport/Groupchat.dart';
 import 'dart:convert';
 import 'package:wegosport/Login.dart';
 import 'dart:ui';
 import 'package:intl/intl.dart'; // นำเข้าไลบรารีที่จำเป็นสำหรับการทำงาน
+import 'package:web_socket_channel/web_socket_channel.dart'; // สำหรับ WebSocket
 
 // หน้าจอ Homepage
 class Homepage extends StatefulWidget {
@@ -163,9 +164,18 @@ class _HomepageState extends State<Homepage> {
         _selectedIndex = 0;
       });
     } else if (index == 1) {
-      Navigator.of(context).push(
+      var channel = WebSocketChannel.connect(
+        Uri.parse('ws://10.0.2.2:8080'),
+      );
+      Navigator.push(
+        context,
         MaterialPageRoute(
-            builder: (context) => groupchat()), // เปลี่ยนไปยังหน้าแชท
+          builder: (context) => GroupChatListPage(
+            channel: channel,
+            activity: activities,
+            jwt: widget.jwt,
+          ),
+        ),
       );
     }
   }
@@ -314,19 +324,24 @@ class _HomepageState extends State<Homepage> {
                     itemBuilder: (context, index) {
                       final activity = filteredActivities[index];
                       return InkWell(
-                        onTap: () {
-                          Navigator.push(
+                        onTap: () async {
+                          final result = await Navigator.push(
                             context,
                             MaterialPageRoute(
                               builder: (context) => ActivityPage(
                                 activity: activity,
-                                jwt: widget.jwt, // ส่ง JWT ไปยัง ActivityPage ด้วย
+                                jwt: widget.jwt, // ส่ง JWT ไปยัง ActivityPage
                                 userId: userData != null
                                     ? userData!['user_id']
                                     : 'ไม่พบข้อมูล', // ส่ง user_id ไปยัง ActivityPage
                               ),
                             ),
                           );
+
+                          if (result == true) {
+                            // ถ้าเข้าร่วมกิจกรรมสำเร็จ ทำการ fetch ข้อมูลกิจกรรมใหม่
+                            fetchActivities();
+                          }
                         },
                         child: ActivityCardItem(
                           activity: activity,
@@ -345,15 +360,20 @@ class _HomepageState extends State<Homepage> {
               child: Column(
                 children: [
                   ElevatedButton(
+                    // เมื่อไปยังหน้าสร้างกิจกรรม
                     onPressed: () {
-                      Navigator.of(context).push(
+                      Navigator.of(context)
+                          .push(
                         MaterialPageRoute(
                           builder: (context) => CreateActivityPage(
                             jwt: widget
                                 .jwt, // ส่งค่า jwt ไปยังหน้า CreateActivityPage
                           ),
                         ),
-                      );
+                      )
+                          .then((value) {
+                        fetchActivities(); // เรียกใช้ fetchActivities เมื่อกลับมาจากหน้า CreateActivityPage
+                      });
                     },
                     style: ElevatedButton.styleFrom(
                       foregroundColor: const Color.fromARGB(255, 255, 255, 255),

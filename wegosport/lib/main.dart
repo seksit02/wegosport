@@ -6,7 +6,7 @@ import 'package:wegosport/Chat.dart';
 import 'package:wegosport/Createactivity.dart';
 import 'package:wegosport/Addinformation.dart';
 import 'package:wegosport/forgetpassword.dart';
-import 'package:wegosport/groupchat.dart';
+import 'package:wegosport/Groupchat.dart';
 import 'package:wegosport/Homepage.dart';
 import 'package:wegosport/Login.dart';
 import 'package:wegosport/Profile.dart'; // นำเข้าไฟล์และไลบรารีที่จำเป็นสำหรับแอป

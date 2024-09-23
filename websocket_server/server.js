@@ -31,15 +31,17 @@ server.on("connection", (ws) => {
     let userName = parsedMessage.user_name;
     let userPhoto = parsedMessage.user_photo;
 
+    // ดึงรายการแชทของผู้ใช้
     if (action === "get_group_chats") {
       db.query(
-        `SELECT a.activity_id, a.activity_name, c.messages AS last_message, u.user_photo 
-        FROM activity a
-        JOIN chat c ON a.activity_id = c.activity_id
-        JOIN user_information u ON u.user_id = c.user_id
-        WHERE c.user_id = ? 
-        GROUP BY a.activity_id
-        ORDER BY c.timestamp DESC`,
+        `SELECT a.activity_id, a.activity_name, 
+            (SELECT m.message FROM messages m WHERE m.activity_id = a.activity_id ORDER BY m.timestamp DESC LIMIT 1) AS last_message, 
+            (SELECT u.user_photo FROM user_information u JOIN messages m ON u.user_id = m.user_id WHERE m.activity_id = a.activity_id ORDER BY m.timestamp DESC LIMIT 1) AS user_photo 
+     FROM activity a
+     JOIN member_in_activity mia ON mia.activity_id = a.activity_id
+     WHERE mia.user_id = ?
+     GROUP BY a.activity_id
+     ORDER BY (SELECT m.timestamp FROM messages m WHERE m.activity_id = a.activity_id ORDER BY m.timestamp DESC LIMIT 1) DESC`,
         [userId], // ส่ง user_id เพื่อดึงรายการแชทของผู้ใช้
         (err, rows) => {
           if (err) {
@@ -64,7 +66,7 @@ server.on("connection", (ws) => {
       );
     }
 
-    // กรณีที่ client ต้องการดึงข้อความของ activity นั้นๆ
+    // ดึงข้อความของ activity นั้นๆ
     if (action === "get_messages") {
       db.query(
         "SELECT * FROM messages WHERE activity_id = ? ORDER BY timestamp ASC LIMIT 50",
