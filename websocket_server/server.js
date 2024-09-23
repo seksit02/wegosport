@@ -65,7 +65,6 @@ server.on("connection", (ws) => {
     }
 
     // กรณีที่ client ต้องการดึงข้อความของ activity นั้นๆ
-    // ดึงข้อความของ activity นั้นๆ
     if (action === "get_messages") {
       db.query(
         "SELECT * FROM messages WHERE activity_id = ? ORDER BY timestamp ASC LIMIT 50",
@@ -80,20 +79,26 @@ server.on("connection", (ws) => {
               })
             );
           } else {
-            // ส่งข้อมูลในรูปแบบ JSON ที่สามารถจัดการได้ง่ายขึ้น
             const messages = rows.map((row) => ({
               user_id: row.user_id,
               user_name: row.user_name,
               user_photo: row.user_photo,
               message: row.message,
-              timestamp: row.timestamp,
+              timestamp: row.timestamp, // ส่งข้อมูล timestamp
+              status: row.status, // ส่งสถานะของข้อความด้วย
             }));
 
             ws.send(
               JSON.stringify({
                 action: "messages",
-                messages: messages, // ส่งข้อมูลทั้งหมดเป็น array ของ messages
+                messages: messages,
               })
+            );
+
+            // อัปเดตสถานะเป็น 'read' เมื่อมีการดึงข้อความ
+            db.query(
+              "UPDATE messages SET status = 'read' WHERE activity_id = ?",
+              [activityId]
             );
           }
         }

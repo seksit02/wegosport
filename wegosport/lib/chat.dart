@@ -164,81 +164,109 @@ class _ChatPageState extends State<ChatPage> {
         child: Column(
           children: [
             Expanded(
-              
               child: ListView.builder(
-  controller: _scrollController,
-  itemCount: _messages.length,
-  itemBuilder: (context, index) {
-    // ดึงข้อมูลจาก _messages
-    var messageData = _messages[index];
-    
-    // ดึงข้อมูลจาก userData
-    String currentUserId = userData?['user_id'] ?? ''; // user_id ของผู้ใช้ที่ล็อกอิน
-    String currentUserName = userData?['user_name'] ?? ''; // ชื่อผู้ใช้ที่ล็อกอิน
-    String currentUserPhoto = userData?['user_photo'] ?? ''; // รูปผู้ใช้ที่ล็อกอิน
-    
-    // แยกข้อมูลผู้ส่งและข้อความ
-    String senderId = messageData['user_id']; // รับ user_id ของผู้ส่ง
-    String message = messageData['message'];  // รับข้อความ
-    String senderName = messageData['user_name']; // รับชื่อผู้ส่ง
-    String senderPhoto = messageData['user_photo']; // รับรูปผู้ส่ง
+                controller: _scrollController,
+                itemCount: _messages.length,
+                itemBuilder: (context, index) {
+                  // ดึงข้อมูลจาก _messages
+                  var messageData = _messages[index];
 
-    // ตรวจสอบว่า user_id ของผู้ส่งตรงกับ userData หรือไม่
-    bool isLoggedInUser = senderId == currentUserId; // ตรวจสอบว่าข้อความมาจากผู้ใช้ที่ล็อกอินอยู่หรือไม่
+                  // ดึงข้อมูลจาก userData
+                  String currentUserId =
+                      userData?['user_id'] ?? ''; // user_id ของผู้ใช้ที่ล็อกอิน
+                  String currentUserName =
+                      userData?['user_name'] ?? ''; // ชื่อผู้ใช้ที่ล็อกอิน
+                  String currentUserPhoto =
+                      userData?['user_photo'] ?? ''; // รูปผู้ใช้ที่ล็อกอิน
 
-    return Align(
-      alignment: isLoggedInUser
-          ? Alignment.centerRight // ถ้าเป็นผู้ใช้ที่ล็อกอิน ข้อความจะอยู่ทางขวา
-          : Alignment.centerLeft, // ถ้าไม่ใช่ผู้ใช้ที่ล็อกอิน ข้อความจะอยู่ทางซ้าย
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (!isLoggedInUser)
-            CircleAvatar(
-              backgroundImage: NetworkImage(
+                  // แยกข้อมูลผู้ส่งและข้อความ
+                  String senderId =
+                      messageData['user_id']; // รับ user_id ของผู้ส่ง
+                  String message = messageData['message']; // รับข้อความ
+                  String senderName = messageData['user_name']; // รับชื่อผู้ส่ง
+                  String senderPhoto =
+                      messageData['user_photo']; // รับรูปผู้ส่ง
+
+                  // ตรวจสอบว่า user_id ของผู้ส่งตรงกับ userData หรือไม่
+                  bool isLoggedInUser = senderId ==
+                      currentUserId; // ตรวจสอบว่าข้อความมาจากผู้ใช้ที่ล็อกอินอยู่หรือไม่
+
+                  return Align(
+                    alignment: isLoggedInUser
+                        ? Alignment.centerRight // ผู้ส่งอยู่ทางขวา
+                        : Alignment.centerLeft, // ผู้รับอยู่ทางซ้าย
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment
+                          .end, // จัดให้ข้อความอยู่ที่ส่วนล่างสุด
+                      children: [
+                        if (!isLoggedInUser) // ถ้าไม่ใช่ผู้ส่ง (ฝั่งผู้รับ)
+                          CircleAvatar(
+                            backgroundImage: NetworkImage(
                                 'http://10.0.2.2/flutter_webservice/upload/$senderPhoto'), // สร้าง URL เต็มของรูปภาพผู้ส่ง
                             radius: 20,
-                          ), // แสดงรูปภาพของสมาชิกทางซ้าย (เฉพาะคนอื่น)
-          Container(
-            margin: EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
-            padding: EdgeInsets.all(12.0),
-            decoration: BoxDecoration(
-              color: isLoggedInUser
-                  ? Colors.lightGreen[100] // สีข้อความของผู้ที่ล็อกอิน
-                  : Colors.grey[300], // สีข้อความของสมาชิกคนอื่น
-              borderRadius: BorderRadius.circular(10.0),
-              border: Border.all(color: Colors.grey),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (!isLoggedInUser)
-                  Text(
-                    senderName, // แสดงชื่อผู้ใช้ (สมาชิก)
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
+                          ),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // แสดงชื่อผู้ใช้ (อยู่นอกกรอบข้อความ)
+                            if (!isLoggedInUser)
+                              Text(
+                                senderName,
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black,
+                                ),
+                              ),
+                            if (isLoggedInUser)
+                              Text(
+                                currentUserName,
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black,
+                                ),
+                              ),
+                            // กรอบข้อความ
+                            Container(
+                              margin: EdgeInsets.symmetric(
+                                  vertical: 4.0, horizontal: 8.0),
+                              padding: EdgeInsets.all(12.0),
+                              decoration: BoxDecoration(
+                                color: isLoggedInUser
+                                    ? Colors
+                                        .lightGreen[100] // ผู้ส่ง: สีเขียวอ่อน
+                                    : Colors.grey[300], // ผู้รับ: สีเทา
+                                borderRadius: BorderRadius.circular(10.0),
+                                border: Border.all(color: Colors.grey),
+                              ),
+                              child: Text(
+                                message, // แสดงข้อความ
+                                style: TextStyle(fontSize: 16.0),
+                              ),
+                            ),
+                            // สถานะการอ่าน (อยู่นอกกรอบข้อความ)
+                            if (isLoggedInUser)
+                              Text(
+                                messageData['status'] == 'read'
+                                    ? 'อ่านแล้ว'
+                                    : 'ยังไม่อ่าน', // สถานะข้อความ
+                                style: TextStyle(
+                                    fontSize: 10.0, color: Colors.grey),
+                              ),
+                          ],
+                        ),
+                        if (isLoggedInUser) // ถ้าเป็นผู้ส่ง แสดงรูปผู้ส่ง
+                          CircleAvatar(
+                            backgroundImage: NetworkImage(
+                                currentUserPhoto), // แสดงรูปผู้ส่งจากตัวแปร currentUserPhoto
+                            radius: 20,
+                          ),
+                      ],
                     ),
-                  ),
-                Text(
-                  message, // แสดงข้อความจริง
-                  style: TextStyle(fontSize: 16.0),
-                ),
-              ],
-            ),
-          ),
-          if (isLoggedInUser)
-            CircleAvatar(
-              backgroundImage: NetworkImage(currentUserPhoto),
-              radius: 20,
-            ), // แสดงรูปภาพของผู้ใช้ทางขวา (ถ้าผู้ใช้เป็นคนที่ล็อกอิน)
-        ],
-      ),
-    );
-  },
-),
+                  );
 
-
+                },
+              ),
             ),
             Row(
               children: [
