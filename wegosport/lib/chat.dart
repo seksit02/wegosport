@@ -23,54 +23,56 @@ class ChatPage extends StatefulWidget {
 }
 
 class _ChatPageState extends State<ChatPage> {
-  final TextEditingController _controller =
-      TextEditingController(); // สร้าง controller สำหรับ TextField เพื่อจัดการข้อความที่พิมพ์
-  final List<String> _messages = []; // กำหนด list เพื่อเก็บข้อความแชทที่ได้รับ
-  final ScrollController _scrollController =
-      ScrollController(); // สร้าง ScrollController สำหรับควบคุมการเลื่อน
+  final TextEditingController _controller = TextEditingController();
 
-  Map<String, dynamic>? userData; // ตัวแปรเก็บข้อมูลผู้ใช้ที่ได้จาก JWT
+  // เปลี่ยนเป็น List<Map<String, dynamic>> เพื่อให้รองรับข้อมูล JSON
+  final List<Map<String, dynamic>> _messages = [];
+
+  final ScrollController _scrollController = ScrollController();
+
+  Map<String, dynamic>? userData;
 
   @override
   void initState() {
-    super.initState(); // เรียกใช้ initState ของ class พื้นฐาน
+    super.initState();
     fetchUserData(widget.jwt).then((_) {
-      // เมื่อดึงข้อมูลผู้ใช้สำเร็จ
-      connectToWebSocket(); // เรียกฟังก์ชัน connectToWebSocket เพื่อส่ง user_id และ activity_id ไปยังเซิร์ฟเวอร์
-
-      // ส่ง activity_id ไปยังเซิร์ฟเวอร์เพื่อดึงข้อความที่เกี่ยวข้อง
+      connectToWebSocket();
       widget.channel.sink.add(jsonEncode({
-        'action': 'get_messages', // บอกว่าเราต้องการดึงข้อความ
-        'activity_id': widget.activity['activity_id'], // ส่ง activity_id
-        'user_id':
-            userData?['user_id'], // ส่ง user_id เพื่อกรองข้อความตามผู้ใช้
+        'action': 'get_messages',
+        'activity_id': widget.activity['activity_id'],
+        'user_id': userData?['user_id'],
       }));
     });
 
-    // เลื่อนไปที่ข้อความล่างสุดเมื่อโหลดเสร็จ
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _scrollToBottom();
     });
 
     widget.channel.stream.listen((message) {
-      if (!_messages.contains(message)) {
-        // เพิ่มเงื่อนไขนี้เพื่อตรวจสอบว่าข้อความยังไม่ถูกเพิ่มใน _messages
+      var decodedMessage = jsonDecode(message);
+
+      if (decodedMessage['action'] == 'messages') {
         setState(() {
-          _messages.add(message); // เพิ่มข้อความใหม่ที่ได้รับ
-          _scrollToBottom(); // เลื่อนข้อความไปที่ข้อความล่าสุด
+          _messages.clear();
+          _messages.addAll(
+              List<Map<String, dynamic>>.from(decodedMessage['messages']));
+          _scrollToBottom();
+        });
+      } else if (decodedMessage['action'] == 'new_message') {
+        setState(() {
+          _messages.add(Map<String, dynamic>.from(decodedMessage['message']));
+          _scrollToBottom();
         });
       }
     });
   }
 
-  /// ฟังก์ชันเพื่อเลื่อนไปที่ข้อความล่าสุด
   void _scrollToBottom() {
     if (_scrollController.hasClients) {
       _scrollController.animateTo(
-        _scrollController
-            .position.maxScrollExtent, // เลื่อนลงไปที่ข้อความล่างสุด
-        duration: Duration(milliseconds: 500), // กำหนดความเร็วในการเลื่อน
-        curve: Curves.easeOut, // ใช้เอฟเฟกต์การเลื่อนแบบนุ่มนวล
+        _scrollController.position.maxScrollExtent,
+        duration: Duration(milliseconds: 500),
+        curve: Curves.easeOut,
       );
     }
   }
@@ -162,78 +164,81 @@ class _ChatPageState extends State<ChatPage> {
         child: Column(
           children: [
             Expanded(
+              
               child: ListView.builder(
-                controller: _scrollController,
-                itemCount: _messages.length,
-                itemBuilder: (context, index) {
-                  // แยก user_id และ message จาก _messages[index]
-                  String rawMessage = _messages[index];
-                  List<String> splitMessage = rawMessage
-                      .split(': '); // แยกข้อความโดยใช้ ": " เป็นตัวคั่น
+  controller: _scrollController,
+  itemCount: _messages.length,
+  itemBuilder: (context, index) {
+    // ดึงข้อมูลจาก _messages
+    var messageData = _messages[index];
+    
+    // ดึงข้อมูลจาก userData
+    String currentUserId = userData?['user_id'] ?? ''; // user_id ของผู้ใช้ที่ล็อกอิน
+    String currentUserName = userData?['user_name'] ?? ''; // ชื่อผู้ใช้ที่ล็อกอิน
+    String currentUserPhoto = userData?['user_photo'] ?? ''; // รูปผู้ใช้ที่ล็อกอิน
+    
+    // แยกข้อมูลผู้ส่งและข้อความ
+    String senderId = messageData['user_id']; // รับ user_id ของผู้ส่ง
+    String message = messageData['message'];  // รับข้อความ
+    String senderName = messageData['user_name']; // รับชื่อผู้ส่ง
+    String senderPhoto = messageData['user_photo']; // รับรูปผู้ส่ง
 
-                  if (splitMessage.length < 2) {
-                    return ListTile(
-                      title: Text(rawMessage),
-                    );
-                  }
+    // ตรวจสอบว่า user_id ของผู้ส่งตรงกับ userData หรือไม่
+    bool isLoggedInUser = senderId == currentUserId; // ตรวจสอบว่าข้อความมาจากผู้ใช้ที่ล็อกอินอยู่หรือไม่
 
-                  String sender =
-                      splitMessage[0]; // ส่วนที่เป็น user_id หรือชื่อผู้ส่ง
-                  String message = splitMessage[1]; // ส่วนที่เป็นข้อความจริง
-
-                  // ตรวจสอบว่า user_id ตรงกับผู้ใช้ที่ล็อกอินอยู่หรือไม่
-                  bool isLoggedInUser = sender == userData?['user_id'];
-
-                  return Align(
-                    alignment: isLoggedInUser
-                        ? Alignment
-                            .centerRight // จัดข้อความของผู้ที่ล็อกอินทางขวา
-                        : Alignment.centerLeft, // จัดข้อความของคนอื่นทางซ้าย
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        if (!isLoggedInUser)
-                          CircleAvatar(
-                            backgroundImage:
-                                NetworkImage(userData?['user_photo'] ?? ''),
+    return Align(
+      alignment: isLoggedInUser
+          ? Alignment.centerRight // ถ้าเป็นผู้ใช้ที่ล็อกอิน ข้อความจะอยู่ทางขวา
+          : Alignment.centerLeft, // ถ้าไม่ใช่ผู้ใช้ที่ล็อกอิน ข้อความจะอยู่ทางซ้าย
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (!isLoggedInUser)
+            CircleAvatar(
+              backgroundImage: NetworkImage(
+                                'http://10.0.2.2/flutter_webservice/upload/$senderPhoto'), // สร้าง URL เต็มของรูปภาพผู้ส่ง
                             radius: 20,
-                          ), // แสดงรูปภาพของผู้ใช้ฝั่งซ้าย (เฉพาะคนอื่น)
-                        Container(
-                          margin: EdgeInsets.symmetric(
-                              vertical: 4.0, horizontal: 8.0),
-                          padding: EdgeInsets.all(12.0),
-                          decoration: BoxDecoration(
-                            color: isLoggedInUser
-                                ? Colors.lightGreen[
-                                    100] // สีข้อความของผู้ที่ล็อกอิน
-                                : Colors.grey[300], // สีข้อความของคนอื่น
-                            borderRadius: BorderRadius.circular(10.0),
-                            border: Border.all(color: Colors.grey),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              if (!isLoggedInUser)
-                                Text(
-                                  userData?['user_name'] ??
-                                      'Unknown', // ชื่อผู้ใช้ (คนอื่น)
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.black,
-                                  ),
-                                ),
-                              Text(
-                                message, // แสดงข้อความจริง
-                                style: TextStyle(fontSize: 16.0),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
+                          ), // แสดงรูปภาพของสมาชิกทางซ้าย (เฉพาะคนอื่น)
+          Container(
+            margin: EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
+            padding: EdgeInsets.all(12.0),
+            decoration: BoxDecoration(
+              color: isLoggedInUser
+                  ? Colors.lightGreen[100] // สีข้อความของผู้ที่ล็อกอิน
+                  : Colors.grey[300], // สีข้อความของสมาชิกคนอื่น
+              borderRadius: BorderRadius.circular(10.0),
+              border: Border.all(color: Colors.grey),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (!isLoggedInUser)
+                  Text(
+                    senderName, // แสดงชื่อผู้ใช้ (สมาชิก)
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
                     ),
-                  );
-                },
-              ),
+                  ),
+                Text(
+                  message, // แสดงข้อความจริง
+                  style: TextStyle(fontSize: 16.0),
+                ),
+              ],
+            ),
+          ),
+          if (isLoggedInUser)
+            CircleAvatar(
+              backgroundImage: NetworkImage(currentUserPhoto),
+              radius: 20,
+            ), // แสดงรูปภาพของผู้ใช้ทางขวา (ถ้าผู้ใช้เป็นคนที่ล็อกอิน)
+        ],
+      ),
+    );
+  },
+),
+
+
             ),
             Row(
               children: [
