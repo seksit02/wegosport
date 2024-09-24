@@ -50,9 +50,6 @@ class _AddLocationState extends State<AddLocationPage> {
     fetchType(); // เรียกใช้งานฟังก์ชัน fetchType เพื่อดึงข้อมูลประเภทสนาม
     _requestLocationPermission(); // ขออนุญาตการเข้าถึงตำแหน่ง
   }
-
-  
-
   // ดึงข้อมูลประเภทสนามจากเซิร์ฟเวอร์
   Future<void> fetchType() async {
     final response = await http.get(Uri.parse(
@@ -258,30 +255,109 @@ class _AddLocationState extends State<AddLocationPage> {
     );
   }
 
+  Map<String, bool> selectedDays = {
+    'จันทร์': false,
+    'อังคาร': false,
+    'พุธ': false,
+    'พฤหัสบดี': false,
+    'ศุกร์': false,
+    'เสาร์': false,
+    'อาทิตย์': false,
+  };
+
+  Widget daySelection() {
+    return Container(
+      margin: EdgeInsets.all(20), // เพิ่มระยะขอบรอบ ๆ
+      padding: EdgeInsets.all(10), // เพิ่ม Padding ภายในกล่อง
+      decoration: BoxDecoration(
+        color: Colors.white, // สีพื้นหลังของกล่อง
+        borderRadius: BorderRadius.circular(15), // ความโค้งของกรอบ
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.5), // สีของเงา
+            spreadRadius: 2, // การกระจายเงา
+            blurRadius: 5, // ความเบลอของเงา
+            offset: Offset(0, 3), // ตำแหน่งเงา
+          ),
+        ],
+      ),
+      child: Column(
+        children: selectedDays.keys.map((String day) {
+          return CheckboxListTile(
+            title: Text(day),
+            value: selectedDays[day],
+            onChanged: (bool? value) {
+              setState(() {
+                selectedDays[day] = value!;
+              });
+            },
+          );
+        }).toList(),
+      ),
+    );
+  }
+
   // วิดเจ็ตฟิลด์เวลาเปิด-ปิด
   Widget time() {
     return Container(
       margin: EdgeInsets.fromLTRB(20, 20, 20, 0), // กำหนดระยะขอบของฟิลด์
       child: TextFormField(
-        controller: input2, // กำหนดตัวควบคุมให้กับฟิลด์เวลาเปิด-ปิด
+        controller: input2, // ตัวควบคุมสำหรับเวลาเปิด-ปิด
         decoration: InputDecoration(
-          contentPadding: EdgeInsets.fromLTRB(
-              15, 10, 15, 10), // กำหนด padding ของเนื้อหาภายในฟิลด์
-          hintText: 'เวลาเปิด - ปิด', // ข้อความแนะนำในฟิลด์
-          fillColor:
-              Color.fromARGB(255, 255, 255, 255), // กำหนดสีพื้นหลังของฟิลด์
-          filled: true, // กำหนดให้ฟิลด์มีสีพื้นหลัง
+          contentPadding:
+              EdgeInsets.fromLTRB(15, 10, 15, 10), // Padding ภายในฟิลด์
+          hintText: 'เลือกเวลาเปิด - ปิด', // ข้อความแนะนำ
+          fillColor: Color.fromARGB(255, 255, 255, 255), // สีพื้นหลังของฟิลด์
+          filled: true, // ให้ฟิลด์มีสีพื้นหลัง
           hintStyle: TextStyle(
-              color:
-                  Color.fromARGB(255, 102, 102, 102)), // กำหนดสีของข้อความแนะนำ
+              color: Color.fromARGB(255, 102, 102, 102)), // สีของข้อความแนะนำ
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(40), // กำหนดความโค้งของขอบฟิลด์
+            borderRadius: BorderRadius.circular(40), // ความโค้งของขอบฟิลด์
           ),
-          prefixIcon: Icon(Icons.calendar_today,
-              color: Color.fromARGB(255, 255, 0, 0)), // เปลี่ยนไอคอนเป็นปฏิทิน
+          prefixIcon: Icon(
+            Icons.access_time, // ไอคอนเวลา
+            color: Color.fromARGB(255, 255, 0, 0), // สีของไอคอน
+          ),
         ),
-        style: TextStyle(
-            color: Color.fromARGB(255, 0, 0, 0)), // กำหนดสีของข้อความภายในฟิลด์
+        readOnly: true, // ปิดการแก้ไขฟิลด์โดยตรง
+        onTap: () async {
+          // แสดงตัวเลือกเวลาเปิด
+          TimeOfDay? pickedOpenTime = await showTimePicker(
+            context: context,
+            initialTime: TimeOfDay.now(), // เริ่มต้นด้วยเวลาปัจจุบัน
+            builder: (context, child) {
+              return MediaQuery(
+                data: MediaQuery.of(context).copyWith(
+                  alwaysUse24HourFormat: true, // ใช้เวลาแบบ 24 ชั่วโมง
+                ),
+                child: child!,
+              );
+            },
+          );
+
+          // ถ้าเลือกเวลาเปิดแล้ว ให้แสดงตัวเลือกเวลาปิด
+          if (pickedOpenTime != null) {
+            TimeOfDay? pickedCloseTime = await showTimePicker(
+              context: context,
+              initialTime: TimeOfDay.now(), // เริ่มต้นด้วยเวลาปัจจุบัน
+              builder: (context, child) {
+                return MediaQuery(
+                  data: MediaQuery.of(context).copyWith(
+                    alwaysUse24HourFormat: true, // ใช้เวลาแบบ 24 ชั่วโมง
+                  ),
+                  child: child!,
+                );
+              },
+            );
+
+            if (pickedCloseTime != null) {
+              setState(() {
+                input2.text =
+                    '${pickedOpenTime.format(context)} - ${pickedCloseTime.format(context)}'; // แสดงเวลาเปิด-ปิดในฟิลด์
+              });
+            }
+          }
+        },
       ),
     );
   }
@@ -530,6 +606,39 @@ class _AddLocationState extends State<AddLocationPage> {
     );
   }
 
+  // ฟังก์ชันแปลงวันที่ที่เลือกเป็น String
+  String getSelectedDays() {
+    List<String> days = [];
+    selectedDays.forEach((key, value) {
+      if (value) {
+        switch (key) {
+          case 'จันทร์':
+            days.add('1');
+            break;
+          case 'อังคาร':
+            days.add('2');
+            break;
+          case 'พุธ':
+            days.add('3');
+            break;
+          case 'พฤหัสบดี':
+            days.add('4');
+            break;
+          case 'ศุกร์':
+            days.add('5');
+            break;
+          case 'เสาร์':
+            days.add('6');
+            break;
+          case 'อาทิตย์':
+            days.add('0');
+            break;
+        }
+      }
+    });
+    return days.join(','); // แปลง List เป็น String โดยแยกด้วย ','
+  }
+
   // ฟังก์ชันเพิ่มสถานที่
   Future<void> functionAddLocation() async {
     if (_imageFile == null || _selectedLocation == null) {
@@ -549,16 +658,19 @@ class _AddLocationState extends State<AddLocationPage> {
     request.fields['location_time'] =
         input2.text; // ใส่เวลาเปิด-ปิดลงในฟิลด์ 'location_time'
 
+    // เพิ่มฟิลด์สำหรับวันที่ที่เลือก
+    request.fields['location_day'] = getSelectedDays(); // ส่งวันที่ที่เลือกไปยังฐานข้อมูล
+
     request.fields['types_id'] = json.encode(selectedTypes.map((type) {
       final typeMap = fieldTypes.firstWhere((element) =>
           element['type_name'] == type); // ค้นหา type_id ที่ตรงกับ type_name
       return typeMap['type_id']; // ส่งคืน type_id สำหรับแต่ละประเภท
     }).toList());
 
-    request.fields['latitude'] = _selectedLocation!.latitude
-        .toString(); // ใส่ค่าละติจูดของสถานที่ลงในฟิลด์ 'latitude'
-    request.fields['longitude'] = _selectedLocation!.longitude
-        .toString(); // ใส่ค่าลองจิจูดของสถานที่ลงในฟิลด์ 'longitude'
+    request.fields['latitude'] =
+        _selectedLocation!.latitude.toString(); // ใส่ค่าละติจูด
+    request.fields['longitude'] =
+        _selectedLocation!.longitude.toString(); // ใส่ค่าลองจิจูด
 
     request.files.add(await http.MultipartFile.fromPath(
         'image', _imageFile!.path)); // เพิ่มไฟล์รูปภาพในฟิลด์ 'image'
@@ -639,6 +751,7 @@ class _AddLocationState extends State<AddLocationPage> {
     }
   }
 
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -657,6 +770,7 @@ class _AddLocationState extends State<AddLocationPage> {
         child: ListView(
           children: [
             namelocation(), // วิดเจ็ตฟิลด์ชื่อสถานที่
+            daySelection(),
             time(), // วิดเจ็ตฟิลด์เวลาเปิด-ปิด
             type(), // วิดเจ็ตฟิลด์ประเภทสนาม
             addImage(), // วิดเจ็ตปุ่มเลือกรูปภาพ
