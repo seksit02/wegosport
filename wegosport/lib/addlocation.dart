@@ -69,38 +69,51 @@ class _AddLocationState extends State<AddLocationPage> {
     }
   }
 
-  // เลือกรูปภาพและแสดงรูปภาพ
-  Future<void> _pickImage() async {
-    final pickedFile = await _picker.pickImage(
-        source: ImageSource.gallery); // เลือกรูปภาพจากแกลเลอรี
-    if (pickedFile != null) {
-      File? croppedFile = await ImageCropper().cropImage(
-        sourcePath: pickedFile.path, // กำหนดเส้นทางของรูปภาพที่เลือก
-        aspectRatio: CropAspectRatio(
-            ratioX: 1.0, ratioY: 1.0), // กำหนดอัตราส่วนของการครอปรูปภาพ
-        androidUiSettings: AndroidUiSettings(
-          toolbarTitle: 'Crop Image', // ชื่อของแถบเครื่องมือสำหรับการครอปรูปภาพ
-          toolbarColor: Colors.red, // กำหนดสีของแถบเครื่องมือ
-          toolbarWidgetColor:
-              Colors.white, // กำหนดสีของไอคอนและข้อความในแถบเครื่องมือ
-          initAspectRatio: CropAspectRatioPreset
-              .square, // กำหนดค่าเริ่มต้นของอัตราส่วนการครอปเป็นสี่เหลี่ยมจัตุรัส
-          lockAspectRatio: true, // ล็อคอัตราส่วนการครอปไม่ให้เปลี่ยนแปลงได้
-        ),
-        iosUiSettings: IOSUiSettings(
-          minimumAspectRatio: 1.0, // กำหนดอัตราส่วนขั้นต่ำของการครอปสำหรับ iOS
-        ),
-      );
+  bool _isPickingImage = false; // ตัวแปรตรวจสอบสถานะการเลือกภาพ
 
-      if (croppedFile != null) {
-        setState(() {
-          _imageFile = croppedFile; // เก็บไฟล์ที่ครอปแล้วไว้ในตัวแปร _imageFile
-        });
+  Future<void> _pickImage() async {
+    if (_isPickingImage) {
+      return; // หยุดการทำงานถ้ามีการเลือกภาพอยู่แล้ว
+    }
+
+    _isPickingImage = true; // กำหนดสถานะว่ากำลังเลือกภาพ
+    try {
+      final pickedFile = await _picker.pickImage(
+          source: ImageSource.gallery); // เลือกรูปภาพจากแกลเลอรี
+
+      if (pickedFile != null) {
+        File? croppedFile = await ImageCropper().cropImage(
+          sourcePath: pickedFile.path, // เส้นทางของรูปภาพที่เลือก
+          aspectRatio:
+              CropAspectRatio(ratioX: 1.0, ratioY: 1.0), // อัตราส่วนครอป
+          androidUiSettings: AndroidUiSettings(
+            toolbarTitle: 'Crop Image',
+            toolbarColor: Colors.red,
+            toolbarWidgetColor: Colors.white,
+            initAspectRatio: CropAspectRatioPreset.square,
+            lockAspectRatio: true,
+          ),
+          iosUiSettings: IOSUiSettings(
+            minimumAspectRatio: 1.0,
+          ),
+        );
+
+        if (croppedFile != null) {
+          setState(() {
+            _imageFile =
+                croppedFile; // เก็บไฟล์ที่ครอปแล้วไว้ในตัวแปร _imageFile
+          });
+        }
+      } else {
+        print('No image selected.');
       }
-    } else {
-      print('No image selected.'); // แสดงข้อความเมื่อไม่ได้เลือกรูปภาพ
+    } catch (e) {
+      print('Error picking image: $e'); // จัดการข้อผิดพลาด
+    } finally {
+      _isPickingImage = false; // ปรับสถานะเมื่อกระบวนการเสร็จสิ้น
     }
   }
+
   
   // ขออนุญาตการเข้าถึงตำแหน่ง
     Future<void> _requestLocationPermission() async {
