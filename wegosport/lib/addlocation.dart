@@ -783,6 +783,19 @@ class _AddLocationState extends State<AddLocationPage> {
         child: ListView(
           children: [
             namelocation(), // วิดเจ็ตฟิลด์ชื่อสถานที่
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                  vertical: 20), // เพิ่มระยะห่างระหว่างข้อความและขอบ
+              child: Center(
+                // จัดให้อยู่ตรงกลาง
+                child: Text(
+                  'กรุณาเลือกวันทำการ',
+                  style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.black), // กำหนดสไตล์ของข้อความ
+                ),
+              ),
+            ),
             daySelection(),
             time(), // วิดเจ็ตฟิลด์เวลาเปิด-ปิด
             type(), // วิดเจ็ตฟิลด์ประเภทสนาม
