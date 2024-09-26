@@ -82,12 +82,17 @@ class _GroupChatListPageState extends State<GroupChatListPage> {
 
   @override
   Widget build(BuildContext context) {
-    print(
-        'ข้อมูลของ _messages : ${chatList}'); // พิมพ์ข้อมูล _messages เพื่อตรวจสอบ
+    print('ข้อมูลของ _messages : ${chatList}'); // พิมพ์ข้อมูล _messages เพื่อตรวจสอบ
     return Scaffold(
       appBar: AppBar(
-        title: Text('รวมแชทกิจกรรม'),
-        backgroundColor: Colors.red,
+        title: Text(
+          'รวมแชทกิจกรรม',
+          style: TextStyle(color: Colors.white),
+        ),
+        backgroundColor: const Color.fromARGB(255, 255, 17, 0),
+        iconTheme: IconThemeData(
+          color: Colors.white, // กำหนดสีของไอคอน (รวมถึงปุ่มย้อนกลับ)
+        ),
       ),
       body: hasError
           ? Center(
