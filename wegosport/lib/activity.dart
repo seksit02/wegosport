@@ -6,6 +6,9 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:wegosport/Homepage.dart';
 import 'package:wegosport/chat.dart';
 
+import 'package:intl/intl.dart';
+
+
 // หน้ากิจกรรม
 class ActivityPage extends StatefulWidget {
   final dynamic activity;
@@ -28,6 +31,24 @@ class _ActivityPageState extends State<ActivityPage> {
   Widget build(BuildContext context) {
     print('userId ที่ได้รับใน ActivityPage: ${widget.userId}');
     print('JWT ที่ได้รับใน ActivityPage: ${widget.jwt}');
+
+    // แปลงวันเวลาเป็น DateTime
+    DateTime activityDate;
+
+    try {
+      activityDate = DateFormat('yyyy-MM-dd HH:mm:ss')
+          .parse(widget.activity['activity_date']);
+    } catch (e) {
+      activityDate = DateTime.now(); // ถ้ามีปัญหาในการแปลงจะใช้วันเวลาปัจจุบัน
+    }
+
+    // จัดรูปแบบวันเวลาเป็นภาษาไทย
+    String formattedDate =
+        DateFormat('HH:mm น. d MMMM ', 'th_TH').format(activityDate);
+
+    // แปลงปีเป็นพุทธศักราช
+    int buddhistYear = activityDate.year + 543;
+    formattedDate += buddhistYear.toString();
 
     // แปลงค่าจาก String เป็น double สำหรับพิกัดแผนที่
     double latitude =
@@ -136,8 +157,8 @@ class _ActivityPageState extends State<ActivityPage> {
             ),
             SizedBox(height: 8),
             Text(
-              'วันที่นัดหมาย ${widget.activity['activity_date'] + " น." ?? 'ไม่ระบุวันที่'}',
-              style: TextStyle(color: Colors.grey),
+              'วันที่นัดหมาย $formattedDate',
+              style: TextStyle(color: const Color.fromARGB(255, 0, 0, 0)),
             ),
             SizedBox(height: 8),
             Text(
