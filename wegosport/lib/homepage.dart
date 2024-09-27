@@ -13,6 +13,9 @@ import 'dart:ui';
 import 'package:intl/intl.dart'; // นำเข้าไลบรารีที่จำเป็นสำหรับการทำงาน
 import 'package:web_socket_channel/web_socket_channel.dart'; // สำหรับ WebSocket
 
+import 'package:intl/intl_standalone.dart';
+import 'package:intl/date_symbol_data_local.dart';
+
 // หน้าจอ Homepage
 class Homepage extends StatefulWidget {
   final String jwt; // รับค่า JWT สำหรับการตรวจสอบสิทธิ์
@@ -33,8 +36,14 @@ class _HomepageState extends State<Homepage> {
   @override
   void initState() {
     super.initState();
-    fetchActivities(); // ดึงข้อมูลกิจกรรมเมื่อเริ่มต้น
-    fetchUserData(widget.jwt); // ดึงข้อมูลผู้ใช้เมื่อเริ่มต้น
+    _initializeLocaleAndFetchData();
+  }
+
+  Future<void> _initializeLocaleAndFetchData() async {
+    await initializeDateFormatting(
+        'th_TH', null); // เรียก initializeDateFormatting
+    fetchActivities(); // เรียกใช้ fetchActivities หลังจากที่ข้อมูล locale ถูกตั้งค่า
+    fetchUserData(widget.jwt); // เรียกดึงข้อมูลผู้ใช้
   }
 
   // ฟังก์ชันดึงข้อมูลกิจกรรมจากเซิร์ฟเวอร์
@@ -108,7 +117,7 @@ class _HomepageState extends State<Homepage> {
   }
 
   // ฟังก์ชันกรองกิจกรรม (ช่องค้นหา)
-  void _filterActivities(String query) {
+ void _filterActivities(String query) {
     if (activities == null || query == null) {
       setState(() {
         searchQuery = query ?? '';
@@ -130,10 +139,16 @@ class _HomepageState extends State<Homepage> {
           .map((tag) => tag['hashtag_message']?.toLowerCase() ?? '')
           .toList();
 
-      return activityName.contains(searchLower) ||
-          locationName.contains(searchLower) ||
-          sportName.contains(searchLower) ||
-          hashtagMessages.any((hashtag) => hashtag.contains(searchLower));
+      // เพิ่มเงื่อนไขในการตรวจสอบสถานะว่ากิจกรรมยังไม่ถูกระงับ
+      final isActive = activity['status'] == 'active' ||
+          activity['status'] == 'มาใหม่' ||
+          activity['status'] == 'ยอดฮิต';
+
+      return isActive &&
+          (activityName.contains(searchLower) ||
+              locationName.contains(searchLower) ||
+              sportName.contains(searchLower) ||
+              hashtagMessages.any((hashtag) => hashtag.contains(searchLower)));
     }).toList();
 
     setState(() {
@@ -147,15 +162,39 @@ class _HomepageState extends State<Homepage> {
           final members = activity['members'];
           final status =
               (members != null && members.length > 3) ? "ยอดฮิต" : "มาใหม่";
-          return {
-            ...activity,
-            'status': status,
-          };
+          return {...activity, 'status': status};
         }).toList();
       }
     });
   }
 
+  // ฟังก์ชันกรองกิจกรรมตามแฮชแท็กที่ถูกกด
+  void _filterActivitiesByHashtag(String hashtag) {
+    final filtered = activities.where((activity) {
+      final hashtags = activity['hashtags'] as List<dynamic>? ?? [];
+
+      // เพิ่มเงื่อนไขในการตรวจสอบสถานะว่ากิจกรรมยังไม่ถูกระงับ
+      final isActive = activity['status'] == 'active' ||
+          activity['status'] == 'มาใหม่' ||
+          activity['status'] == 'ยอดฮิต';
+
+      return isActive &&
+          hashtags.any((tag) => tag['hashtag_message'] == hashtag);
+    }).toList();
+
+    setState(() {
+      filteredActivities = filtered.isEmpty
+          ? [
+              {'activity_name': 'ไม่มีกิจกรรม'}
+            ]
+          : filtered.map((activity) {
+              final members = activity['members'];
+              final status =
+                  (members != null && members.length > 3) ? "ยอดฮิต" : "มาใหม่";
+              return {...activity, 'status': status};
+            }).toList();
+    });
+  }
 
   // ฟังก์ชันเปลี่ยนแท็บ
   void _onItemTapped(int index) {
@@ -346,8 +385,10 @@ class _HomepageState extends State<Homepage> {
                         child: ActivityCardItem(
                           activity: activity,
                           userData: userData,
-                          fetchActivities: fetchActivities, 
+                          fetchActivities: fetchActivities,
                           jwt: widget.jwt,
+                          onHashtagTap:
+                              _filterActivitiesByHashtag, // ส่ง callback สำหรับกดแฮชแท็ก
                         ),
                       );
                     },
@@ -429,13 +470,14 @@ class ActivityCardItem extends StatelessWidget {
   final Color statusColor;
   final Color textColor;
   final Function fetchActivities; // รับฟังก์ชัน fetchActivities
-  
+  final Function(String) onHashtagTap; // เพิ่ม callback สำหรับกดแฮชแท็ก
 
   ActivityCardItem({
     required this.activity,
     required this.userData,
-     required this.jwt,
-    required this.fetchActivities, // เพิ่มฟังก์ชัน fetchActivities
+    required this.jwt,
+    required this.fetchActivities,
+    required this.onHashtagTap, // เพิ่ม callback
     this.backgroundColor = const Color.fromARGB(255, 255, 255, 255),
     this.statusColor = const Color.fromARGB(255, 255, 225, 1),
     this.textColor = Colors.black,
@@ -447,7 +489,11 @@ class ActivityCardItem extends StatelessWidget {
     print('ข้อมูล Activity จากการ์ด $activity');
 
     // ตรวจสอบสถานะของกิจกรรม
-    final isActive = activity['status'] == 'active';
+    final isActive = activity['status'] == 'active' ||
+        activity['status'] == 'มาใหม่' ||
+        activity['status'] == 'ยอดฮิต';
+    print('Activity Status: ${activity['status']}'); // พิมพ์สถานะกิจกรรม
+
 
     final members = activity['members'];
     bool isPopular = (members != null && members.length > 3);
@@ -465,6 +511,15 @@ class ActivityCardItem extends StatelessWidget {
       activityDate = DateTime.now(); // หรือค่าดีฟอลต์หรือจัดการตามที่ต้องการ
     }
 
+    // แปลงรูปแบบวันที่และเวลาเป็นรูปแบบที่คุณต้องการ
+    String formattedDate =
+        DateFormat('HH.mm น. d MMMM yyyy', 'th_TH').format(activityDate);
+
+    // แปลงปีให้เป็นพุทธศักราช
+    int buddhistYear = activityDate.year + 543;
+    formattedDate =
+        formattedDate.replaceAll('${activityDate.year}', '$buddhistYear');
+
     bool isPast = DateTime.now().isAfter(activityDate);
 
     return GestureDetector(
@@ -477,10 +532,15 @@ class ActivityCardItem extends StatelessWidget {
               builder: (context) => ActivityPage(
                 activity: activity,
                 jwt: jwt,
-                userId: userData != null ? userData!['user_id'] : 'ไม่พบข้อมูล', // ตรวจสอบว่าค่า userData มีข้อมูลจริง
+                userId: userData != null
+                    ? userData!['user_id']
+                    : 'ไม่พบข้อมูล', // ตรวจสอบว่าค่า userData มีข้อมูลจริง
               ),
             ),
-          );
+          ).then((_) {
+            // หลังจากกลับมาจากหน้า ActivityPage รีเฟรชข้อมูลกิจกรรม
+            fetchActivities();
+          });
 
         } else {
           showDialog(
@@ -583,14 +643,17 @@ class ActivityCardItem extends StatelessWidget {
               Wrap(
                 runSpacing: 5.0,
                 children: (activity['hashtags'] as List<dynamic>? ?? [])
-                    .map((tag) =>
-                        TagWidget(text: tag['hashtag_message'])) // แสดงแท็ก
+                    .map((tag) => GestureDetector(
+                          onTap: () => onHashtagTap(tag[
+                              'hashtag_message']), // เพิ่มการทำงานเมื่อกดแฮชแท็ก
+                          child: TagWidget(text: tag['hashtag_message']),
+                        ))
                     .toList(),
               ),
               SizedBox(height: 8),
               // วันที่และเวลา
               Text(
-                activity['activity_date'] ?? '',
+                formattedDate,
                 style: TextStyle(
                   color: isPast
                       ? const Color.fromARGB(255, 180, 180, 180)
