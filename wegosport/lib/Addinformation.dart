@@ -284,7 +284,8 @@ class _editinformationState extends State<editinformation> {
     );
   }
 
-  // วิดเจ็ตฟิลด์วัน/เดือน/ปีเกิด
+  String dateWarning = '';
+
   Widget inputfive() {
     return Container(
       margin: EdgeInsets.fromLTRB(50, 20, 50, 0), // กำหนดระยะขอบของฟิลด์
@@ -297,23 +298,48 @@ class _editinformationState extends State<editinformation> {
             keyboardType: TextInputType
                 .datetime, // กำหนดประเภทของแป้นพิมพ์ให้เป็นวัน/เดือน/ปีเกิด
             inputFormatters: <TextInputFormatter>[
-              FilteringTextInputFormatter.allow(
-                RegExp(r'[0-9/]'), // อนุญาตให้กรอกเฉพาะตัวเลขและเครื่องหมาย '/'
-              ),
+              FilteringTextInputFormatter.allow(RegExp(
+                  r'[0-9/]')), // อนุญาตให้กรอกเฉพาะตัวเลขและเครื่องหมาย '/'
               LengthLimitingTextInputFormatter(
                   10), // จำกัดความยาวสูงสุดของการป้อนข้อมูลเป็น 10 ตัวอักษร
               DateInputFormatter(), // ใช้ตัวจัดรูปแบบวันที่ที่กำหนดเอง
             ],
+            onChanged: (value) {
+              // ตรวจสอบและแปลงรูปแบบวันที่
+              if (value.length == 10) {
+                List<String> parts = value.split('/');
+                if (parts.length == 3) {
+                  int day = int.parse(parts[0]);
+                  int month = int.parse(parts[1]);
+                  int year = int.parse(parts[2]);
+
+                  // แปลงปี พ.ศ. เป็น ค.ศ.
+                  int buddhistYear = year - 543;
+                  DateTime inputDateTime = DateTime(buddhistYear, month, day);
+                  DateTime currentDate = DateTime.now();
+
+                  // ตรวจสอบว่าค่าวันที่เกินปัจจุบันหรือไม่
+                  if (inputDateTime.isAfter(currentDate)) {
+                    setState(() {
+                      dateWarning =
+                          'ค่าต้องเป็น ${currentDate.day}/${currentDate.month}/${currentDate.year + 543} หรือน้อยกว่า';
+                    });
+                  } else {
+                    setState(() {
+                      dateWarning = '';
+                    });
+                  }
+                }
+              }
+            },
             decoration: InputDecoration(
               contentPadding: EdgeInsets.fromLTRB(
                   0, 15, 0, 0), // กำหนด padding ของเนื้อหาภายในฟิลด์
               hintText: 'วัน/เดือน/ปีเกิด', // ข้อความแนะนำในฟิลด์
               fillColor: Colors.white, // กำหนดสีพื้นหลังของฟิลด์
               filled: true, // กำหนดให้ฟิลด์มีสีพื้นหลัง
-              prefixIcon: Icon(
-                Icons.calendar_today, // กำหนดไอคอนด้านหน้า
-                color: Colors.red, // กำหนดสีของไอคอน
-              ),
+              prefixIcon: Icon(Icons.calendar_today,
+                  color: Colors.red), // กำหนดไอคอนด้านหน้า
               border: OutlineInputBorder(
                 borderSide:
                     BorderSide(color: Colors.black), // กำหนดสีของขอบฟิลด์
@@ -322,6 +348,14 @@ class _editinformationState extends State<editinformation> {
               ),
             ),
           ),
+          if (dateWarning.isNotEmpty) // แสดงข้อความแจ้งเตือนหากวันที่เกิน
+            Padding(
+              padding: EdgeInsets.only(top: 8.0),
+              child: Text(
+                dateWarning,
+                style: TextStyle(color: Colors.red),
+              ),
+            ),
           SizedBox(height: 5), // ระยะห่างระหว่างฟิลด์และข้อความตัวอย่าง
           Padding(
             padding: EdgeInsets.only(left: 20.0), // เพิ่มระยะทางซ้ายของข้อความ
@@ -333,6 +367,34 @@ class _editinformationState extends State<editinformation> {
         ],
       ),
     );
+  }
+
+  // ฟังก์ชันเพื่อป้องกันการกรอกวันเดือนปีเกิดเกินกว่าวันที่ปัจจุบัน (พ.ศ.)
+  bool isDateValid(String inputDate) {
+    try {
+      // แปลงวันที่จาก input
+      List<String> parts = inputDate.split('/');
+      if (parts.length == 3) {
+        int day = int.parse(parts[0]);
+        int month = int.parse(parts[1]);
+        int year = int.parse(parts[2]);
+
+        // แปลงปี พ.ศ. เป็น ค.ศ. เพื่อตรวจสอบ
+        int buddhistYear = year - 543;
+
+        // สร้างวันที่จากการป้อนข้อมูล
+        DateTime inputDateTime = DateTime(buddhistYear, month, day);
+        DateTime currentDate = DateTime.now();
+
+        // ตรวจสอบว่า inputDateTime น้อยกว่าหรือเท่ากับวันที่ปัจจุบันหรือไม่
+        return inputDateTime.isBefore(currentDate) ||
+            inputDateTime.isAtSameMomentAs(currentDate);
+      } else {
+        return false;
+      }
+    } catch (e) {
+      return false;
+    }
   }
 
   // ฟังก์ชันตรวจสอบข้อมูล
@@ -357,7 +419,8 @@ class _editinformationState extends State<editinformation> {
         four_value.text.isNotEmpty && // ตรวจสอบว่าฟิลด์ชื่อ-สกุลไม่ว่าง
         five_value.text.isNotEmpty && // ตรวจสอบว่าฟิลด์วัน/เดือน/ปีเกิดไม่ว่าง
         dateRegEx.hasMatch(
-            five_value.text); // ตรวจสอบว่าข้อความตรงกับรูปแบบวันที่ที่ถูกต้อง
+            five_value.text) && // ตรวจสอบว่าข้อความตรงกับรูปแบบวันที่ที่ถูกต้อง
+        isDateValid(five_value.text); // ตรวจสอบว่าค่าวันที่ไม่เกินปัจจุบัน
   }
 
   // วิดเจ็ตปุ่มยืนยันข้อมูล
