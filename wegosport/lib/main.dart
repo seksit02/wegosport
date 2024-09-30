@@ -23,7 +23,7 @@ class MyApp extends StatelessWidget {
       home: LoginPage(), // กำหนดหน้าหลักเมื่อเปิดแอปคือ LoginPage
       routes: {
         '/Profile': (context) => ProfilePage(
-              jwt: '',
+              jwt: '', activity: [],
             ), // เส้นทางสำหรับไปยังหน้า ProfilePage พร้อมส่งค่า jwt
       },
       onUnknownRoute: (settings) {
