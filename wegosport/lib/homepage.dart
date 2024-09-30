@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:wegosport/Addlocation.dart';
 import 'package:wegosport/Createactivity.dart';
 import 'package:wegosport/EditActivity.dart';
+import 'package:wegosport/MyActivity.dart';
 import 'package:wegosport/Profile.dart';
 import 'package:wegosport/Activity.dart';
 import 'package:wegosport/Groupchat.dart';
@@ -203,14 +204,10 @@ class _HomepageState extends State<Homepage> {
         _selectedIndex = 0;
       });
     } else if (index == 1) {
-      var channel = WebSocketChannel.connect(
-        Uri.parse('ws://10.0.2.2:8080'),
-      );
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => GroupChatListPage(
-            channel: channel,
+          builder: (context) => Myactivity(
             activity: activities,
             jwt: widget.jwt,
           ),
@@ -324,7 +321,7 @@ class _HomepageState extends State<Homepage> {
                   onPressed: () => _onItemTapped(
                       1), // เรียกใช้ฟังก์ชัน _onItemTapped เมื่อกดปุ่มแชท
                   child: Text(
-                    'แชท',
+                    'กิจกรรมของฉัน',
                     style: TextStyle(
                       color: _selectedIndex == 1
                           ? const Color.fromARGB(255, 255, 255, 255)
