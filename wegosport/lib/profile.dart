@@ -9,9 +9,10 @@ import 'dart:io'; // ใช้สำหรับการจัดการไ�
 import 'package:image/image.dart' as img; // ใช้สำหรับการจัดการภาพ
 
 class ProfilePage extends StatefulWidget {
-  const ProfilePage({super.key, required this.jwt});
+  const ProfilePage({super.key, required this.jwt, required this.activity});
 
   final String jwt; // รับค่า JWT สำหรับการตรวจสอบสิทธิ์
+  final dynamic activity;
 
   @override
   State<ProfilePage> createState() =>
@@ -20,11 +21,14 @@ class ProfilePage extends StatefulWidget {
 
 class _ProfilePageState extends State<ProfilePage> {
   Map<String, dynamic>? userData; // เก็บข้อมูลผู้ใช้
+  List<dynamic> createdActivities = []; // เก็บข้อมูลกิจกรรมที่ผู้ใช้สร้าง
 
   @override
   void initState() {
     super.initState();
-    fetchUserData(widget.jwt); // เรียกใช้ฟังก์ชัน fetchUserData เมื่อเริ่มต้น
+    fetchUserData(widget.jwt).then((_) {
+      fetchCreatedActivities(); // ดึงกิจกรรมที่ผู้ใช้สร้าง
+    });
   }
 
   // ฟังก์ชันดึงข้อมูลผู้ใช้จากเซิร์ฟเวอร์
@@ -36,16 +40,11 @@ class _ProfilePageState extends State<ProfilePage> {
       'Authorization': 'Bearer $jwt', // ใส่ JWT ในส่วนของ Authorization Header
     };
 
-    print('Headers profile : $headers');
-
     try {
       var response = await http.post(
         url,
         headers: headers, // ส่งค่า JWT ไปพร้อมกับคำขอ
       );
-
-      print('Response status profile : ${response.statusCode}');
-      print('Response body profile : ${response.body}');
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -62,13 +61,67 @@ class _ProfilePageState extends State<ProfilePage> {
           throw Exception('Failed to load user data');
         }
       } else {
-        print("Failed to load user data: ${response.body}");
         throw Exception('Failed to load user data');
       }
     } catch (error) {
       print("Error: $error");
       throw Exception('Failed to load user data');
     }
+  }
+
+  // ฟังก์ชันดึงกิจกรรมจากเซิร์ฟเวอร์แล้วกรองเฉพาะกิจกรรมที่ผู้ใช้สร้าง
+  Future<void> fetchCreatedActivities() async {
+    final userId = userData?['user_id']; // ดึง user_id จากข้อมูลผู้ใช้
+    if (userId == null) {
+      print('User ID is null');
+      return;
+    }
+
+    // เรียก API ดึงข้อมูลกิจกรรมทั้งหมด
+    final response = await http.get(
+      Uri.parse('http://10.0.2.2/flutter_webservice/get_ShowDataActivity.php'),
+    );
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+
+      // จัดเรียงกิจกรรมตามวันที่
+      data.sort((a, b) {
+        final dateA = DateTime.parse(a['activity_date']);
+        final dateB = DateTime.parse(b['activity_date']);
+        return dateB.compareTo(dateA); // จัดเรียงตามวันที่ล่าสุด
+      });
+
+      // กรองข้อมูลกิจกรรม เฉพาะที่ผู้ใช้เป็น creator
+      List<dynamic> filteredActivities = data.where((activity) {
+        return activity['creator'] ==
+            userId; // ตรวจสอบว่าผู้ใช้เป็น creator หรือไม่
+      }).toList();
+
+      setState(() {
+        createdActivities = filteredActivities; // เก็บกิจกรรมที่ผู้ใช้สร้าง
+      });
+    } else {
+      throw Exception('Failed to load activities');
+    }
+  }
+
+  // ฟังก์ชันสร้างรายการกิจกรรมที่ผู้ใช้สร้าง
+  Widget _buildCreatedActivityList() {
+    if (createdActivities.isEmpty) {
+      return Text('คุณยังไม่มีกิจกรรมที่สร้าง');
+    }
+    return ListView.builder(
+      shrinkWrap: true, // เพื่อให้รายการกิจกรรมอยู่ใน Column ได้
+      itemCount: createdActivities.length,
+      itemBuilder: (context, index) {
+        final activity = createdActivities[index];
+        return ListTile(
+          title: Text(activity['activity_name']),
+          subtitle: Text('วันที่: ${activity['activity_date']}'),
+        );
+      },
+    );
   }
 
   // ฟังชั่นแปลงสตริงวันที่เป็น DateTime object
@@ -225,7 +278,7 @@ class _ProfilePageState extends State<ProfilePage> {
           ? Center(
               child:
                   CircularProgressIndicator()) // แสดงตัวโหลดข้อมูลขณะรอข้อมูลผู้ใช้
-          : Center(
+          : SingleChildScrollView(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -237,63 +290,71 @@ class _ProfilePageState extends State<ProfilePage> {
                       backgroundImage: userData!['user_photo'] != null
                           ? NetworkImage(
                               userData!['user_photo']) // แสดงภาพโปรไฟล์จาก URL
-                          : AssetImage("images/P001.jpg")
+                          : AssetImage("images/BGProfile.jpg")
                               as ImageProvider, // แสดงภาพดีฟอลต์ถ้าไม่มีภาพโปรไฟล์
                     ),
                   ),
-                  SizedBox(height: 16), // เพิ่มระยะห่าง
+                  SizedBox(height: 16),
                   Text(
-                    userData!['user_name'] ?? 'ไม่มีข้อมูล', // แสดงชื่อผู้ใช้
+                    userData!['user_name'] ?? 'ไม่มีข้อมูล',
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   Text(
-                    '@${userData!['user_id'] ?? 'ไม่มีข้อมูล'}', // แสดง user_id
+                    '@${userData!['user_id'] ?? 'ไม่มีข้อมูล'}',
                     style: TextStyle(
                       fontSize: 16,
                       color: const Color.fromARGB(255, 18, 18, 18),
                     ),
                   ),
-                  SizedBox(height: 16), // เพิ่มระยะห่าง
+                  SizedBox(height: 16),
                   userData!['user_text']?.isNotEmpty == true
                       ? Text(
-                          userData!['user_text'], // แสดงข้อความของผู้ใช้
+                          userData!['user_text'],
                           style: TextStyle(
                             fontSize: 14,
                             color: const Color.fromARGB(255, 0, 0, 0),
                           ),
                         )
                       : Text(
-                          'ใส่ข้อความสังเขป', // ข้อความที่จะแสดงแทนในกรณีที่ไม่มีข้อมูล
+                          'ใส่ข้อความสังเขป',
                           style: TextStyle(
                             fontSize: 14,
                             color: const Color.fromARGB(255, 0, 0, 0),
                           ),
                         ),
-                  SizedBox(height: 16), // เพิ่มระยะห่าง
+                  SizedBox(height: 16),
                   Text(
-                    formatDate(userData!['user_age'] ??
-                        'ไม่มีข้อมูล'), // แสดงผลวันที่ในรูปแบบ DD/MM/YYYY
+                    formatDate(userData!['user_age'] ?? 'ไม่มีข้อมูล'),
                     style: TextStyle(
                       fontSize: 14,
                       color: const Color.fromARGB(255, 0, 0, 0),
                     ),
                   ),
-                  SizedBox(height: 16), // เพิ่มระยะห่าง
+                  SizedBox(height: 16),
                   ElevatedButton(
                     onPressed: () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => EditProfile(
-                              jwt: widget.jwt), // ไปที่หน้า EditProfile
+                          builder: (context) => EditProfile(jwt: widget.jwt),
                         ),
                       );
                     },
                     child: Text('แก้ไขข้อมูล'),
                   ),
+
+                  // เส้นกัน
+                  Divider(thickness: 2, color: Colors.grey),
+
+                  // ส่วนแสดงกิจกรรมที่ผู้ใช้สร้าง
+                  Text(
+                    'กิจกรรมที่คุณสร้าง',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  _buildCreatedActivityList(),
                 ],
               ),
             ),
