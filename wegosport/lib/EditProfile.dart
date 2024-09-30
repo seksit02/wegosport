@@ -168,6 +168,32 @@ class _EditProfileState extends State<EditProfile> {
     }
   }
 
+  bool isDateValid(String inputDate) {
+    try {
+      // แปลงวันที่จาก input
+      List<String> parts = inputDate.split('/');
+      if (parts.length == 3) {
+        int day = int.parse(parts[0]);
+        int month = int.parse(parts[1]);
+        int year = int.parse(parts[2]);
+
+        // แปลงปี พ.ศ. เป็น ค.ศ. โดยลบ 543
+        int buddhistYear = year - 543;
+
+        // สร้างวันที่จากการป้อนข้อมูล
+        DateTime inputDateTime = DateTime(buddhistYear, month, day);
+        DateTime currentDate = DateTime.now();
+
+        // ตรวจสอบว่า inputDateTime น้อยกว่าหรือเท่ากับวันที่ปัจจุบันหรือไม่
+        return inputDateTime.isBefore(currentDate) ||
+            inputDateTime.isAtSameMomentAs(currentDate);
+      } else {
+        return false;
+      }
+    } catch (e) {
+      return false;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -239,10 +265,32 @@ class _EditProfileState extends State<EditProfile> {
               SizedBox(height: 20), // ระยะห่างระหว่างฟิลด์กับปุ่ม
               ElevatedButton(
                 onPressed: () {
-                  // แปลงวันที่จาก DD/MM/YYYY ให้เป็น YYYY-MM-DD ก่อนส่งไปอัปเดต
-                  _userAgeController.text =
-                      formatDate1(_userAgeController.text);
-                  updateUserProfile(); // เรียกใช้ฟังก์ชัน updateUserProfile เมื่อกดปุ่ม
+                  if (isDateValid(_userAgeController.text)) {
+                    // แปลงวันที่จาก DD/MM/YYYY ให้เป็น YYYY-MM-DD ก่อนส่งไปอัปเดต
+                    _userAgeController.text =
+                        formatDate1(_userAgeController.text);
+                    updateUserProfile(); // เรียกใช้ฟังก์ชัน updateUserProfile เมื่อกดปุ่ม
+                  } else {
+                    // แสดงข้อความแจ้งเตือนหากวันที่เกินจากปัจจุบัน
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          title: Text("วันที่ไม่ถูกต้อง"),
+                          content:
+                              Text("วัน/เดือน/ปีเกิดต้องไม่เกินวันที่ปัจจุบัน"),
+                          actions: <Widget>[
+                            TextButton(
+                              child: Text("ตกลง"),
+                              onPressed: () {
+                                Navigator.of(context).pop(); // ปิด dialog
+                              },
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  }
                 },
                 child: Text('อัปเดตข้อมูล'), // ข้อความในปุ่ม
               ),
