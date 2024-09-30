@@ -253,6 +253,7 @@ class _HomepageState extends State<Homepage> {
       context,
       MaterialPageRoute(
         builder: (context) => ProfilePage(
+          activity: activities,
           jwt: widget.jwt, // ส่งค่า JWT ไปยังหน้า ProfilePage
         ),
       ),
