@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart'; // ใช้สำหรับจัดการวันที่
 import 'package:wegosport/Activity.dart';
 
 class Myactivity extends StatefulWidget {
@@ -83,6 +84,15 @@ class _MyactivityState extends State<Myactivity> {
     }
   }
 
+  // ฟังก์ชันสำหรับการแปลงวันที่เป็นรูปแบบไทย
+  String formatThaiDate(String dateString) {
+    DateTime date = DateTime.parse(dateString);
+    String formattedTime = DateFormat('HH:mm น.', 'th_TH').format(date);
+    String formattedDate = DateFormat('d MMMM ', 'th_TH').format(date);
+    int buddhistYear = date.year + 543;
+    return '$formattedTime $formattedDate $buddhistYear';
+  }
+
   // ฟังก์ชันสร้างรายการกิจกรรมที่ผู้ใช้เข้าร่วม
   Widget _buildActivityList() {
     if (userActivities.isEmpty) {
@@ -92,26 +102,69 @@ class _MyactivityState extends State<Myactivity> {
       itemCount: userActivities.length,
       itemBuilder: (context, index) {
         final activity = userActivities[index];
-        
-        return ListTile(
-          title: Text(activity['activity_name']),
-          subtitle: Text('วันที่: ${activity['activity_date']}'),
 
-          onTap: () {
-            // เมื่อกดเข้ากิจกรรม
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => ActivityPage(
-                  activity: activity,
-                  jwt: widget.jwt,
-                  userId: userData?[
-                      'user_id'], // ส่ง userId ที่เป็น String ไปแทน Map ทั้งหมด
-                ),
+        // แปลงวันที่เป็นรูปแบบที่ต้องการ
+        String formattedDate = formatThaiDate(activity['activity_date']);
+
+        // ดึงรูปภาพสถานที่จาก activity
+        String? locationPhoto = activity['location_photo'];
+
+        return Container(
+          margin: EdgeInsets.symmetric(
+              vertical: 8.0), // ระยะห่างระหว่างการ์ดแต่ละใบ
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12.0), // มุมโค้งมน
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.5),
+                spreadRadius: 3,
+                blurRadius: 5,
+                offset: Offset(0, 3), // การเลื่อนของเงา
               ),
-            );
-          },
-
+            ],
+            border: Border.all(
+              color: Colors.grey, // สีของกรอบ
+              width: 1.0,
+            ),
+          ),
+          child: ListTile(
+            leading: ClipRRect(
+              borderRadius: BorderRadius.circular(8.0),
+              child: locationPhoto != null && locationPhoto.isNotEmpty
+                  ? Image.network(
+                      locationPhoto,
+                      width: 60,
+                      height: 60,
+                      fit: BoxFit.cover,
+                    )
+                  : Image.asset(
+                      'images/default_location.png', // รูปภาพ default หากไม่มีรูป
+                      width: 60,
+                      height: 60,
+                      fit: BoxFit.cover,
+                    ),
+            ),
+            title: Text(
+              activity['activity_name'],
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            subtitle: Text('วันที่: $formattedDate'),
+            onTap: () {
+              // เมื่อกดเข้ากิจกรรม
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ActivityPage(
+                    activity: activity,
+                    jwt: widget.jwt,
+                    userId: userData?['user_id'] ??
+                        '', // ส่ง userId ที่เป็น String ไปแทน Map ทั้งหมด
+                  ),
+                ),
+              );
+            },
+          ),
         );
       },
     );
@@ -129,33 +182,7 @@ class _MyactivityState extends State<Myactivity> {
       ),
     );
   }
+
 }
 
-class ActivityDetailPage extends StatelessWidget {
-  final dynamic activity;
 
-  const ActivityDetailPage({super.key, required this.activity});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(activity['activity_name']),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('ชื่อกิจกรรม: ${activity['activity_name']}'),
-            SizedBox(height: 8),
-            Text('วันที่จัด: ${activity['activity_date']}'),
-            SizedBox(height: 8),
-            Text('รายละเอียด: ${activity['activity_detail']}'),
-            // เพิ่มข้อมูลอื่น ๆ ของกิจกรรมที่ต้องการแสดง
-          ],
-        ),
-      ),
-    );
-  }
-}
