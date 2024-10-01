@@ -571,7 +571,7 @@ class ActivityCardItem extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Container(
-                    padding: EdgeInsets.symmetric(horizontal: 110, vertical: 1),
+                    padding: EdgeInsets.symmetric(horizontal: 108, vertical: 1),
                     decoration: BoxDecoration(
                       color: statusColor,
                       borderRadius: BorderRadius.circular(20),
