@@ -522,7 +522,7 @@ class _LoginPageState extends State<LoginPage> {
                     buttonforget(), // ปุ่มลืมรหัสผ่าน
                     SizedBox(height: 10),
                     Text(
-                      'เวอร์ชั่น 1.0.0', // ข้อความเวอร์ชั่น
+                      'เวอร์ชั่น 1.1.0', // ข้อความเวอร์ชั่น
                       style: TextStyle(
                         fontSize: 14, // กำหนดขนาดตัวอักษร
                         color: Colors.grey, // กำหนดสีข้อความ
