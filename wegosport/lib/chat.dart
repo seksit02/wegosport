@@ -246,44 +246,48 @@ class _ChatPageState extends State<ChatPage> {
                               radius: 20,
                             ),
                           ),
-                        Column(
-                          crossAxisAlignment: isLoggedInUser
-                              ? CrossAxisAlignment
-                                  .end // จัดข้อความไปทางขวาถ้าเป็นผู้ใช้ปัจจุบัน
-                              : CrossAxisAlignment
-                                  .start, // จัดข้อความไปทางซ้ายถ้าไม่ใช่ผู้ใช้ปัจจุบัน
-                          children: [
-                            if (!isLoggedInUser)
-                              Text(
-                                senderName, // แสดงชื่อของผู้ส่ง
-                                style: TextStyle(fontWeight: FontWeight.bold),
+                        Flexible(
+                          child: Column(
+                            crossAxisAlignment: isLoggedInUser
+                                ? CrossAxisAlignment
+                                    .end // จัดข้อความไปทางขวาถ้าเป็นผู้ใช้ปัจจุบัน
+                                : CrossAxisAlignment
+                                    .start, // จัดข้อความไปทางซ้ายถ้าไม่ใช่ผู้ใช้ปัจจุบัน
+                            children: [
+                              if (!isLoggedInUser)
+                                Text(
+                                  senderName, // แสดงชื่อของผู้ส่ง
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                              Container(
+                                margin: EdgeInsets.symmetric(vertical: 4.0),
+                                padding: EdgeInsets.all(12.0),
+                                decoration: BoxDecoration(
+                                  color: isLoggedInUser
+                                      ? Colors.lightGreen[
+                                          100] // สีสำหรับข้อความที่ส่ง
+                                      : Colors
+                                          .grey[300], // สีสำหรับข้อความที่รับ
+                                  borderRadius:
+                                      BorderRadius.circular(15.0), // มุมโค้งมน
+                                ),
+                                child: Text(
+                                  message, // ข้อความ
+                                  style: TextStyle(fontSize: 16.0),
+                                  softWrap: true, // ทำให้ข้อความยาวๆย่อได้
+                                ),
                               ),
-                            Container(
-                              margin: EdgeInsets.symmetric(vertical: 4.0),
-                              padding: EdgeInsets.all(12.0),
-                              decoration: BoxDecoration(
-                                color: isLoggedInUser
-                                    ? Colors.lightGreen[
-                                        100] // สีสำหรับข้อความที่ส่ง
-                                    : Colors.grey[300], // สีสำหรับข้อความที่รับ
-                                borderRadius:
-                                    BorderRadius.circular(15.0), // มุมโค้งมน
+                              // แสดงเวลา
+                              Padding(
+                                padding: const EdgeInsets.only(top: 4.0),
+                                child: Text(
+                                  formattedTime, // เวลาของข้อความ
+                                  style: TextStyle(
+                                      fontSize: 12.0, color: Colors.grey),
+                                ),
                               ),
-                              child: Text(
-                                message, // ข้อความ
-                                style: TextStyle(fontSize: 16.0),
-                              ),
-                            ),
-                            // แสดงเวลา
-                            Padding(
-                              padding: const EdgeInsets.only(top: 4.0),
-                              child: Text(
-                                formattedTime, // เวลาของข้อความ
-                                style: TextStyle(
-                                    fontSize: 12.0, color: Colors.grey),
-                              ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                         if (isLoggedInUser) // แสดงรูปของผู้ใช้ที่ล็อกอินอยู่
                           Padding(
