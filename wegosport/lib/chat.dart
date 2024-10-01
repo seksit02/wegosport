@@ -89,7 +89,7 @@ class _ChatPageState extends State<ChatPage> {
       // ถ้ามี ScrollController อยู่
       _scrollController.animateTo(
         _scrollController.position.maxScrollExtent, // เลื่อนไปที่ข้อความสุดท้าย
-        duration: Duration(milliseconds: 500), // ตั้งเวลาในการเลื่อน
+        duration: Duration(milliseconds: 1), // ตั้งเวลาในการเลื่อน
         curve: Curves.easeOut, // ใช้ curve แบบ easeOut ในการเลื่อน
       );
     }
@@ -242,7 +242,7 @@ class _ChatPageState extends State<ChatPage> {
                             padding: const EdgeInsets.only(right: 8.0),
                             child: CircleAvatar(
                               backgroundImage: NetworkImage(
-                                  'http://10.0.2.2/flutter_webservice/upload/$senderPhoto'), // รูปของผู้ส่ง
+                                  'http://10.0.2.2/flutter_webservice/upload/$senderPhoto'), // รูปของผู้รับ
                               radius: 20,
                             ),
                           ),
