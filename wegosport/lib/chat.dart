@@ -220,8 +220,8 @@ class _ChatPageState extends State<ChatPage> {
                   String formattedTime;
 
                   if (messageTime != null) {
-                    DateTime dateTime =
-                        DateTime.parse(messageTime); // แปลงเวลาเป็น DateTime
+                    DateTime dateTime = DateTime.parse(messageTime)
+                        .toLocal(); // แปลงเวลาเป็นเวลาท้องถิ่น
 
                     // แยกการแสดงผลวันที่และเวลาตามที่ต้องการ
                     formattedDate = DateFormat('d MMMM yyyy', 'th')
