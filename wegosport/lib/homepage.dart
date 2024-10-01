@@ -708,7 +708,7 @@ class ActivityCardItem extends StatelessWidget {
               SizedBox(height: 8),
               // ข้อความเข้าร่วม
               Text(
-                '${activity['members'] != null ? activity['members'].length : 0}/${activity['members'] != null ? activity['members'].length : 0} จะไปแน่นอน',
+                'รายละเอียดเพิ่มเติม',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   color: textColor,
@@ -725,18 +725,35 @@ class ActivityCardItem extends StatelessWidget {
               SizedBox(height: 8),
               // รูปภาพสถานที่
               activity['location_photo'] != null
-                  ? Image.network(
-                      activity['location_photo'],
-                      height: 200,
-                      errorBuilder: (BuildContext context, Object exception,
-                          StackTrace? stackTrace) {
-                        return Container(
+                  ? ClipRRect(
+                      borderRadius:
+                          BorderRadius.circular(20.0), // กำหนดความโค้งขอบ
+                      child: Container(
+                        decoration: BoxDecoration(
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withOpacity(0.5), // สีเงา
+                              spreadRadius: 5, // ขนาดเงา
+                              blurRadius: 7, // ความเบลอของเงา
+                              offset: Offset(0, 3), // ตำแหน่งเงา
+                            ),
+                          ],
+                        ),
+                        child: Image.network(
+                          activity['location_photo'],
                           height: 200,
-                          child: Center(
-                            child: Text('เกิดข้อผิดพลาดในการโหลดรูปภาพ'),
-                          ),
-                        );
-                      },
+                          fit: BoxFit.cover,
+                          errorBuilder: (BuildContext context, Object exception,
+                              StackTrace? stackTrace) {
+                            return Container(
+                              height: 200,
+                              child: Center(
+                                child: Text('เกิดข้อผิดพลาดในการโหลดรูปภาพ'),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
                     )
                   : SizedBox(
                       height: 200,
