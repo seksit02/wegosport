@@ -4,47 +4,45 @@ include 'config.php';
 $message = '';
 $error = '';
 
-// Function to generate the next type_id
-function getNextTypeId($conn) {
-    $sql = "SELECT type_id FROM sport_type ORDER BY type_id DESC LIMIT 1";
+// ฟังก์ชันสำหรับสร้าง `hashtag_id` อัตโนมัติ
+function getNextHashtagId($conn) {
+    $sql = "SELECT hashtag_id FROM hashtag ORDER BY hashtag_id DESC LIMIT 1";
     $result = $conn->query($sql);
     $lastId = $result->fetch_assoc();
     if ($lastId) {
-        $num = (int)substr($lastId['type_id'], 1) + 1;
-        return 't' . str_pad($num, 3, '0', STR_PAD_LEFT);
+        $num = (int)substr($lastId['hashtag_id'], 1) + 1;
+        return 'H' . str_pad($num, 3, '0', STR_PAD_LEFT);
     } else {
-        return 't001';
+        return 'H001';
     }
 }
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $type_id = $_POST["type_id"] ?? '';
-    $type_name = $_POST["type_name"] ?? '';
+    $hashtag_id = $_POST["hashtag_id"] ?? '';
+    $hashtag_message = $_POST["hashtag_message"] ?? '';
 
-    if (!empty($type_id)) {
-        // Update existing record
-        $sql = "UPDATE sport_type SET type_name='$type_name' WHERE type_id='$type_id'";
+    if (!empty($hashtag_id)) {
+        // อัปเดตข้อมูลที่มีอยู่
+        $sql = "UPDATE hashtag SET hashtag_message='$hashtag_message' WHERE hashtag_id='$hashtag_id'";
         if ($conn->query($sql) === TRUE) {
             $message = "แก้ไขข้อมูลสำเร็จ";
         } else {
             $error = "Error: " . $sql . "<br>" . $conn->error;
         }
     } else {
-        // Check for duplicate type_name
-        $sql = "SELECT * FROM sport_type WHERE type_name='$type_name'";
+        // ตรวจสอบว่ามีข้อความแฮชแท็กซ้ำหรือไม่
+        $sql = "SELECT * FROM hashtag WHERE hashtag_message='$hashtag_message'";
         $result = $conn->query($sql);
         if ($result->num_rows > 0) {
             $error = "ข้อมูลซ้ำกรุณากรอกใหม่";
         } else {
-            // Generate new type_id
-            $type_id = getNextTypeId($conn);
+            // สร้าง `hashtag_id` ใหม่
+            $hashtag_id = getNextHashtagId($conn);
 
-            // Insert new record
-            $sql = "INSERT INTO sport_type (type_id, type_name, status) VALUES ('$type_id', '$type_name', 'active')";
+            // เพิ่มข้อมูลใหม่
+            $sql = "INSERT INTO hashtag (hashtag_id, hashtag_message) VALUES ('$hashtag_id', '$hashtag_message')";
             if ($conn->query($sql) === TRUE) {
                 $message = "เพิ่มข้อมูลสำเร็จ";
-                header("Location: " . $_SERVER['PHP_SELF']);
-                exit();
             } else {
                 $error = "Error: " . $sql . "<br>" . $conn->error;
             }
@@ -53,53 +51,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 }
 
 if (isset($_GET['delete'])) {
-    $type_id = $_GET['delete'];
+    $hashtag_id = $_GET['delete'];
 
-    // Check if the type_id is being referenced in the sport_in_type table
-    $sql_check = "SELECT * FROM sport_in_type WHERE type_id='$type_id'";
-    $result_check = $conn->query($sql_check);
-    
-    if ($result_check->num_rows > 0) {
-        $error = "ไม่สามารถลบข้อมูลได้ เนื่องจากมีความสัมพันธ์กับข้อมูลในตารางอื่น";
-    } else {
-        // If no references, proceed to delete from sport_type_in_location and sport_type tables
-        $sql_related = "DELETE FROM sport_type_in_location WHERE type_id='$type_id'";
-        $conn->query($sql_related);
-
-        $sql = "DELETE FROM sport_type WHERE type_id='$type_id'";
-        if ($conn->query($sql) === TRUE) {
-            $message = "ลบข้อมูลสำเร็จ";
-            header("Location: " . $_SERVER['PHP_SELF']);
-            exit();
-        } else {
-            $error = "Error: " . $sql . "<br>" . $conn->error;
-        }
-    }
-}
-
-
-// Handle suspend and reactivate requests
-if (isset($_GET['suspend'])) {
-    $type_id = $_GET['suspend'];
-    $sql = "UPDATE sport_type SET status='inactive' WHERE type_id='$type_id'";
+    // ลบข้อมูลแฮชแท็ก
+    $sql = "DELETE FROM hashtag WHERE hashtag_id='$hashtag_id'";
     if ($conn->query($sql) === TRUE) {
-        $message = "ระงับข้อมูลสำเร็จ";
+        $message = "ลบข้อมูลสำเร็จ";
     } else {
         $error = "Error: " . $sql . "<br>" . $conn->error;
     }
 }
-
-if (isset($_GET['reactivate'])) {
-    $type_id = $_GET['reactivate'];
-    $sql = "UPDATE sport_type SET status='active' WHERE type_id='$type_id'";
-    if ($conn->query($sql) === TRUE) {
-        $message = "เปิดใช้งานข้อมูลสำเร็จ";
-    } else {
-        $error = "Error: " . $sql . "<br>" . $conn->error;
-    }
-}
-
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -321,7 +284,7 @@ if (isset($_GET['reactivate'])) {
     <?php if ($message) { echo "<div class='message'>".htmlspecialchars($message)."</div>"; } ?>
     <?php if ($error) { echo "<div class='error'>".htmlspecialchars($error)."</div>"; } ?>
 
-    <form method="POST" action="sport_type.php">
+    <form method="POST" action="sport_type.php" onsubmit="return confirmSave()">
         <input type="hidden" id="type_id" name="type_id">
         <div class="form-group">
             <label for="type_name">ชื่อประเภทกีฬา:</label>
@@ -333,7 +296,7 @@ if (isset($_GET['reactivate'])) {
     <h2>รายการ</h2>
 
     <?php
-    $sql = "SELECT type_id, type_name, status FROM sport_type";
+    $sql = "SELECT type_id, type_name FROM sport_type";
     $result = $conn->query($sql);
 
     if ($result->num_rows > 0) {
@@ -345,15 +308,9 @@ if (isset($_GET['reactivate'])) {
                 <td>".htmlspecialchars($row["type_name"])."</td>
                 <td>
                     <button class='btn btn-edit' onclick='editType(\"".htmlspecialchars($row["type_id"])."\", \"".htmlspecialchars($row["type_name"])."\")'>แก้ไข</button>
-                    <a class='btn btn-delete' href='sport_type.php?delete=".htmlspecialchars($row["type_id"])."'>ลบ</a>";
-
-            if ($row["status"] == "active") {
-                echo "<a class='btn btn-suspend' href='sport_type.php?suspend=".htmlspecialchars($row["type_id"])."'>ระงับ</a>";
-            } else {
-                echo "<a class='btn btn-reactivate' href='sport_type.php?reactivate=".htmlspecialchars($row["type_id"])."'>เปิดใช้งาน</a>";
-            }
-
-            echo "</td></tr>";
+                    <a class='btn btn-delete' href='sport_type.php?delete=".htmlspecialchars($row["type_id"])."' onclick='return confirmDelete()'>ลบ</a>
+                </td>
+            </tr>";
             $counter++; // เพิ่มลำดับในแต่ละแถว
         }
         echo "</table>";
@@ -365,10 +322,25 @@ if (isset($_GET['reactivate'])) {
     ?>
 
     <script>
-    function editType(type_id, type_name) {
-        document.getElementById('type_id').value = type_id;
-        document.getElementById('type_name').value = type_name;
+    
+    // ฟังก์ชันยืนยันก่อนบันทึกข้อมูล
+    function confirmSave() {
+        return confirm("คุณแน่ใจว่าต้องการบันทึกข้อมูลนี้หรือไม่?");
     }
+
+    // ฟังก์ชันสำหรับการแก้ไขข้อมูล พร้อมยืนยันการแก้ไข
+    function editType(type_id, type_name) {
+        if (confirm("คุณแน่ใจว่าต้องการแก้ไขข้อมูลนี้หรือไม่?")) {
+            document.getElementById('type_id').value = type_id;
+            document.getElementById('type_name').value = type_name;
+        }
+    }
+
+    // ฟังก์ชันยืนยันก่อนการลบข้อมูล
+    function confirmDelete() {
+        return confirm("คุณแน่ใจว่าต้องการลบข้อมูลนี้หรือไม่?");
+    }
+
     </script>
 
 </div>

@@ -45,8 +45,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $sql = "INSERT INTO user_information (user_id, user_name, user_age, user_text) VALUES ('$user_id', '$user_name', '$user_age', '$user_text')";
             if ($conn->query($sql) === TRUE) {
                 $message = "เพิ่มข้อมูลสำเร็จ";
-                header("Location: " . $_SERVER['PHP_SELF']);
-                exit();
             } else {
                 $error = "Error: " . $sql . "<br>" . $conn->error;
             }
@@ -59,13 +57,12 @@ if (isset($_GET['delete'])) {
     $sql = "DELETE FROM user_information WHERE user_id='$user_id'";
     if ($conn->query($sql) === TRUE) {
         $message = "ลบข้อมูลสำเร็จ";
-        header("Location: " . $_SERVER['PHP_SELF']);
-        exit();
     } else {
         $error = "Error: " . $sql . "<br>" . $conn->error;
     }
 }
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -82,17 +79,17 @@ if (isset($_GET['delete'])) {
             background: #f4f7f6;
         }
         .sidebar {
-    position: fixed; /* ล็อคแถบด้านข้าง */
-    top: 0;
-    left: 0;
-    height: 100%; /* ทำให้แถบด้านข้างสูงเต็มหน้าจอ */
-    width: 250px;
-    background: #2c3e50;
-    color: white;
-    padding: 20px;
-    box-shadow: 2px 0 5px rgba(0,0,0,0.1);
-    overflow-y: auto; /* ถ้ามีเนื้อหาในแถบด้านข้างมาก จะสามารถเลื่อนลงได้ */
-}
+            position: fixed; /* ล็อคแถบด้านข้าง */
+            top: 0;
+            left: 0;
+            height: 100%; /* ทำให้แถบด้านข้างสูงเต็มหน้าจอ */
+            width: 250px;
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            overflow-y: auto; /* ถ้ามีเนื้อหาในแถบด้านข้างมาก จะสามารถเลื่อนลงได้ */
+        }
         .sidebar h2 {
             text-align: center;
             margin-bottom: 20px;
@@ -224,19 +221,19 @@ if (isset($_GET['delete'])) {
             justify-content: center;
         }
         .sidebar a.btn-logout {
-    background: #e74c3c; /* สีแดง */
-    color: white; 
-    padding: 15px 20px;
-    text-decoration: none;
-    display: block;
-    border-radius: 5px;
-    margin-bottom: 10px;
-    text-align: center;
-}
+            background: #e74c3c; /* สีแดง */
+            color: white; 
+            padding: 15px 20px;
+            text-decoration: none;
+            display: block;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
 
-.sidebar a.btn-logout:hover {
-    background: #c0392b; /* สีแดงเข้มขึ้นเมื่อเมาส์อยู่เหนือ */
-}
+        .sidebar a.btn-logout:hover {
+            background: #c0392b; /* สีแดงเข้มขึ้นเมื่อเมาส์อยู่เหนือ */
+        }
     </style>
 </head>
 <body>
@@ -280,7 +277,7 @@ if (isset($_GET['delete'])) {
     <?php if ($message) { echo "<div class='message'>$message</div>"; } ?>
     <?php if ($error) { echo "<div class='error'>$error</div>"; } ?>
 
-    <form method="POST" action="profile.php">
+    <form method="POST" action="profile.php" onsubmit="return confirmSave()">
         <input type="hidden" id="user_id" name="user_id">
         <div class="form-group">
             <label for="user_name">ชื่อ - สกุล:</label>
@@ -308,13 +305,13 @@ if (isset($_GET['delete'])) {
         echo "<table><tr><th>ลำดับ</th><th>ชื่อ</th><th>วัน/เดือน/ปีเกิด</th><th>คำอธิบาย</th><th>การดำเนินการ</th></tr>";
         while($row = $result->fetch_assoc()) {
             echo "<tr>
-                    <td>".$counter."</td> <!-- แสดงลำดับ -->
+                    <td>".$counter."</td>
                     <td>".htmlspecialchars($row["user_name"])."</td>
                     <td>".htmlspecialchars($row["user_age"])."</td>
                     <td>".htmlspecialchars($row["user_text"])."</td>
                     <td>
                         <button class='btn btn-edit' onclick='edituser_information(\"".htmlspecialchars($row["user_id"])."\", \"".htmlspecialchars($row["user_name"])."\", \"".htmlspecialchars($row["user_age"])."\", \"".htmlspecialchars($row["user_text"])."\")'>แก้ไข</button>
-                        <a class='btn btn-delete' href='profile.php?delete=".htmlspecialchars($row["user_id"])."'>ลบ</a>
+                        <a class='btn btn-delete' href='javascript:void(0);' onclick='confirmDelete(\"".htmlspecialchars($row["user_id"])."\")'>ลบ</a>
                     </td>
                 </tr>";
             $counter++; // เพิ่มลำดับในแต่ละแถว
@@ -328,11 +325,23 @@ if (isset($_GET['delete'])) {
     ?>
 
     <script>
+    function confirmSave() {
+        return confirm("คุณแน่ใจว่าต้องการบันทึกข้อมูลนี้หรือไม่?");
+    }
+
+    function confirmDelete(user_id) {
+        if (confirm("คุณแน่ใจว่าต้องการลบข้อมูลนี้หรือไม่?")) {
+            window.location.href = 'profile.php?delete=' + user_id;
+        }
+    }
+
     function edituser_information(user_id, user_name, user_age, user_text) {
-        document.getElementById('user_id').value = user_id;
-        document.getElementById('user_name').value = user_name;
-        document.getElementById('user_age').value = user_age;
-        document.getElementById('user_text').value = user_text;
+        if (confirm("คุณแน่ใจว่าต้องการแก้ไขข้อมูลนี้หรือไม่?")) {
+            document.getElementById('user_id').value = user_id;
+            document.getElementById('user_name').value = user_name;
+            document.getElementById('user_age').value = user_age;
+            document.getElementById('user_text').value = user_text;
+        }
     }
 
     document.addEventListener('DOMContentLoaded', function() {

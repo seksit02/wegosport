@@ -43,8 +43,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $sql = "INSERT INTO hashtag (hashtag_id, hashtag_message) VALUES ('$hashtag_id', '$hashtag_message')";
             if ($conn->query($sql) === TRUE) {
                 $message = "เพิ่มข้อมูลสำเร็จ";
-                header("Location: " . $_SERVER['PHP_SELF']);
-                exit();
             } else {
                 $error = "Error: " . $sql . "<br>" . $conn->error;
             }
@@ -62,8 +60,6 @@ if (isset($_GET['delete'])) {
         $sql = "DELETE FROM hashtag WHERE hashtag_id='$hashtag_id'";
         if ($conn->query($sql) === TRUE) {
             $message = "ลบข้อมูลสำเร็จ";
-            header("Location: " . $_SERVER['PHP_SELF']);
-            exit();
         } else {
             $error = "Error: " . $sql . "<br>" . $conn->error;
         }
@@ -89,17 +85,17 @@ if (isset($_GET['delete'])) {
             background: #f4f7f6;
         }
         .sidebar {
-    position: fixed; /* ล็อคแถบด้านข้าง */
-    top: 0;
-    left: 0;
-    height: 100%; /* ทำให้แถบด้านข้างสูงเต็มหน้าจอ */
-    width: 250px;
-    background: #2c3e50;
-    color: white;
-    padding: 20px;
-    box-shadow: 2px 0 5px rgba(0,0,0,0.1);
-    overflow-y: auto; /* ถ้ามีเนื้อหาในแถบด้านข้างมาก จะสามารถเลื่อนลงได้ */
-}
+            position: fixed; /* ล็อคแถบด้านข้าง */
+            top: 0;
+            left: 0;
+            height: 100%; /* ทำให้แถบด้านข้างสูงเต็มหน้าจอ */
+            width: 250px;
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            overflow-y: auto; /* ถ้ามีเนื้อหาในแถบด้านข้างมาก จะสามารถเลื่อนลงได้ */
+        }
         .sidebar h2 {
             text-align: center;
             margin-bottom: 20px;
@@ -231,19 +227,19 @@ if (isset($_GET['delete'])) {
             justify-content: center;
         }
         .sidebar a.btn-logout {
-    background: #e74c3c; /* สีแดง */
-    color: white; 
-    padding: 15px 20px;
-    text-decoration: none;
-    display: block;
-    border-radius: 5px;
-    margin-bottom: 10px;
-    text-align: center;
-}
+            background: #e74c3c; /* สีแดง */
+            color: white; 
+            padding: 15px 20px;
+            text-decoration: none;
+            display: block;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
 
-.sidebar a.btn-logout:hover {
-    background: #c0392b; /* สีแดงเข้มขึ้นเมื่อเมาส์อยู่เหนือ */
-}
+        .sidebar a.btn-logout:hover {
+            background: #c0392b; /* สีแดงเข้มขึ้นเมื่อเมาส์อยู่เหนือ */
+        }
     </style>
 </head>
 <body>
@@ -288,14 +284,14 @@ if (isset($_GET['delete'])) {
     <?php if ($message) { echo "<div class='message'>$message</div>"; } ?>
     <?php if ($error) { echo "<div class='error'>$error</div>"; } ?>
 
-    <form method="POST" action="hashtag.php">
-    <input type="hidden" id="hashtag_id" name="hashtag_id">
-    <div class="form-group">
-        <label for="hashtag_message">ข้อความแฮชเเท็ก:</label>
-        <input type="text" id="hashtag_message" name="hashtag_message" required>
-    </div>
-    <button type="submit" class="btn-submit">บันทึก</button>
-</form>
+    <form method="POST" action="hashtag.php" enctype="multipart/form-data" onsubmit="return confirmSave()">
+        <input type="hidden" id="hashtag_id" name="hashtag_id">
+        <div class="form-group">
+            <label for="hashtag_message">ข้อความแฮชเเท็ก:</label>
+            <input type="text" id="hashtag_message" name="hashtag_message" required>
+        </div>
+        <button type="submit" class="btn-submit">บันทึก</button>
+    </form>
 
 
     <h2>รายการ</h2>
@@ -313,7 +309,8 @@ if (isset($_GET['delete'])) {
                 <td>".htmlspecialchars($row["hashtag_message"])."</td>
                 <td>
                     <button class='btn btn-edit' onclick='editHashtag(\"".htmlspecialchars($row["hashtag_id"])."\", \"".htmlspecialchars($row["hashtag_message"])."\")'>แก้ไข</button>
-                    <a class='btn btn-delete' href='hashtag.php?delete=".htmlspecialchars($row["hashtag_id"])."'>ลบ</a>
+                    <a class='btn btn-delete' href='javascript:void(0);' onclick='confirmDelete(\"".htmlspecialchars($row["hashtag_id"])."\")'>ลบ</a>
+
                 </td></tr>";
             $counter++; // เพิ่มลำดับในแต่ละแถว
         }
@@ -326,24 +323,31 @@ if (isset($_GET['delete'])) {
     ?>
 
     <script>
-    function editHashtag(hashtag_id, hashtag_message) {
-        document.getElementById('hashtag_id').value = hashtag_id;
-        document.getElementById('hashtag_message').value = hashtag_message;
-    }
-    // This function is called when editing an existing hashtag
-function editHashtag(hashtag_id, hashtag_message) {
-    document.getElementById('hashtag_id').value = hashtag_id;
-    document.getElementById('hashtag_message').value = hashtag_message;
-}
+        // ฟังก์ชันการยืนยันการกระทำ
+        function confirmSave() {
+            return confirm("คุณแน่ใจว่าต้องการบันทึกข้อมูลนี้หรือไม่?");
+        }
 
-// This function pre-fills the hashtag message input with "#" if it's empty
-window.onload = function() {
-    const hashtagInput = document.getElementById('hashtag_message');
-    if (!hashtagInput.value || hashtagInput.value.trim() === '') {
-        hashtagInput.value = '#';
-    }
-};
+        function editHashtag(hashtag_id, hashtag_message) {
+            if (confirm("คุณแน่ใจว่าต้องการแก้ไขข้อมูลนี้หรือไม่?")) {
+                document.getElementById('hashtag_id').value = hashtag_id;
+                document.getElementById('hashtag_message').value = hashtag_message;
+            }
+        }
 
+        function confirmDelete(hashtag_id) {
+            if (confirm("คุณแน่ใจว่าต้องการลบแฮชแท็กนี้หรือไม่?")) {
+                window.location.href = 'hashtag.php?delete=' + hashtag_id;
+            }
+        }
+
+        // Pre-fill "#" if input is empty
+        window.onload = function() {
+            const hashtagInput = document.getElementById('hashtag_message');
+            if (!hashtagInput.value || hashtagInput.value.trim() === '') {
+                hashtagInput.value = '#';
+            }
+        };
     </script>
 
 </div>

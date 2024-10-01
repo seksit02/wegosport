@@ -17,32 +17,6 @@ function getNextSportId($conn) {
     }
 }
 
-// Handle suspend request
-if (isset($_GET['suspend'])) {
-    $sport_id = $_GET['suspend'];
-    $sql = "UPDATE sport SET status='inactive' WHERE sport_id='$sport_id'";
-    if ($conn->query($sql) === TRUE) {
-        $message = "ระงับข้อมูลสำเร็จ";
-        header("Location: " . $_SERVER['PHP_SELF']);
-        exit();
-    } else {
-        $error = "Error: " . $sql . "<br>" . $conn->error;
-    }
-}
-
-// Handle reactivate request
-if (isset($_GET['reactivate'])) {
-    $sport_id = $_GET['reactivate'];
-    $sql = "UPDATE sport SET status='active' WHERE sport_id='$sport_id'";
-    if ($conn->query($sql) === TRUE) {
-        $message = "เปิดใช้งานข้อมูลสำเร็จ";
-        header("Location: " . $_SERVER['PHP_SELF']);
-        exit();
-    } else {
-        $error = "Error: " . $sql . "<br>" . $conn->error;
-    }
-}
-
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $sport_id = $_POST["sport_id"] ?? '';
     $sport_name = $_POST["sport_name"] ?? '';
@@ -66,11 +40,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $sport_id = getNextSportId($conn);
 
             // Insert new record
-            $sql = "INSERT INTO sport (sport_id, sport_name, status) VALUES ('$sport_id', '$sport_name', 'active')";
+            $sql = "INSERT INTO sport (sport_id, sport_name) VALUES ('$sport_id', '$sport_name')";
             if ($conn->query($sql) === TRUE) {
                 $message = "เพิ่มข้อมูลสำเร็จ";
-                header("Location: " . $_SERVER['PHP_SELF']);
-                exit();
             } else {
                 $error = "Error: " . $sql . "<br>" . $conn->error;
             }
@@ -92,8 +64,6 @@ if (isset($_GET['delete'])) {
         $sql = "DELETE FROM sport WHERE sport_id='$sport_id'";
         if ($conn->query($sql) === TRUE) {
             $message = "ลบข้อมูลสำเร็จ";
-            header("Location: " . $_SERVER['PHP_SELF']);
-            exit();
         } else {
             $error = "Error: " . $sql . "<br>" . $conn->error;
         }
@@ -288,7 +258,7 @@ if (isset($_GET['delete'])) {
     <?php if ($message) { echo "<div class='message'>$message</div>"; } ?>
     <?php if ($error) { echo "<div class='error'>$error</div>"; } ?>
 
-    <form method="POST" action="sport.php">
+    <form method="POST" action="sport.php" onsubmit="return confirmSave()">
         <input type="hidden" id="sport_id" name="sport_id">
         <div class="form-group">
             <label for="sport_name">ชื่อกีฬา:</label>
@@ -300,7 +270,7 @@ if (isset($_GET['delete'])) {
     <h2>รายการ</h2>
 
     <?php
-    $sql = "SELECT sport_id, sport_name, status FROM sport";
+    $sql = "SELECT sport_id, sport_name FROM sport";
     $result = $conn->query($sql);
 
     if ($result->num_rows > 0) {
@@ -312,14 +282,10 @@ if (isset($_GET['delete'])) {
                 <td>".$row["sport_name"]."</td>
                 <td>
                     <button class='btn btn-edit' onclick='confirmEdit(\"".$row["sport_id"]."\", \"".$row["sport_name"]."\")'>แก้ไข</button>
-                    <form method='get' action='sport.php' style='display:inline;'>
+                    <form method='get' action='sport.php' style='display:inline;' onsubmit='return confirmDelete()'>
                         <input type='hidden' name='delete' value='".$row["sport_id"]."'>
-                        <button class='btn btn-delete' type='submit' onclick='return confirmDelete()'>ลบ</button>
+                        <button class='btn btn-delete' type='submit'>ลบ</button>
                     </form>";
-                    
-            if ($row['status'] != 'active') {
-                echo "<a class='btn btn-reactivate' href='sport.php?reactivate=".$row['sport_id']."'>เปิดใช้งาน</a>";
-            }
 
             echo "</td></tr>";
             $counter++; // เพิ่มลำดับในแต่ละแถว
@@ -333,6 +299,10 @@ if (isset($_GET['delete'])) {
     ?>
 
     <script>
+    function confirmSave() {
+        return confirm("คุณแน่ใจว่าต้องการบันทึกข้อมูลนี้หรือไม่?");
+    }
+
     function confirmDelete() {
         return confirm("คุณแน่ใจว่าต้องการลบข้อมูลนี้หรือไม่?");
     }
@@ -344,10 +314,7 @@ if (isset($_GET['delete'])) {
         }
     }
     </script>
-
-
-
 </div>
 
-</body>
+</body>  
 </html>

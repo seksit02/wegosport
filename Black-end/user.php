@@ -7,7 +7,7 @@ $error = '';
 // การร้องขอ (Request) นั้นเป็นแบบ POST หรือไม่
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
-    //การดึงข้อมูลจากฟอร์มที่ถูกส่งเข้ามา โดย edit_user_id ใช้เพื่อตรวจสอบว่ากำลังทำการแก้ไขข้อมูลผู้ใช้เดิมหรือเป็นการเพิ่มข้อมูลใหม่
+    // ดึงข้อมูลจากฟอร์ม
     $edit_user_id = $_POST['edit_user_id'] ?? '';
     $user_id = $_POST['user_id'];
     $user_email = $_POST['user_email'];
@@ -16,41 +16,41 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $user_age = $_POST['user_age'];
     $user_photo = $_FILES['user_photo']['name'];
 
-    // ตรวจสอบว่าอีเมลที่ผู้ใช้กรอกเข้ามาซ้ำกับอีเมลที่มีอยู่ในฐานข้อมูลหรือไม่ 
+    // ตรวจสอบว่าอีเมลซ้ำหรือไม่
     $sql = "SELECT * FROM user_information WHERE user_email='$user_email' AND user_id != '$edit_user_id'";
     $result = $conn->query($sql);
     if ($result->num_rows > 0) {
         $error = "อีเมลนี้มีการใช้งานแล้ว กรุณากรอกอีเมลใหม่";
     } else {
 
-    //กำหนดโฟลเดอร์ที่ใช้เก็บไฟล์อัปโหลด และสร้างชื่อไฟล์ที่ต้องการอัปโหลด จากนั้นทำการอัปโหลดรูปภาพไปยังโฟลเดอร์ที่กำหนด
-    $upload_dir = $_SERVER['DOCUMENT_ROOT'] . '/flutter_webservice/upload/';
-    $upload_file = $upload_dir . basename($_FILES['user_photo']['name']);
-    $filename = basename($_FILES['user_photo']['name']); // เก็บแค่ชื่อไฟล์
+        // กำหนดโฟลเดอร์เก็บไฟล์อัปโหลด
+        $upload_dir = $_SERVER['DOCUMENT_ROOT'] . '/flutter_webservice/upload/';
+        $upload_file = $upload_dir . basename($_FILES['user_photo']['name']);
+        $filename = basename($_FILES['user_photo']['name']); 
 
-    if (move_uploaded_file($_FILES['user_photo']['tmp_name'], $upload_file)) {
-        $conn->begin_transaction();
-        try {
-            if (!empty($edit_user_id)) {
-                // อัปเดตข้อมูลผู้ใช้ที่มี user_id ตรงกับ edit_user_id ในฐานข้อมูลด้วยข้อมูลใหม่จากฟอร์ม
-                $sql = "UPDATE user_information 
-                        SET user_email='$user_email', user_pass='$user_pass', user_name='$user_name', user_age='$user_age', user_photo='$filename'
-                        WHERE user_id='$edit_user_id'";
-                $conn->query($sql);
-            } else {
-                $sql = "INSERT INTO user_information (user_id, user_email, user_pass, user_name, user_age, user_photo, status)
-                        VALUES ('$user_id', '$user_email', '$user_pass', '$user_name', '$user_age', '$filename', 'active')";
-                $conn->query($sql);
+        if (move_uploaded_file($_FILES['user_photo']['tmp_name'], $upload_file)) {
+            $conn->begin_transaction();
+            try {
+                if (!empty($edit_user_id)) {
+                    // อัปเดตข้อมูล
+                    $sql = "UPDATE user_information 
+                            SET user_email='$user_email', user_pass='$user_pass', user_name='$user_name', user_age='$user_age', user_photo='$filename'
+                            WHERE user_id='$edit_user_id'";
+                    $conn->query($sql);
+                    $message = "แก้ไขข้อมูลสำเร็จ";
+                } else {
+                    // เพิ่มข้อมูลใหม่
+                    $sql = "INSERT INTO user_information (user_id, user_email, user_pass, user_name, user_age, user_photo, status)
+                            VALUES ('$user_id', '$user_email', '$user_pass', '$user_name', '$user_age', '$filename', 'active')";
+                    $conn->query($sql);
+                    $message = "เพิ่มข้อมูลสำเร็จ";
+                }
+                $conn->commit();
+            } catch (Exception $e) {
+                $conn->rollback();
+                $error = " " . $e->getMessage();
             }
-            $conn->commit();
-            $message = "เพิ่มข้อมูลสำเร็จ";
-            header("Location: " . $_SERVER['PHP_SELF']);
-            exit();
-        } catch (Exception $e) {
-            $conn->rollback();
-            $error = " " . $e->getMessage();
-        }
-    } else {
+        } else {
             $error = "เกิดข้อผิดพลาดในการอัพโหลดรูปภาพ";
         }
     }
@@ -77,8 +77,6 @@ if (isset($_GET['delete'])) {
 
         $conn->commit();
         $message = "ลบข้อมูลสำเร็จ";
-        header("Location: " . $_SERVER['PHP_SELF']);
-        exit();
     } catch (Exception $e) {
         $conn->rollback();
         $error = "Error : " . $e->getMessage();
@@ -347,7 +345,7 @@ if (isset($_GET['reactivate'])) {
     </div>
     
     <div class="menu-group">
-        <a href="user.php">ข้อมูลผู้ใช้งาน</a>
+        <a href="user.php">ข้อมูลสมาชิก</a>
         <a href="sport.php">ข้อมูลกีฬา</a>
         <a href="location.php">ข้อมูลสถานที่เล่นกีฬา</a>
         <a href="sport_type.php">ข้อมูลประเภทสนามกีฬา</a>
@@ -380,7 +378,7 @@ if (isset($_GET['reactivate'])) {
     if ($error) { echo "<div class='error'>$error</div>"; }
     ?>
 
-    <form method="POST" action="user.php"  enctype="multipart/form-data">
+    <form method="POST" action="user.php" enctype="multipart/form-data" onsubmit="return confirmSave()">
 
         <input type="hidden" id="edit_user_id" name="edit_user_id">
 
@@ -415,37 +413,63 @@ if (isset($_GET['reactivate'])) {
                 </button>
             </div>
         </div>
+
         <button type="submit" class="btn-submit">บันทึก</button>
+
     </form>
+
     <br>
+    
     <h2>รายการ</h2>
 
-    <?php
+    <?php 
     $sql = "SELECT user_id, user_email, user_name, user_age, user_photo, status FROM user_information";
     $result = $conn->query($sql);
 
     if ($result->num_rows > 0) {
         $counter = 1; // เริ่มตัวนับที่ 1
-        echo "<table><tr><th>ลำดับ</th><th>ชื่อสมาชิก</th><th>อีเมล</th><th>ชื่อ - สกุล</th><th>วันเกิด</th><th>รูปภาพ</th><th>การดำเนินการ</th></tr>";
-        while($row = $result->fetch_assoc()) { //ดึงข้อมูลแต่ละแถวจากผลลัพธ์มาเป็นอาเรย์
+        echo "<table>";
+        echo "<tr>
+                <th>ลำดับ</th>
+                <th>ชื่อสมาชิก</th>
+                <th>อีเมล</th>
+                <th>ชื่อ - สกุล</th>
+                <th>วันเกิด</th>
+                <th>รูปภาพ</th>
+                <th>การดำเนินการ</th>
+            </tr>";
+
+        while ($row = $result->fetch_assoc()) {
+            // แปลงรูปแบบวันเกิดจากฐานข้อมูลให้เป็น d/m/Y
             $formatted_date = date("d/m/Y", strtotime($row["user_age"]));
-            echo "<tr><td>".$counter."</td><td>".$row["user_id"]."</td><td>".$row["user_email"]."</td><td>".$row["user_name"]."</td><td>".$formatted_date."</td><td><img src='/flutter_webservice/upload/".$row["user_photo"]."' width='100'></td>
-            <td>
-                <button class='btn btn-edit' onclick='editUser(\"".$row["user_id"]."\")'>แก้ไข</button>
-                <a class='btn btn-delete' href='?delete=".$row['user_id']."'>ลบ</a>";
-            
-                if ($row['status'] == 'active') {
-                    echo "<a class='btn btn-suspend' href='?suspend=".$row['user_id']."'>ระงับ</a>";
-                } else {
-                    echo "<a class='btn btn-reactivate' href='?reactivate=".$row['user_id']."'>เปิดใช้งาน</a>";
-                }
-            
-            echo "</td></tr>";
+
+            // เริ่มต้นแถวใหม่ในตาราง
+            echo "<tr>";
+            echo "<td>" . $counter . "</td>"; // แสดงลำดับ
+            echo "<td>" . htmlspecialchars($row["user_id"]) . "</td>"; // แสดง user_id
+            echo "<td>" . htmlspecialchars($row["user_email"]) . "</td>"; // แสดงอีเมล
+            echo "<td>" . htmlspecialchars($row["user_name"]) . "</td>"; // แสดงชื่อ - สกุล
+            echo "<td>" . $formatted_date . "</td>"; // แสดงวันเกิด
+            echo "<td><img src='/flutter_webservice/upload/" . htmlspecialchars($row["user_photo"]) . "' width='100'></td>"; // แสดงรูปภาพ
+
+            // การดำเนินการต่าง ๆ (แก้ไข, ลบ, ระงับ, เปิดใช้งาน)
+            echo "<td>
+                    <button class='btn btn-edit' onclick='return confirmEdit(\"" . htmlspecialchars($row["user_id"]) . "\")'>แก้ไข</button>
+                    <a class='btn btn-delete' href='?delete=" . htmlspecialchars($row['user_id']) . "' onclick='return confirmDelete()'>ลบ</a>";
+
+            // ตรวจสอบสถานะและแสดงปุ่มที่เหมาะสม
+            if ($row['status'] == 'active') {
+                echo "<a class='btn btn-suspend' href='?suspend=" . htmlspecialchars($row['user_id']) . "' onclick='return confirmSuspend()'>ระงับ</a>";
+            } else {
+                echo "<a class='btn btn-reactivate' href='?reactivate=" . htmlspecialchars($row['user_id']) . "' onclick='return confirmReactivate()'>เปิดใช้งาน</a>";
+            }
+
+            echo "</td></tr>"; // จบแถว
             $counter++; // เพิ่มลำดับในแต่ละแถว
         }
         echo "</table>";
     } else {
-        echo "0 results";
+        echo "ไม่มีผลลัพธ์ที่จะแสดง"; // ถ้าไม่มีข้อมูลในตาราง user_information
     }
 
     $conn->close();
@@ -461,6 +485,30 @@ if (isset($_GET['reactivate'])) {
         const formattedDate = `${buddhistYear}-${month}-${day}`; // จัดรูปแบบวันที่ พ.ศ.-เดือน-วัน
         document.getElementById("user_age").setAttribute('max', formattedDate); // ตั้งค่าวันที่สูงสุด
     });
+
+    function confirmEdit(user_id) {
+        if (confirm("คุณแน่ใจว่าต้องการแก้ไขข้อมูลนี้หรือไม่?")) {
+            editUser(user_id); // เรียกฟังก์ชัน editUser เพื่อดำเนินการแก้ไข
+            return true;
+        }
+        return false;
+    }
+
+    function confirmSave() {
+        return confirm("คุณแน่ใจว่าต้องการบันทึกข้อมูลนี้หรือไม่?");
+    }
+
+    function confirmDelete() {
+        return confirm("คุณแน่ใจว่าต้องการลบข้อมูลนี้หรือไม่?");
+    }
+
+    function confirmSuspend() {
+        return confirm("คุณแน่ใจว่าต้องการระงับข้อมูลนี้หรือไม่?");
+    }
+
+    function confirmReactivate() {
+        return confirm("คุณแน่ใจว่าต้องการเปิดใช้งานข้อมูลนี้หรือไม่?");
+    }
 </script>
 </body>
 

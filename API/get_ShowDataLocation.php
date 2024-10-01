@@ -1,44 +1,67 @@
 <?php
-include 'Connect.php';
+include 'Connect.php'; // เชื่อมต่อกับฐานข้อมูล
 
-// Query เพื่อดึงข้อมูลทุก location พร้อมกับประเภทกีฬา (ถ้ามี)
+// Query เพื่อดึงข้อมูลทุก location พร้อมกับประเภทกีฬาและข้อมูลกีฬา รวมถึงสถานะของ location
 $sql = "
-    SELECT l.location_name, st.type_id, st.type_name
+    SELECT l.location_name, l.status, st.type_id, st.type_name, s.sport_id, s.sport_name
     FROM location l
     LEFT JOIN sport_type_in_location stil ON l.location_id = stil.location_id
     LEFT JOIN sport_type st ON stil.type_id = st.type_id
+    LEFT JOIN sport_in_type sit ON st.type_id = sit.type_id
+    LEFT JOIN sport s ON sit.sport_id = s.sport_id
 ";
-$result = mysqli_query($conn, $sql);
+$result = mysqli_query($conn, $sql); // รันคำสั่ง SQL และรับผลลัพธ์จากฐานข้อมูล
 
-$locations = array();
+$locations = array(); // สร้างอาร์เรย์เปล่าสำหรับเก็บข้อมูล location
 
-if (mysqli_num_rows($result) > 0) {
-    while($row = mysqli_fetch_assoc($result)) {
-        $location_name = $row['location_name'];
-        $sport_type = array(
+if (mysqli_num_rows($result) > 0) { // ตรวจสอบว่ามีข้อมูลที่ดึงมาหรือไม่
+    while($row = mysqli_fetch_assoc($result)) { // วนลูปผ่านแต่ละแถวของผลลัพธ์
+        $location_name = $row['location_name']; // เก็บชื่อ location จากแถวปัจจุบัน
+        $status = $row['status']; // เก็บสถานะของ location
+
+        $sport_type = array( // เก็บข้อมูลประเภทกีฬา
             "type_id" => $row['type_id'],
-            "type_name" => $row['type_name']
+            "type_name" => $row['type_name'],
+            "sports" => array() // สร้างอาร์เรย์เปล่าสำหรับเก็บข้อมูลกีฬาในประเภทนี้
+        );
+
+        $sport = array( // เก็บข้อมูลกีฬา
+            "sport_id" => $row['sport_id'],
+            "sport_name" => $row['sport_name']
         );
 
         // ตรวจสอบว่ามี location นี้ใน array แล้วหรือยัง
         if (!isset($locations[$location_name])) {
-            $locations[$location_name] = array(
+            $locations[$location_name] = array( // หากยังไม่มี location นี้ใน array ให้เพิ่มเข้าไป
                 "location_name" => $location_name,
-                "sport_types" => array()
+                "status" => $status, // เพิ่มสถานะของ location เข้าไปในข้อมูล
+                "sport_types" => array() // สร้างอาร์เรย์เปล่าสำหรับเก็บข้อมูลประเภทกีฬา
             );
         }
 
-        // เพิ่มประเภทกีฬาลงใน location ถ้า type_id และ type_name ไม่เป็น null
-        if ($sport_type['type_id'] !== null && $sport_type['type_name'] !== null) {
-            $locations[$location_name]['sport_types'][] = $sport_type;
+        // ตรวจสอบว่ามีประเภทกีฬาใน location นี้แล้วหรือยัง
+        if (!isset($locations[$location_name]['sport_types'][$sport_type['type_id']])) {
+            $locations[$location_name]['sport_types'][$sport_type['type_id']] = array( // หากยังไม่มีประเภทกีฬานี้ใน location ให้เพิ่มเข้าไป
+                "type_id" => $sport_type['type_id'],
+                "type_name" => $sport_type['type_name'],
+                "sports" => array() // สร้างอาร์เรย์เปล่าสำหรับเก็บข้อมูลกีฬาในประเภทนี้
+            );
         }
+
+        // เพิ่มกีฬาลงในประเภทกีฬา
+        $locations[$location_name]['sport_types'][$sport_type['type_id']]['sports'][] = $sport; // เพิ่มข้อมูลกีฬาเข้าไปในประเภทกีฬานั้น
     }
 }
 
 // แปลง associative array ให้เป็น array ที่มี index เป็นตัวเลข
 $locations = array_values($locations);
 
-echo json_encode($locations, JSON_UNESCAPED_UNICODE);
+// แปลง sport_types array ให้เป็น array ที่มี index เป็นตัวเลข
+foreach ($locations as &$location) {
+    $location['sport_types'] = array_values($location['sport_types']); // แปลง array ของประเภทกีฬาให้มี index เป็นตัวเลข
+}
 
-mysqli_close($conn);
+echo json_encode($locations, JSON_UNESCAPED_UNICODE); // ส่งข้อมูลในรูปแบบ JSON และรองรับภาษาไทย
+
+mysqli_close($conn); // ปิดการเชื่อมต่อฐานข้อมูล
 ?>

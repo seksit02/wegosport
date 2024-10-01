@@ -45,8 +45,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     VALUES ('$member_id', '$activity_id', '$user_id')";
             if ($conn->query($sql) === TRUE) {
                 $message = "เพิ่มข้อมูลสำเร็จ";
-                header("Location: " . $_SERVER['PHP_SELF']);
-                exit();
             } else {
                 $error = "Error: " . $sql . "<br>" . $conn->error;
             }
@@ -59,8 +57,6 @@ if (isset($_GET['delete'])) {
     $sql = "DELETE FROM member_in_activity WHERE member_id='$member_id'";
     if ($conn->query($sql) === TRUE) {
         $message = "ลบข้อมูลสำเร็จ";
-        header("Location: " . $_SERVER['PHP_SELF']);
-        exit();
     } else {
         $error = "Error: " . $sql . "<br>" . $conn->error;
     }
@@ -280,39 +276,35 @@ if (isset($_GET['delete'])) {
     <?php if ($message) { echo "<div class='message'>$message</div>"; } ?>
     <?php if ($error) { echo "<div class='error'>$error</div>"; } ?>
 
-    <form method="POST" action="member_in_activity.php">
+    <form method="POST" action="member_in_activity.php" onsubmit="return confirmSave()">
         <input type="hidden" id="member_id" name="member_id">
         <div class="form-group">
-    <label for="activity_id">กิจกรรม:</label>
-    <select id="activity_id" name="activity_id" required>
-        <option value="">กรุณาเลือกข้อมูลกิจกรรม</option>
-        <?php
-        // เพิ่มเงื่อนไขใน SQL query เพื่อแสดงเฉพาะกิจกรรมที่มีสถานะ active
-        $sql = "SELECT activity_id, activity_name FROM activity WHERE status = 'active'";
-        $result = $conn->query($sql);
-        while ($row = $result->fetch_assoc()) {
-            // แสดงชื่อกิจกรรมใน select box
-            echo "<option value='" . $row['activity_id'] . "'>" . $row['activity_name'] . "</option>";
-        }
-        ?>
-    </select>
-</div>
+            <label for="activity_id">กิจกรรม:</label>
+            <select id="activity_id" name="activity_id" required>
+                <option value="">กรุณาเลือกข้อมูลกิจกรรม</option>
+                <?php
+                $sql = "SELECT activity_id, activity_name FROM activity WHERE status = 'active'";
+                $result = $conn->query($sql);
+                while ($row = $result->fetch_assoc()) {
+                    echo "<option value='" . $row['activity_id'] . "'>" . $row['activity_name'] . "</option>";
+                }
+                ?>
+            </select>
+        </div>
 
-<div class="form-group">
-    <label for="user_id">ชื่อสมาชิก:</label>
-    <select id="user_id" name="user_id" required>
-        <option value="">กรุณาเลือกชื่อสมาชิก</option>
-        <?php
-        // เพิ่มเงื่อนไขใน SQL query เพื่อแสดงเฉพาะสมาชิกที่มีสถานะ active
-        $sql = "SELECT user_id, user_name FROM user_information WHERE status = 'active'";
-        $result = $conn->query($sql);
-        while ($row = $result->fetch_assoc()) {
-            // แสดงชื่อสมาชิกใน select box
-            echo "<option value='" . $row['user_id'] . "'>" . $row['user_name'] . "</option>";
-        }
-        ?>
-    </select>
-</div>
+        <div class="form-group">
+            <label for="user_id">ชื่อสมาชิก:</label>
+            <select id="user_id" name="user_id" required>
+                <option value="">กรุณาเลือกชื่อสมาชิก</option>
+                <?php
+                $sql = "SELECT user_id, user_name FROM user_information WHERE status = 'active'";
+                $result = $conn->query($sql);
+                while ($row = $result->fetch_assoc()) {
+                    echo "<option value='" . $row['user_id'] . "'>" . $row['user_name'] . "</option>";
+                }
+                ?>
+            </select>
+        </div>
 
         <button type="submit" class="btn-submit">บันทึก</button>
     </form>
@@ -331,12 +323,12 @@ if (isset($_GET['delete'])) {
         echo "<table><tr><th>ลำดับ</th><th>กิจกรรม</th><th>ชื่อสมาชิก</th><th>การดำเนินการ</th></tr>";
         while($row = $result->fetch_assoc()) {
             echo "<tr>
-                    <td>".$counter."</td> <!-- แสดงลำดับ -->
+                    <td>".$counter."</td>
                     <td>".htmlspecialchars($row["activity_name"])."</td>
                     <td>".htmlspecialchars($row["user_name"])."</td>
                     <td>
                         <button class='btn btn-edit' onclick='editMemberInActivity(\"".htmlspecialchars($row["member_id"])."\", \"".htmlspecialchars($row["activity_name"])."\", \"".htmlspecialchars($row["user_name"])."\")'>แก้ไข</button>
-                        <a class='btn btn-delete' href='member_in_activity.php?delete=".htmlspecialchars($row["member_id"])."'>ลบ</a>
+                        <a class='btn btn-delete' href='javascript:void(0);' onclick='confirmDelete(\"".htmlspecialchars($row["member_id"])."\")'>ลบ</a>
                     </td>
                 </tr>";
             $counter++; // เพิ่มลำดับในแต่ละแถว
@@ -350,10 +342,22 @@ if (isset($_GET['delete'])) {
     ?>
 
     <script>
+    function confirmSave() {
+        return confirm("คุณแน่ใจว่าต้องการบันทึกข้อมูลนี้หรือไม่?");
+    }
+
+    function confirmDelete(member_id) {
+        if (confirm("คุณแน่ใจว่าต้องการลบข้อมูลนี้หรือไม่?")) {
+            window.location.href = 'member_in_activity.php?delete=' + member_id;
+        }
+    }
+
     function editMemberInActivity(member_id, activity_id, user_id) {
-        document.getElementById('member_id').value = member_id;
-        document.getElementById('activity_id').value = activity_id;
-        document.getElementById('user_id').value = user_id;
+        if (confirm("คุณแน่ใจว่าต้องการแก้ไขข้อมูลนี้หรือไม่?")) {
+            document.getElementById('member_id').value = member_id;
+            document.getElementById('activity_id').value = activity_id;
+            document.getElementById('user_id').value = user_id;
+        }
     }
     </script>
 

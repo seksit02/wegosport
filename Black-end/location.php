@@ -89,36 +89,11 @@ if (isset($_GET['activate'])) {
     $stmt->close();
 }
 
-if (isset($_GET['suspend_sport_type'])) {
-    $type_id = $_GET['suspend_sport_type'];
-    $stmt = $conn->prepare("UPDATE sport_type SET status='inactive' WHERE type_id=?");
-    $stmt->bind_param("i", $type_id);
-    if ($stmt->execute()) {
-        $message = "ระงับข้อมูลสำเร็จ";
-    } else {
-        $error = "เกิดข้อผิดพลาด: " . $stmt->error;
-    }
-    $stmt->close();
-}
-
-if (isset($_GET['reactivate_sport_type'])) {
-    $type_id = $_GET['reactivate_sport_type'];
-    $stmt = $conn->prepare("UPDATE sport_type SET status='active' WHERE type_id=?");
-    $stmt->bind_param("i", $type_id);
-    if ($stmt->execute()) {
-        $message = "เปิดใช้งานข้อมูลสำเร็จ";
-    } else {
-        $error = "เกิดข้อผิดพลาด: " . $stmt->error;
-    }
-    $stmt->close();
-}
 // ฟังก์ชันนี้ใช้ในการดึงประเภทกีฬาที่มีสถานะ active จากตาราง sport_type
 function getActiveSportTypes($conn) {
-    $sql = "SELECT type_id, type_name FROM sport_type WHERE status='active'";
+    $sql = "SELECT type_id, type_name FROM sport_type ";
     return $conn->query($sql);
 }
-
-$error = ''; // ประกาศตัวแปร error ล่วงหน้า
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $location_id = $_POST["location_id"] ?? '';
@@ -127,7 +102,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $latitude = !empty($_POST["latitude"]) ? $_POST["latitude"] : null;
     $longitude = !empty($_POST["longitude"]) ? $_POST["longitude"] : null;
     $type_ids = $_POST["type_id"] ?? [];
-    $type_ids_str = implode(',', $type_ids);
     $selected_days = $_POST["day_selection"] ?? [];
     $days_str = implode(',', $selected_days);
 
@@ -190,8 +164,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $error = $stmt->error;
         } else {
             $message = "เพิ่มหรืออัปเดตข้อมูลสำเร็จ";
-            header("Location: " . $_SERVER['PHP_SELF']); // รีเฟรชหน้าเว็บเพื่อโหลดข้อมูลใหม่
-            exit();
         }
         $stmt->close();
     } else {
@@ -315,12 +287,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             border-radius: 5px;
         }
         .message {
-            background: #2ecc71;
+            background-color: #2ecc71;
             color: white;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
         }
         .error {
-            background: #e74c3c;
+            background-color: #e74c3c;
             color: white;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
         }
         table {
             width: 100%;
@@ -334,7 +312,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             padding: 15px;
             text-align: left;
         }
-     .btn {
+        .btn {
             display: inline-block;
             padding: 5px 10px;
             color: white;
@@ -401,21 +379,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             background: #c0392b; /* สีแดงเข้มขึ้นเมื่อเมาส์อยู่เหนือ */
         }
         .time-inputs {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-}
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
 
-.time-inputs input[type="time"] {
-    width: auto; /* Adjusts the width based on content */
-}
-td img {
-    width: 100%; /* กำหนดให้ความกว้างเต็มพื้นที่ของเซลล์ */
-    height: auto; /* ปรับความสูงตามอัตราส่วนของภาพ */
-    max-width: 150px; /* กำหนดขนาดสูงสุดของรูปภาพ */
-    object-fit: cover; /* ครอบคลุมพื้นที่โดยการตัดส่วนที่เกิน */
-}
-
+        .time-inputs input[type="time"] {
+            width: auto; /* Adjusts the width based on content */
+        }
+        td img {
+            width: 100%; /* กำหนดให้ความกว้างเต็มพื้นที่ของเซลล์ */
+            height: auto; /* ปรับความสูงตามอัตราส่วนของภาพ */
+            max-width: 150px; /* กำหนดขนาดสูงสุดของรูปภาพ */
+            object-fit: cover; /* ครอบคลุมพื้นที่โดยการตัดส่วนที่เกิน */
+        }
 
     </style>
     <script>
@@ -483,7 +460,7 @@ td img {
     <?php if ($message) { echo "<div class='message'>".htmlspecialchars($message)."</div>"; } ?>
     <?php if ($error) { echo "<div class='error'>".htmlspecialchars($error)."</div>"; } ?>
 
-    <form method="POST" action="location.php" enctype="multipart/form-data">
+    <form method="POST" action="location.php" enctype="multipart/form-data" onsubmit="return confirmSave()">
         <input type="hidden" id="location_id" name="location_id">
         <div class="form-group">
             <label for="location_name">ชื่อสถานที่:</label>
@@ -592,26 +569,39 @@ td img {
             $imgSrc = '/flutter_webservice/upload/' . htmlspecialchars($row["location_photo"]);
 
             echo "<tr>
-                <td>".$counter."</td> <!-- เพิ่มลำดับที่นี่ -->
-                <td>".htmlspecialchars($row["location_name"])."</td>
-                <td>".$dayTimeStr."</td>
-                <td>
-                    <img src='".$imgSrc."' alt='รูปภาพ' style='width: 150px; height: 150px; object-fit: contain;'>
-                </td>
-                <td><a href='$mapsLink' target='_blank'>".htmlspecialchars($latitude)."</a></td>
-                <td><a href='$mapsLink' target='_blank'>".htmlspecialchars($longitude)."</a></td>
-                <td>".htmlspecialchars($row["type_names"])."</td>
-                <td>
-                    <a class='btn btn-edit' href='#' onclick='editLocation(\"".htmlspecialchars($row["location_id"])."\", \"".htmlspecialchars($row["location_name"])."\", \"".htmlspecialchars($row["location_time"])."\", \"".$imgSrc."\", \"".htmlspecialchars($row["latitude"])."\", \"".htmlspecialchars($row["longitude"])."\", \"".htmlspecialchars($row["type_ids"])."\", \"".htmlspecialchars($row["location_day"])."\")'>แก้ไข</a>
-                    <a class='btn btn-delete' href='location.php?delete=".htmlspecialchars($row["location_id"])."'>ลบ</a>";
+            <td>".$counter."</td> <!-- เพิ่มลำดับที่นี่ -->
+            <td>".htmlspecialchars($row["location_name"])."</td>
+            <td>".$dayTimeStr."</td>
+            <td>
+                <img src='".$imgSrc."' alt='รูปภาพ' style='width: 150px; height: 150px; object-fit: contain;'>
+            </td>
+            <td><a href='$mapsLink' target='_blank'>".htmlspecialchars($latitude)."</a></td>
+            <td><a href='$mapsLink' target='_blank'>".htmlspecialchars($longitude)."</a></td>
+            <td>".htmlspecialchars($row["type_names"])."</td>
+            <td>
+                <a class='btn btn-edit' href='#' 
+                    onclick='editLocation(
+                        \"".htmlspecialchars($row["location_id"])."\", 
+                        \"".htmlspecialchars($row["location_name"])."\", 
+                        \"".htmlspecialchars($row["location_time"])."\", 
+                        \"".$imgSrc."\",
+                        \"".htmlspecialchars($row["latitude"])."\", 
+                        \"".htmlspecialchars($row["longitude"])."\", 
+                        \"".htmlspecialchars($row["type_ids"])."\", 
+                        \"".htmlspecialchars($row["location_day"])."\"
+                    )'>แก้ไข</a>
+                
+                <a class='btn btn-delete' href='location.php?delete=".htmlspecialchars($row["location_id"])."'onclick='return confirmDelete()'>ลบ</a>";
+                    
 
-            if ($row["status"] == 'inactive') {
-                echo "<a class='btn btn-reactivate' href='location.php?activate=".htmlspecialchars($row["location_id"])."'>เปิดใช้งาน</a>";
-            } else {
-                echo "<a class='btn btn-suspend' href='location.php?suspend=".htmlspecialchars($row["location_id"])."'>ระงับ</a>";
-            }
+        if ($row["status"] == 'inactive') {
+            echo "<a class='btn btn-reactivate' href='location.php?activate=".htmlspecialchars($row["location_id"])."'onclick='return confirmActivate()'>เปิดใช้งาน</a>";
+                
+        } else {
+            echo "<a class='btn btn-suspend' href='location.php?suspend=".htmlspecialchars($row["location_id"])."'onclick='return confirmSuspend()'>ระงับ</a>";
+        }
 
-            echo "</td></tr>";
+        echo "</td></tr>";
 
             $counter++; // เพิ่มลำดับในแต่ละแถว
         }
@@ -625,6 +615,23 @@ td img {
     ?>
 
     <script>
+        // ฟังก์ชันยืนยันก่อนการบันทึก
+        function confirmSave() {
+            return confirm('คุณแน่ใจหรือไม่ว่าต้องการบันทึกข้อมูลนี้?');
+        }
+
+        function confirmDelete() {
+            return confirm('คุณแน่ใจหรือไม่ว่าต้องการลบข้อมูลนี้?');
+        }
+
+        function confirmActivate() {
+            return confirm('คุณแน่ใจหรือไม่ว่าต้องการเปิดใช้งานสถานที่นี้?');
+        }
+
+        function confirmSuspend() {
+            return confirm('คุณแน่ใจหรือไม่ว่าต้องการระงับสถานที่นี้?');
+        }
+
         //ฟังก์ชัน previewFile() ใช้สำหรับแสดงตัวอย่างรูปภาพที่เลือกอัปโหลด
         function previewFile() {
             const preview = document.getElementById('location_photo_preview');
@@ -656,50 +663,55 @@ td img {
         }
                 //นี้ใช้ในการสลับสถานะการเลือกเช็คบ็อกซ์ทั้งหมดภายในกลุ่มที่มีชื่อ type_id[] โดยถ้าเช็คบ็อกซ์ทั้งหมดถูกเลือกอยู่แล้ว จะทำการยกเลิกการเลือกทั้งหมด แต่ถ้ามีเช็คบ็อกซ์บางอันหรือทั้งหมดไม่ถูกเลือก จะทำการเลือกเช็คบ็อกซ์ทั้งหมด.
         function toggleCheckboxes() {
-        const checkboxes = document.querySelectorAll('.checkbox-group input[name="type_id[]"]');
-        const allChecked = Array.from(checkboxes).every(checkbox => checkbox.checked);
-        checkboxes.forEach(checkbox => checkbox.checked = !allChecked);
-    }
+            const checkboxes = document.querySelectorAll('.checkbox-group input[name="type_id[]"]');
+            const allChecked = Array.from(checkboxes).every(checkbox => checkbox.checked);
+            checkboxes.forEach(checkbox => checkbox.checked = !allChecked);
+        }
 
-    function toggleAllDays() {
-        const checkboxes = document.querySelectorAll('.checkbox-group input[name="day_selection[]"]');
-        const allChecked = Array.from(checkboxes).every(checkbox => checkbox.checked);
-        checkboxes.forEach(checkbox => checkbox.checked = !allChecked);
-    }
+        function toggleAllDays() {
+            const checkboxes = document.querySelectorAll('.checkbox-group input[name="day_selection[]"]');
+            const allChecked = Array.from(checkboxes).every(checkbox => checkbox.checked);
+            checkboxes.forEach(checkbox => checkbox.checked = !allChecked);
+        }
 
-  function editLocation(location_id, location_name, location_time, location_photo, latitude, longitude, type_ids, location_day) {
-    document.getElementById('location_id').value = location_id;
-    document.getElementById('location_name').value = location_name;
+        function editLocation(location_id, location_name, location_time, location_photo, latitude, longitude, type_ids, location_day) {
+            if (confirm("คุณต้องการแก้ไขข้อมูลสถานที่นี้หรือไม่?")) {
+                // หากผู้ใช้กด OK
+                document.getElementById('location_id').value = location_id;
+                document.getElementById('location_name').value = location_name;
 
-    // แยกเวลาเปิด-ปิด
-    const [opening_time, closing_time] = location_time.split(' - ');
-    document.getElementById('opening_time').value = opening_time;
-    document.getElementById('closing_time').value = closing_time;
+                // แยกเวลาเปิด-ปิด
+                const [opening_time, closing_time] = location_time.split(' - ');
+                document.getElementById('opening_time').value = opening_time;
+                document.getElementById('closing_time').value = closing_time;
 
-    document.getElementById('latitude').value = latitude;
-    document.getElementById('longitude').value = longitude;
+                document.getElementById('latitude').value = latitude;
+                document.getElementById('longitude').value = longitude;
 
-    const checkboxes = document.querySelectorAll('input[name="type_id[]"]');
-    const typeIdArray = type_ids.split(','); // แปลง string ของประเภทเป็น array
-    checkboxes.forEach(checkbox => {
-        checkbox.checked = typeIdArray.includes(checkbox.value);
-    });
+                const checkboxes = document.querySelectorAll('input[name="type_id[]"]');
+                const typeIdArray = type_ids.split(','); // แปลง string ของประเภทเป็น array
+                checkboxes.forEach(checkbox => {
+                    checkbox.checked = typeIdArray.includes(checkbox.value);
+                });
 
-    const daysCheckboxes = document.querySelectorAll('input[name="day_selection[]"]');
-    const daysArray = location_day.split(','); // แปลง string ของวันเป็น array
-    daysCheckboxes.forEach(checkbox => {
-        checkbox.checked = daysArray.includes(checkbox.value);
-    });
+                const daysCheckboxes = document.querySelectorAll('input[name="day_selection[]"]');
+                const daysArray = location_day.split(','); // แปลง string ของวันเป็น array
+                daysCheckboxes.forEach(checkbox => {
+                    checkbox.checked = daysArray.includes(checkbox.value);
+                });
 
-    // หากมีการอัปโหลดรูปภาพใหม่ ให้แสดงรูปใหม่
-    if (location_photo) {
-        document.getElementById('location_photo_preview').src = location_photo;
-        document.getElementById('location_photo_preview_container').style.display = 'block'; // แสดงรูปที่มีอยู่ก่อน
-    } else {
-        document.getElementById('location_photo_preview_container').style.display = 'none'; // ซ่อนหากไม่มีรูปภาพ
-    }
-}
-
+                // หากมีการอัปโหลดรูปภาพใหม่ ให้แสดงรูปใหม่
+                if (location_photo) {
+                    document.getElementById('location_photo_preview').src = location_photo;
+                    document.getElementById('location_photo_preview_container').style.display = 'block'; // แสดงรูปที่มีอยู่ก่อน
+                } else {
+                    document.getElementById('location_photo_preview_container').style.display = 'none'; // ซ่อนหากไม่มีรูปภาพ
+                }
+            } else {
+                // หากผู้ใช้กด Cancel
+                alert("การแก้ไขถูกยกเลิก");
+            }
+        }
 
     </script>
 
