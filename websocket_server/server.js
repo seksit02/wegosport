@@ -114,41 +114,38 @@ server.on("connection", (ws) => {
 
     // ถ้า action คือ 'send_message' จะเป็นการส่งข้อความใหม่
     if (action === "send_message") {
-      let msgContent = parsedMessage.message; // ดึงข้อความจาก client
-
-      // แยกชื่อไฟล์รูปภาพออกจาก URL เพื่อบันทึกเฉพาะชื่อไฟล์ลงในฐานข้อมูล
+      let msgContent = parsedMessage.message;
       let photoName = userPhoto.split("/").pop();
 
-      // บันทึกข้อความลงในฐานข้อมูล
+      // บันทึกข้อความลงในฐานข้อมูลพร้อมกับ timestamp
       const query =
         "INSERT INTO messages (user_id, user_name, user_photo, activity_id, message, timestamp, status) VALUES (?, ?, ?, ?, ?, NOW(), 'sent')";
       db.query(
         query,
-        [userId, userName, photoName, activityId, msgContent], // ส่งค่าที่จำเป็นสำหรับการบันทึกข้อความ
+        [userId, userName, photoName, activityId, msgContent],
         (err, res) => {
           if (err) {
-            console.log("Error saving message to DB:", err); // แสดงข้อผิดพลาดถ้า query ผิดพลาด
-            ws.send("Error saving message"); // ส่งข้อความแสดงข้อผิดพลาดกลับไปที่ client
+            console.log("Error saving message to DB:", err);
+            ws.send("Error saving message");
           } else {
-            console.log("Message saved to DB for activityId:", activityId); // แสดงว่าข้อความถูกบันทึกแล้ว
+            console.log("Message saved to DB for activityId:", activityId);
 
-            // ส่งข้อความใหม่ให้กับทุก client ที่เชื่อมต่ออยู่
+            // ส่งข้อความใหม่ให้ทุก client พร้อมกับ timestamp
             const newMessage = {
               user_id: userId,
               user_name: userName,
               user_photo: userPhoto,
               message: msgContent,
               activity_id: activityId,
+              timestamp: new Date().toISOString(), // ส่ง timestamp ด้วย
             };
 
             clients.forEach((client) => {
-              // กระจายข้อความใหม่ไปยังทุก client
               if (client.readyState === WebSocket.OPEN) {
-                // ตรวจสอบว่า client ยังเชื่อมต่ออยู่หรือไม่
                 client.send(
                   JSON.stringify({
                     action: "new_message",
-                    message: newMessage, // ส่งข้อความใหม่ไปที่ client
+                    message: newMessage,
                   })
                 );
               }
@@ -157,6 +154,7 @@ server.on("connection", (ws) => {
         }
       );
     }
+
   });
 
   ws.on("close", () => {

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart'; // นำเข้าชุดคำสั่งที่ใช้สร้าง UI ใน Flutter
-import 'package:http/http.dart'
-    as http; // นำเข้าแพ็กเกจ HTTP สำหรับเรียกใช้งาน API
+import 'package:http/http.dart'as http; // นำเข้าแพ็กเกจ HTTP สำหรับเรียกใช้งาน API
 import 'dart:convert'; // นำเข้าแพ็กเกจสำหรับแปลงข้อมูล JSON
 import 'package:web_socket_channel/web_socket_channel.dart'; // นำเข้าชุดคำสั่งที่ใช้ในการเชื่อมต่อ WebSocket
+import 'package:intl/intl.dart'; // นำเข้าไลบรารีที่จำเป็นสำหรับการทำงาน
 
 class ChatPage extends StatefulWidget {
   final WebSocketChannel
@@ -23,13 +23,10 @@ class ChatPage extends StatefulWidget {
 }
 
 class _ChatPageState extends State<ChatPage> {
+
   final TextEditingController _controller = TextEditingController();
-
-  // เปลี่ยนเป็น List<Map<String, dynamic>> เพื่อให้รองรับข้อมูล JSON
   final List<Map<String, dynamic>> _messages = [];
-
   final ScrollController _scrollController = ScrollController();
-
   Map<String, dynamic>? userData;
 
   @override
@@ -56,15 +53,23 @@ class _ChatPageState extends State<ChatPage> {
           _messages.clear();
           _messages.addAll(
               List<Map<String, dynamic>>.from(decodedMessage['messages']));
-          _scrollToBottom();
+          _scrollToBottom(); // เลื่อนข้อความไปที่ข้อความล่าสุด
         });
       } else if (decodedMessage['action'] == 'new_message') {
         setState(() {
-          _messages.add(Map<String, dynamic>.from(decodedMessage['message']));
-          _scrollToBottom();
+          Map<String, dynamic> newMessage =
+              Map<String, dynamic>.from(decodedMessage['message']);
+          // เช็คว่ามี timestamp หรือไม่ ถ้าไม่มีก็ใช้ DateTime.now()
+          if (!newMessage.containsKey('timestamp') ||
+              newMessage['timestamp'] == null) {
+            newMessage['timestamp'] = DateTime.now().toIso8601String();
+          }
+          _messages.add(newMessage); // เพิ่มข้อความใหม่
+          _scrollToBottom(); // เลื่อนข้อความไปที่ข้อความล่าสุด
         });
       }
     });
+
   }
 
   void _scrollToBottom() {
@@ -191,80 +196,87 @@ class _ChatPageState extends State<ChatPage> {
                   bool isLoggedInUser = senderId ==
                       currentUserId; // ตรวจสอบว่าข้อความมาจากผู้ใช้ที่ล็อกอินอยู่หรือไม่
 
+                  String? messageTime = messageData['timestamp'];
+
+                  // ส่วนของการสร้าง UI สำหรับข้อความ
+                  String formattedTime;
+                  if (messageTime != null) {
+                    DateTime dateTime = DateTime.parse(messageTime);
+                    formattedTime =
+                        DateFormat('HH.mm น.', 'th').format(dateTime);
+                  } else {
+                    formattedTime = "เวลาไม่ระบุ";
+                  }
+
                   return Align(
                     alignment: isLoggedInUser
-                        ? Alignment.centerRight // ผู้ส่งอยู่ทางขวา
-                        : Alignment.centerLeft, // ผู้รับอยู่ทางซ้าย
+                        ? Alignment
+                            .centerRight // Align message to the right for logged-in user
+                        : Alignment
+                            .centerLeft, // Align message to the left for other users
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment
-                          .end, // จัดให้ข้อความอยู่ที่ส่วนล่างสุด
+                      crossAxisAlignment:
+                          CrossAxisAlignment.end, // Align at the bottom
                       children: [
-                        if (!isLoggedInUser) // ถ้าไม่ใช่ผู้ส่ง (ฝั่งผู้รับ)
-                          CircleAvatar(
-                            backgroundImage: NetworkImage(
-                                'http://10.0.2.2/flutter_webservice/upload/$senderPhoto'), // สร้าง URL เต็มของรูปภาพผู้ส่ง
-                            radius: 20,
+                        if (!isLoggedInUser) // Display profile picture for other users
+                          Padding(
+                            padding: const EdgeInsets.only(right: 8.0),
+                            child: CircleAvatar(
+                              backgroundImage: NetworkImage(
+                                  'http://10.0.2.2/flutter_webservice/upload/$senderPhoto'),
+                              radius: 20,
+                            ),
                           ),
                         Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                          crossAxisAlignment: isLoggedInUser
+                              ? CrossAxisAlignment.end
+                              : CrossAxisAlignment
+                                  .start, // Align text based on the user
                           children: [
-                            // แสดงชื่อผู้ใช้ (อยู่นอกกรอบข้อความ)
                             if (!isLoggedInUser)
                               Text(
-                                senderName,
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black,
-                                ),
+                                senderName, // Display name for other users
+                                style: TextStyle(fontWeight: FontWeight.bold),
                               ),
-                            if (isLoggedInUser)
-                              Text(
-                                currentUserName,
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black,
-                                ),
-                              ),
-                            // กรอบข้อความ
                             Container(
-                              margin: EdgeInsets.symmetric(
-                                  vertical: 4.0, horizontal: 8.0),
+                              margin: EdgeInsets.symmetric(vertical: 4.0),
                               padding: EdgeInsets.all(12.0),
                               decoration: BoxDecoration(
                                 color: isLoggedInUser
-                                    ? Colors
-                                        .lightGreen[100] // ผู้ส่ง: สีเขียวอ่อน
-                                    : Colors.grey[300], // ผู้รับ: สีเทา
-                                borderRadius: BorderRadius.circular(10.0),
-                                border: Border.all(color: Colors.grey),
+                                    ? Colors.lightGreen[
+                                        100] // Custom color for sent messages
+                                    : Colors.grey[
+                                        300], // Light grey for received messages
+                                borderRadius: BorderRadius.circular(15.0),
                               ),
                               child: Text(
-                                message, // แสดงข้อความ
+                                message,
                                 style: TextStyle(fontSize: 16.0),
                               ),
                             ),
-                            // สถานะการอ่าน (อยู่นอกกรอบข้อความ)
-                            if (isLoggedInUser)
-                              Text(
-                                messageData['status'] == 'read'
-                                    ? 'อ่านแล้ว'
-                                    : 'ยังไม่อ่าน', // สถานะข้อความ
+                            // Add timestamp
+                            Padding(
+                              padding: const EdgeInsets.only(top: 4.0),
+                              child: Text(
+                                formattedTime, // Example timestamp, you can replace it with actual data
                                 style: TextStyle(
-                                    fontSize: 10.0, color: Colors.grey),
+                                    fontSize: 12.0, color: Colors.grey),
                               ),
+                            ),
                           ],
                         ),
-                        if (isLoggedInUser) // ถ้าเป็นผู้ส่ง แสดงรูปผู้ส่ง
-                          CircleAvatar(
-                            backgroundImage: NetworkImage(
-                                currentUserPhoto), // แสดงรูปผู้ส่งจากตัวแปร currentUserPhoto
-                            radius: 20,
+                        if (isLoggedInUser) // Display profile picture for logged-in user
+                          Padding(
+                            padding: const EdgeInsets.only(left: 8.0),
+                            child: CircleAvatar(
+                              backgroundImage: NetworkImage(currentUserPhoto),
+                              radius: 20,
+                            ),
                           ),
                       ],
                     ),
                   );
-
                 },
               ),
             ),
