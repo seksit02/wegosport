@@ -216,15 +216,25 @@ class _ChatPageState extends State<ChatPage> {
                       messageData['timestamp']; // เวลาของข้อความ
 
                   // ส่วนของการสร้าง UI สำหรับข้อความ
+                  String formattedDate;
                   String formattedTime;
+
                   if (messageTime != null) {
                     DateTime dateTime =
                         DateTime.parse(messageTime); // แปลงเวลาเป็น DateTime
-                    formattedTime = DateFormat('HH.mm น.', 'th')
-                        .format(dateTime); // แปลงเวลาเป็นรูปแบบที่ต้องการ
+
+                    // แยกการแสดงผลวันที่และเวลาตามที่ต้องการ
+                    formattedDate = DateFormat('d MMMM yyyy', 'th')
+                        .format(dateTime); // แปลงวันที่เป็นภาษาไทย
+                    formattedTime = DateFormat('HH.mm น.')
+                        .format(dateTime); // แสดงเวลาโดยไม่แปลง
                   } else {
+                    formattedDate = "วันที่ไม่ระบุ"; // ถ้าไม่มีข้อมูลวันที่
                     formattedTime = "เวลาไม่ระบุ"; // ถ้าไม่มีข้อมูลเวลา
                   }
+
+                  String fullFormattedDateTime =
+                      '$formattedDate, $formattedTime'; // รวมวันที่และเวลาเข้าด้วยกัน
 
                   return Align(
                     alignment: isLoggedInUser
@@ -281,7 +291,7 @@ class _ChatPageState extends State<ChatPage> {
                               Padding(
                                 padding: const EdgeInsets.only(top: 4.0),
                                 child: Text(
-                                  formattedTime, // เวลาของข้อความ
+                                  fullFormattedDateTime,
                                   style: TextStyle(
                                       fontSize: 12.0, color: Colors.grey),
                                 ),
