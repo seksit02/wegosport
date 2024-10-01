@@ -10,7 +10,6 @@ import 'dart:io'; // ใช้สำหรับการจัดการไ�
 import 'package:image/image.dart' as img; // ใช้สำหรับการจัดการภาพ
 import 'package:intl/intl.dart'; // ใช้สำหรับจัดการวันที่
 
-
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key, required this.jwt, required this.activity});
 
@@ -123,6 +122,7 @@ class _ProfilePageState extends State<ProfilePage> {
     if (createdActivities.isEmpty) {
       return const Center(child: Text('คุณยังไม่มีกิจกรรมที่สร้าง'));
     }
+
     return ListView.builder(
       shrinkWrap: true, // เพื่อให้รายการกิจกรรมอยู่ใน Column ได้
       itemCount: createdActivities.length,
@@ -135,47 +135,14 @@ class _ProfilePageState extends State<ProfilePage> {
         // ดึงรูปภาพสถานที่จาก activity
         String? locationPhoto = activity['location_photo'];
 
-        return Container(
-          margin: EdgeInsets.symmetric(
-              vertical: 8.0), // ระยะห่างระหว่างการ์ดแต่ละใบ
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12.0), // มุมโค้งมน
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey.withOpacity(0.5),
-                spreadRadius: 3,
-                blurRadius: 5,
-                offset: Offset(0, 3), // การเลื่อนของเงา
-              ),
-            ],
-            border: Border.all(
-              color: Colors.grey, // สีของกรอบ
-              width: 1.0,
-            ),
+        return Card(
+          margin: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 16.0),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15.0),
           ),
-          child: ListTile(
-            leading: ClipRRect(
-              borderRadius: BorderRadius.circular(8.0),
-              child: locationPhoto != null && locationPhoto.isNotEmpty
-                  ? Image.network(
-                      locationPhoto,
-                      width: 60,
-                      height: 60,
-                      fit: BoxFit.cover,
-                    )
-                  : Image.asset(
-                      'images/default_location.png', // รูปภาพ default หากไม่มีรูป
-                      width: 60,
-                      height: 60,
-                      fit: BoxFit.cover,
-                    ),
-            ),
-            title: Text(
-              activity['activity_name'],
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            subtitle: Text('วันที่: $formattedDate'),
+          elevation: 5, // เพิ่มความลึกให้กับการ์ด
+          child: InkWell(
+            borderRadius: BorderRadius.circular(15.0),
             onTap: () {
               // เมื่อกดเข้ากิจกรรม
               Navigator.push(
@@ -184,18 +151,79 @@ class _ProfilePageState extends State<ProfilePage> {
                   builder: (context) => ActivityPage(
                     activity: activity,
                     jwt: widget.jwt,
-                    userId: userData?['user_id'] ??
-                        '', // ส่ง userId ที่เป็น String ไปแทน Map ทั้งหมด
+                    userId:
+                        userData?['user_id'] ?? '', // ส่ง userId ที่เป็น String
                   ),
                 ),
               );
             },
+            child: Padding(
+              padding: const EdgeInsets.all(10.0), // เพิ่ม Padding รอบการ์ด
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  // รูปภาพสถานที่
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12.0),
+                    child: locationPhoto != null && locationPhoto.isNotEmpty
+                        ? Image.network(
+                            locationPhoto,
+                            width: 80,
+                            height: 80,
+                            fit: BoxFit.cover,
+                          )
+                        : Image.asset(
+                            'images/default_location.png', // รูปภาพ default หากไม่มีรูป
+                            width: 80,
+                            height: 80,
+                            fit: BoxFit.cover,
+                          ),
+                  ),
+                  const SizedBox(
+                      width: 16.0), // ระยะห่างระหว่างรูปภาพกับข้อความ
+                  // ข้อมูลกิจกรรม
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          activity['activity_name'],
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18.0,
+                          ),
+                          overflow:
+                              TextOverflow.ellipsis, // ถ้าข้อความยาวเกินจะตัด
+                        ),
+                        const SizedBox(height: 8.0), // ระยะห่างระหว่างข้อความ
+                        Row(
+                          children: [
+                            Icon(Icons.calendar_today,
+                                size: 16.0, color: Colors.grey),
+                            const SizedBox(width: 5.0),
+                            Text(
+                              'วันที่: $formattedDate',
+                              style: TextStyle(
+                                fontSize: 14.0,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  // ไอคอนลูกศรแสดงการเข้ากิจกรรม
+                  const Icon(Icons.arrow_forward_ios,
+                      color: Colors.grey, size: 16.0),
+                ],
+              ),
+            ),
           ),
         );
       },
     );
   }
-
 
   // ฟังชั่นแปลงสตริงวันที่เป็น DateTime object
   String formatDate(String date) {
@@ -355,6 +383,7 @@ class _ProfilePageState extends State<ProfilePage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
+                  SizedBox(height: 16),
                   GestureDetector(
                     onTap:
                         _pickImage, // เรียกใช้ฟังก์ชัน _pickImage เมื่อกดที่ภาพโปรไฟล์
@@ -418,9 +447,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     },
                     child: Text('แก้ไขข้อมูล'),
                   ),
-
-                  // เส้นกัน
-                  Divider(thickness: 2, color: Colors.grey),
+                  SizedBox(height: 16),
 
                   // ส่วนแสดงกิจกรรมที่ผู้ใช้สร้าง
                   Text(
