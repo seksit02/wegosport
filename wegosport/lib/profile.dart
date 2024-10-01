@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http; // ใช้สำหรับการเรียก HTTP
+import 'package:wegosport/Activity.dart';
 import 'dart:convert'; // ใช้สำหรับการแปลง JSON
 import 'package:wegosport/Homepage.dart'; // นำเข้า Homepage
 import 'package:wegosport/EditProfile.dart'; // นำเข้า EditProfile
@@ -7,6 +8,8 @@ import 'package:image_picker/image_picker.dart'; // ใช้สำหรับ�
 import 'package:image_cropper/image_cropper.dart'; // ใช้สำหรับการครอบภาพ
 import 'dart:io'; // ใช้สำหรับการจัดการไฟล์
 import 'package:image/image.dart' as img; // ใช้สำหรับการจัดการภาพ
+import 'package:intl/intl.dart'; // ใช้สำหรับจัดการวันที่
+
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key, required this.jwt, required this.activity});
@@ -106,23 +109,93 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
+  // ฟังก์ชันสำหรับการแปลงวันที่เป็นรูปแบบไทย
+  String formatThaiDate(String dateString) {
+    DateTime date = DateTime.parse(dateString);
+    String formattedTime = DateFormat('HH:mm น.', 'th_TH').format(date);
+    String formattedDate = DateFormat('d MMMM ', 'th_TH').format(date);
+    int buddhistYear = date.year + 543;
+    return '$formattedTime $formattedDate $buddhistYear';
+  }
+
   // ฟังก์ชันสร้างรายการกิจกรรมที่ผู้ใช้สร้าง
   Widget _buildCreatedActivityList() {
     if (createdActivities.isEmpty) {
-      return Text('คุณยังไม่มีกิจกรรมที่สร้าง');
+      return const Center(child: Text('คุณยังไม่มีกิจกรรมที่สร้าง'));
     }
     return ListView.builder(
       shrinkWrap: true, // เพื่อให้รายการกิจกรรมอยู่ใน Column ได้
       itemCount: createdActivities.length,
       itemBuilder: (context, index) {
         final activity = createdActivities[index];
-        return ListTile(
-          title: Text(activity['activity_name']),
-          subtitle: Text('วันที่: ${activity['activity_date']}'),
+
+        // แปลงวันที่เป็นรูปแบบที่ต้องการ
+        String formattedDate = formatThaiDate(activity['activity_date']);
+
+        // ดึงรูปภาพสถานที่จาก activity
+        String? locationPhoto = activity['location_photo'];
+
+        return Container(
+          margin: EdgeInsets.symmetric(
+              vertical: 8.0), // ระยะห่างระหว่างการ์ดแต่ละใบ
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12.0), // มุมโค้งมน
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.5),
+                spreadRadius: 3,
+                blurRadius: 5,
+                offset: Offset(0, 3), // การเลื่อนของเงา
+              ),
+            ],
+            border: Border.all(
+              color: Colors.grey, // สีของกรอบ
+              width: 1.0,
+            ),
+          ),
+          child: ListTile(
+            leading: ClipRRect(
+              borderRadius: BorderRadius.circular(8.0),
+              child: locationPhoto != null && locationPhoto.isNotEmpty
+                  ? Image.network(
+                      locationPhoto,
+                      width: 60,
+                      height: 60,
+                      fit: BoxFit.cover,
+                    )
+                  : Image.asset(
+                      'images/default_location.png', // รูปภาพ default หากไม่มีรูป
+                      width: 60,
+                      height: 60,
+                      fit: BoxFit.cover,
+                    ),
+            ),
+            title: Text(
+              activity['activity_name'],
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            subtitle: Text('วันที่: $formattedDate'),
+            onTap: () {
+              // เมื่อกดเข้ากิจกรรม
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ActivityPage(
+                    activity: activity,
+                    jwt: widget.jwt,
+                    userId: userData?['user_id'] ??
+                        '', // ส่ง userId ที่เป็น String ไปแทน Map ทั้งหมด
+                  ),
+                ),
+              );
+            },
+          ),
         );
       },
     );
   }
+
 
   // ฟังชั่นแปลงสตริงวันที่เป็น DateTime object
   String formatDate(String date) {

@@ -134,14 +134,17 @@ class _LoginPageState extends State<LoginPage> {
               var loginResult =
                   await FunctionLogin(); // เรียกใช้ฟังก์ชันล็อกอิน
 
-              bool loginSuccess = loginResult['success'] ?? false; // กำหนดค่าดีฟอลต์เป็น false หาก 'success' เป็น null
-              String jwt = loginResult['jwt'] ?? ''; // กำหนดค่าดีฟอลต์เป็นสตริงว่างหาก 'jwt' เป็น null
-                  
+              bool loginSuccess = loginResult['success'] ??
+                  false; // กำหนดค่าดีฟอลต์เป็น false หาก 'success' เป็น null
+              String jwt = loginResult['jwt'] ??
+                  ''; // กำหนดค่าดีฟอลต์เป็นสตริงว่างหาก 'jwt' เป็น null
+
               if (loginSuccess) {
                 Navigator.of(context).pushReplacement(
                   MaterialPageRoute(
                     builder: (context) => Homepage(
-                        jwt:jwt), // ส่งค่า jwt ที่ได้รับจากฟังก์ชันไปยังหน้า Homepage
+                        jwt:
+                            jwt), // ส่งค่า jwt ที่ได้รับจากฟังก์ชันไปยังหน้า Homepage
                   ),
                 );
               } else {
@@ -219,7 +222,8 @@ class _LoginPageState extends State<LoginPage> {
 
         // ตรวจสอบว่าการเข้าสู่ระบบสำเร็จหรือไม่
         if (jsonResponse['result'] == "1") {
-          String userEmail = jsonResponse['user_email']; // ดึง user_id จากการตอบกลับ
+          String userEmail =
+              jsonResponse['user_email']; // ดึง user_id จากการตอบกลับ
           String jwt = jsonResponse['jwt']; // ดึง JWT จากการตอบกลับ
 
           // เก็บ JWT ลงในฐานข้อมูล
@@ -235,8 +239,9 @@ class _LoginPageState extends State<LoginPage> {
 
           if (saveJwtResponse.statusCode == 200) {
             // ตรวจสอบว่าการบันทึก JWT สำเร็จหรือไม่
-            Map<String, dynamic> saveJwtJsonResponse = json.decode(saveJwtResponse.body); // แปลงการตอบกลับจาก JSON เป็น Map
-                
+            Map<String, dynamic> saveJwtJsonResponse = json.decode(
+                saveJwtResponse.body); // แปลงการตอบกลับจาก JSON เป็น Map
+
             if (saveJwtJsonResponse['result'] == "1") {
               return {
                 'success': true, // การเข้าสู่ระบบสำเร็จ
@@ -300,7 +305,6 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  
   // ฟังก์ชันล็อกอิน facebook
   Future<void> facebookLogin(BuildContext context) async {
     try {
@@ -516,7 +520,14 @@ class _LoginPageState extends State<LoginPage> {
                     buttonfacebook(), // ปุ่มเข้าสู่ระบบด้วย Facebook
                     buttonregister(), // ปุ่มสมัครสมาชิก
                     buttonforget(), // ปุ่มลืมรหัสผ่าน
-                    SizedBox(height: 10)
+                    SizedBox(height: 10),
+                    Text(
+                      'เวอร์ชั่น 1.0.0', // ข้อความเวอร์ชั่น
+                      style: TextStyle(
+                        fontSize: 14, // กำหนดขนาดตัวอักษร
+                        color: Colors.grey, // กำหนดสีข้อความ
+                      ),
+                    )
                   ])),
                 ],
               ),

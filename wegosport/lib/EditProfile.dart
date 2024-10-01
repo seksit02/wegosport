@@ -149,7 +149,7 @@ class _EditProfileState extends State<EditProfile> {
                     Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => ProfilePage(jwt: widget.jwt),
+                        builder: (context) => ProfilePage(jwt: widget.jwt, activity: [],),
                       ),
                     );
                   },
@@ -217,7 +217,7 @@ class _EditProfileState extends State<EditProfile> {
                 context,
                 MaterialPageRoute(
                   builder: (context) => ProfilePage(
-                      jwt: widget.jwt), // กลับไปที่หน้า ProfilePage พร้อม JWT
+                      jwt: widget.jwt, activity: [],), // กลับไปที่หน้า ProfilePage พร้อม JWT
                 ),
               );
             },

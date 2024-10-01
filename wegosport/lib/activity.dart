@@ -1,13 +1,15 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:http/http.dart' as http;
 import 'package:web_socket_channel/web_socket_channel.dart';
+import 'package:wegosport/EditActivity.dart';
 import 'package:wegosport/Homepage.dart';
 import 'package:wegosport/chat.dart';
 
 import 'package:intl/intl.dart';
-
 
 // หน้ากิจกรรม
 class ActivityPage extends StatefulWidget {
@@ -31,6 +33,9 @@ class _ActivityPageState extends State<ActivityPage> {
   Widget build(BuildContext context) {
     print('userId ที่ได้รับใน ActivityPage: ${widget.userId}');
     print('JWT ที่ได้รับใน ActivityPage: ${widget.jwt}');
+
+    bool isCreator = widget.activity['creator'] ==
+        widget.userId; // ตรวจสอบว่าผู้ใช้เป็นผู้สร้างหรือไม่
 
     // แปลงวันเวลาเป็น DateTime
     DateTime activityDate;
@@ -124,6 +129,33 @@ class _ActivityPageState extends State<ActivityPage> {
           );
         },
       );
+    }
+
+    Future<void> _leaveActivity() async {
+      final response = await http.post(
+        Uri.parse(
+            'http://10.0.2.2/flutter_webservice/delete_member.php'), // URL API ของคุณ
+        body: {
+          'user_id': widget.userId, // ส่ง user_id ของผู้ใช้
+          'activity_id':
+              widget.activity['activity_id'], // ส่ง activity_id ของกิจกรรม
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        if (responseData['status'] == 'success') {
+          // ลบสำเร็จ
+          print('ออกจากกิจกรรมสำเร็จ');
+          Navigator.of(context).pop(); // ย้อนกลับหน้าก่อนหน้า
+        } else {
+          // แสดงข้อความล้มเหลว
+          print('ออกจากกิจกรรมล้มเหลว: ${responseData['message']}');
+        }
+      } else {
+        // ข้อผิดพลาดการเชื่อมต่อ
+        print('ข้อผิดพลาดการเชื่อมต่อ: ${response.statusCode}');
+      }
     }
 
     // ดึงชื่อผู้ใช้จาก members
@@ -301,6 +333,95 @@ class _ActivityPageState extends State<ActivityPage> {
                       ),
                     ),
             ),
+            SizedBox(height: 16),
+            // ปุ่มแก้ไขสำหรับผู้สร้าง หรือออกจากกิจกรรมสำหรับสมาชิก
+            Center(
+              child: isCreator
+                  ? ElevatedButton.icon(
+                      onPressed: () async {
+                        if (widget.userId == widget.activity['creator']) {
+                          // ตรวจสอบว่าผู้ใช้เป็นผู้สร้างหรือไม่
+                          final result = await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => EditActivity(
+                                activityId:
+                                    widget.activity['activity_id'].toString(),
+                                jwt: widget
+                                    .jwt, // ใช้ JWT ที่ถูกต้องที่คุณต้องการส่งไป
+                              ),
+                            ),
+                          );
+
+                          if (result == true) {
+                            // ถ้าผลลัพธ์จาก EditActivity เป็น true ให้รีเฟรชข้อมูล
+                            setState(() {
+                              // เรียกใช้ฟังก์ชันที่เกี่ยวข้อง เช่น รีเฟรชข้อมูลกิจกรรม
+                            });
+                          }
+                        } else {
+                          // ถ้าผู้ใช้ไม่ใช่ผู้สร้างจะแสดงข้อความแจ้งเตือน
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return AlertDialog(
+                                title: Text('ไม่มีสิทธิ์ในการแก้ไข'),
+                                content:
+                                    Text('คุณไม่มีสิทธิ์ในการแก้ไขกิจกรรมนี้'),
+                                actions: [
+                                  TextButton(
+                                    child: Text('ตกลง'),
+                                    onPressed: () {
+                                      Navigator.of(context).pop(); // ปิด popup
+                                    },
+                                  ),
+                                ],
+                              );
+                            },
+                          );
+                        }
+                      },
+                      icon: Icon(Icons.edit,
+                          color: Colors.white), // ไอคอน "แก้ไข"
+                      label: Text(
+                        "แก้ไข", // ข้อความ "แก้ไข"
+                        style: TextStyle(
+                          fontSize: 18.0,
+                          fontWeight: FontWeight.bold,
+                          color: const Color.fromARGB(255, 255, 255, 255),
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue, // สีพื้นหลังของปุ่ม
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      ),
+                    )
+                  : (widget.activity['members'] as List<dynamic>).any(
+                          (member) =>
+                              member['user_id'] ==
+                              widget.userId) // ตรวจสอบว่าเป็นสมาชิกหรือไม่
+                      ? ElevatedButton.icon(
+                          onPressed: () {
+                            // ฟังก์ชันออกจากกิจกรรม
+                            _leaveActivity();
+                          },
+                          icon: Icon(Icons.exit_to_app, color: Colors.white),
+                          label: Text(
+                            "ออกจากกิจกรรม",
+                            style: TextStyle(
+                              fontSize: 18.0,
+                              fontWeight: FontWeight.bold,
+                              color: const Color.fromARGB(255, 255, 255, 255),
+                            ),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.red),
+                        )
+                      : SizedBox
+                          .shrink(), // ถ้าไม่ใช่ผู้สร้างหรือไม่ใช่สมาชิก จะไม่แสดงปุ่ม
+            ),
+            SizedBox(height: 16), // เพิ่มระยะห่างจากปุ่มก่อนหน้านี้
           ],
         ),
       ),

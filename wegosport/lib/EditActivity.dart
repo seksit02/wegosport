@@ -45,6 +45,7 @@ class _EditActivityState extends State<EditActivity> {
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
+      print('ข้อมูลดิบจาก API get_ShowDataLocation : $data');
 
       setState(() {
         locationData = List<Map<String, dynamic>>.from(
@@ -52,6 +53,7 @@ class _EditActivityState extends State<EditActivity> {
         locations = locationData
             .map((item) => item['location_name'].toString())
             .toList();
+            print('รายชื่อสถานที่: $locations'); // พิมพ์รายการสถานที่ที่ดึงมาได้
       });
     } else {
       print('Failed to load locations.');
@@ -72,6 +74,7 @@ class _EditActivityState extends State<EditActivity> {
             .expand((type) => type['sports'] as List)
             .map<String>((sport) => sport['sport_name'].toString())
             .toList();
+        print('ข้อมูลกีฬา : $sport'); // ตรวจสอบว่าได้รายการกีฬาอย่างถูกต้องหรือไม่
       } else {
         sport = [];
       }
@@ -235,7 +238,6 @@ class _EditActivityState extends State<EditActivity> {
     }
   }
 
-
   Future<void> deleteActivity() async {
     Map<String, dynamic> dataPost = {
       "activity_id": widget.activityId,
@@ -323,7 +325,6 @@ class _EditActivityState extends State<EditActivity> {
       );
     }
   }
-
 
 
   @override
