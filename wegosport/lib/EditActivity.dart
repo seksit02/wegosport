@@ -30,6 +30,8 @@ class _EditActivityState extends State<EditActivity> {
   List<String> locations = [];
   List<String> sport = [];
   List<Map<String, dynamic>> locationData = [];
+  List<String> availableDays = [];
+  String? locationTime;
 
   @override
   void initState() {
@@ -39,6 +41,50 @@ class _EditActivityState extends State<EditActivity> {
     fetchActivityDetails();
   }
 
+  // Map เพื่อจัดเก็บสถานะของวันที่เลือก
+  Map<String, bool> selectedDays = {
+    'จันทร์': false,
+    'อังคาร': false,
+    'พุธ': false,
+    'พฤหัสบดี': false,
+    'ศุกร์': false,
+    'เสาร์': false,
+    'อาทิตย์': false,
+  };
+
+  // ฟังก์ชันแปลงวันที่ที่เลือกเป็น String
+  String getSelectedDays() {
+    List<String> days = [];
+    selectedDays.forEach((key, value) {
+      if (value) {
+        switch (key) {
+          case 'จันทร์':
+            days.add('1');
+            break;
+          case 'อังคาร':
+            days.add('2');
+            break;
+          case 'พุธ':
+            days.add('3');
+            break;
+          case 'พฤหัสบดี':
+            days.add('4');
+            break;
+          case 'ศุกร์':
+            days.add('5');
+            break;
+          case 'เสาร์':
+            days.add('6');
+            break;
+          case 'อาทิตย์':
+            days.add('7'); // เปลี่ยนจาก '0' เป็น '7'
+            break;
+        }
+      }
+    });
+    return days.join(','); // แปลง List เป็น String โดยแยกด้วย ','
+  }
+  
   Future<void> fetchLocations() async {
     final response = await http.get(Uri.parse(
         'http://10.0.2.2/flutter_webservice/get_ShowDataLocation.php'));
@@ -61,22 +107,32 @@ class _EditActivityState extends State<EditActivity> {
     }
   }
 
+  // ฟังก์ชันกรองกีฬาเมื่อเลือกสถานที่
   void updateSportsForLocation(String locationName) {
+    // ดึงข้อมูลสถานที่ที่เลือกจาก locationData
     final selectedLocation = locationData.firstWhere(
       (location) => location['location_name'] == locationName,
       orElse: () => {},
     );
 
     setState(() {
+      // ถ้าสถานที่ถูกต้องและมี sport_types ให้ดึง sport_name ออกมา
       if (selectedLocation.isNotEmpty &&
           selectedLocation['sport_types'] != null) {
         sport = selectedLocation['sport_types']
-            .expand((type) => type['sports'] as List)
-            .map<String>((sport) => sport['sport_name'].toString())
+            .expand((type) =>
+                type['sports'] as List) // ดึงรายการกีฬาออกมาจากแต่ละประเภท
+            .map<String>((sport) =>
+                sport['sport_name'].toString()) // ทำให้แน่ใจว่าเป็น String
             .toList();
-        print('ข้อมูลกีฬา : $sport'); // ตรวจสอบว่าได้รายการกีฬาอย่างถูกต้องหรือไม่
+
+        // เก็บข้อมูล location_day และ location_time
+        availableDays = selectedLocation['location_day'].split(',');
+        locationTime = selectedLocation['location_time'];
       } else {
         sport = [];
+        availableDays = [];
+        locationTime = null;
       }
     });
   }
@@ -326,7 +382,6 @@ class _EditActivityState extends State<EditActivity> {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -516,56 +571,109 @@ class _EditActivityState extends State<EditActivity> {
 
   Widget dateField() {
     return Container(
-      margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
+      margin: EdgeInsets.fromLTRB(50, 20, 50, 0), // กำหนด margin รอบฟิลด์
       child: TextFormField(
         controller: dateController,
         decoration: InputDecoration(
-          contentPadding: EdgeInsets.fromLTRB(0, 15, 0, 0),
-          hintText: 'วันที่และเวลา',
-          fillColor: Colors.white,
+          contentPadding:
+              EdgeInsets.fromLTRB(0, 15, 0, 0), // กำหนด padding ภายในฟิลด์
+          hintText: 'เพิ่มวันที่และเวลา', // ข้อความแนะนำในฟิลด์
+          fillColor: Color.fromARGB(255, 255, 255, 255), // สีพื้นหลังของฟิลด์
           filled: true,
-          prefixIcon: Icon(Icons.calendar_today, color: Colors.red),
+          prefixIcon: Icon(
+            Icons.calendar_today, // ไอคอนวันที่และเวลา
+            color: Colors.red, // กำหนดสีของไอคอน
+          ),
           border: OutlineInputBorder(
-            borderSide: BorderSide(color: Colors.black),
-            borderRadius: BorderRadius.circular(30),
+            borderSide: BorderSide(color: Colors.black), // กำหนดสีของขอบฟิลด์
+            borderRadius: BorderRadius.circular(30), // ปรับความโค้งของขอบฟิลด์
           ),
         ),
-        readOnly: true,
+        readOnly: true, // ปิดการแก้ไขฟิลด์โดยตรง
         onTap: () async {
           DateTime now = DateTime.now();
+
+          // กำหนดวันใน location_day ที่ให้เลือกได้เท่านั้น
+          List<int> allowedDays =
+              availableDays.map((day) => int.parse(day)).toList();
+
+          // ให้เลือกได้เฉพาะวันที่เปิดตาม availableDays
           DateTime? pickedDate = await showDatePicker(
             context: context,
             initialDate: now,
             firstDate: now,
             lastDate: DateTime(2101),
+            selectableDayPredicate: (DateTime date) {
+              return allowedDays
+                  .contains(date.weekday); // กรองวันที่อนุญาตให้เลือก
+            },
           );
 
           if (pickedDate != null) {
-            TimeOfDay? pickedTime = await showTimePicker(
-              context: context,
-              initialTime: TimeOfDay.now(),
-              builder: (context, child) {
-                return MediaQuery(
-                  data: MediaQuery.of(context).copyWith(
-                    alwaysUse24HourFormat: true,
-                  ),
-                  child: child!,
-                );
-              },
-            );
+            // แสดงเวลาที่อนุญาตตาม location_time
+            if (locationTime != null) {
+              List<String> timeRange = locationTime!.split(' - ');
+              int startHour = int.parse(timeRange[0].split(':')[0]);
+              int startMinute = int.parse(timeRange[0].split(':')[1]);
+              int endHour = int.parse(timeRange[1].split(':')[0]);
+              int endMinute = int.parse(timeRange[1].split(':')[1]);
 
-            if (pickedTime != null) {
-              DateTime finalDateTime = DateTime(
-                pickedDate.year,
-                pickedDate.month,
-                pickedDate.day,
-                pickedTime.hour,
-                pickedTime.minute,
+              TimeOfDay initialTime =
+                  TimeOfDay(hour: startHour, minute: startMinute);
+
+              TimeOfDay? pickedTime = await showTimePicker(
+                context: context,
+                initialTime: initialTime,
+                builder: (context, child) {
+                  return MediaQuery(
+                    data: MediaQuery.of(context).copyWith(
+                      alwaysUse24HourFormat: true, // ใช้รูปแบบเวลา 24 ชั่วโมง
+                    ),
+                    child: child!,
+                  );
+                },
               );
 
-              setState(() {
-                dateController.text = finalDateTime.toString();
-              });
+              if (pickedTime != null) {
+                DateTime finalDateTime = DateTime(
+                  pickedDate.year,
+                  pickedDate.month,
+                  pickedDate.day,
+                  pickedTime.hour,
+                  pickedTime.minute,
+                );
+
+                // ตรวจสอบว่าเวลาที่เลือกอยู่ในช่วงเวลาที่กำหนด
+                if (pickedTime.hour >= startHour &&
+                    pickedTime.minute >= startMinute &&
+                    (pickedTime.hour < endHour ||
+                        (pickedTime.hour == endHour &&
+                            pickedTime.minute <= endMinute))) {
+                  setState(() {
+                    dateController.text = finalDateTime
+                        .toString(); // แสดงวันที่และเวลาที่เลือกในฟิลด์
+                  });
+                } else {
+                  // แสดงการแจ้งเตือนถ้าเวลาที่เลือกไม่อยู่ในช่วงที่กำหนด
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        title: Text('ข้อผิดพลาด'),
+                        content: Text('กรุณาเลือกเวลาที่อยู่ในช่วงที่กำหนด'),
+                        actions: <Widget>[
+                          TextButton(
+                            child: Text('ตกลง'),
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                }
+              }
             }
           }
         },
@@ -697,6 +805,5 @@ class _EditActivityState extends State<EditActivity> {
       ),
     );
   }
-}
 
-  
+}
