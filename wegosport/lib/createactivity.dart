@@ -40,6 +40,8 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
   List<Map<String, dynamic>> locationData =
       []; // เก็บข้อมูลทั้งหมดของสถานที่และกีฬา
   get selectedSportId => 1; // ID ของกีฬาที่เลือก (แก้ไขตามความเหมาะสม)
+  List<String> availableDays = [];
+  String? locationTime;
 
   @override
   void initState() {
@@ -112,8 +114,14 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
             .map<String>((sport) =>
                 sport['sport_name'].toString()) // ทำให้แน่ใจว่าเป็น String
             .toList();
+
+        // เก็บข้อมูล location_day และ location_time
+        availableDays = selectedLocation['location_day'].split(',');
+        locationTime = selectedLocation['location_time'];
       } else {
-        sport = []; // ถ้าไม่มีข้อมูลกีฬาก็เคลียร์รายการกีฬา
+        sport = [];
+        availableDays = [];  
+        locationTime = null;
       }
     });
   }
@@ -349,7 +357,6 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
     );
   }
 
-  // วิดเจ็ตฟิลด์วันที่และเวลา
   Widget date() {
     return Container(
       margin: EdgeInsets.fromLTRB(50, 20, 50, 0), // กำหนด margin รอบฟิลด์
@@ -373,60 +380,87 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
         readOnly: true, // ปิดการแก้ไขฟิลด์โดยตรง
         onTap: () async {
           DateTime now = DateTime.now();
+
+          // กำหนดวันใน location_day ที่ให้เลือกได้เท่านั้น
+          List<int> allowedDays =
+              availableDays.map((day) => int.parse(day)).toList();
+
+          // ให้เลือกได้เฉพาะวันที่เปิดตาม availableDays
           DateTime? pickedDate = await showDatePicker(
             context: context,
             initialDate: now,
             firstDate: now,
-            lastDate: DateTime(2101), // กำหนดช่วงวันที่สามารถเลือกได้
+            lastDate: DateTime(2101),
+            selectableDayPredicate: (DateTime date) {
+              return allowedDays
+                  .contains(date.weekday); // กรองวันที่อนุญาตให้เลือก
+            },
           );
 
           if (pickedDate != null) {
-            TimeOfDay? pickedTime = await showTimePicker(
-              context: context,
-              initialTime: TimeOfDay.now(),
-              builder: (context, child) {
-                return MediaQuery(
-                  data: MediaQuery.of(context).copyWith(
-                    alwaysUse24HourFormat: true, // ใช้รูปแบบเวลา 24 ชั่วโมง
-                  ),
-                  child: child!,
-                );
-              },
-            );
+            // แสดงเวลาที่อนุญาตตาม location_time
+            if (locationTime != null) {
+              List<String> timeRange = locationTime!.split(' - ');
+              int startHour = int.parse(timeRange[0].split(':')[0]);
+              int startMinute = int.parse(timeRange[0].split(':')[1]);
+              int endHour = int.parse(timeRange[1].split(':')[0]);
+              int endMinute = int.parse(timeRange[1].split(':')[1]);
 
-            if (pickedTime != null) {
-              DateTime finalDateTime = DateTime(
-                pickedDate.year,
-                pickedDate.month,
-                pickedDate.day,
-                pickedTime.hour,
-                pickedTime.minute,
+              TimeOfDay initialTime =
+                  TimeOfDay(hour: startHour, minute: startMinute);
+
+              TimeOfDay? pickedTime = await showTimePicker(
+                context: context,
+                initialTime: initialTime,
+                builder: (context, child) {
+                  return MediaQuery(
+                    data: MediaQuery.of(context).copyWith(
+                      alwaysUse24HourFormat: true, // ใช้รูปแบบเวลา 24 ชั่วโมง
+                    ),
+                    child: child!,
+                  );
+                },
               );
 
-              if (finalDateTime.isAfter(now)) {
-                setState(() {
-                  dateController.text = finalDateTime
-                      .toString(); // แสดงวันที่และเวลาที่เลือกในฟิลด์
-                });
-              } else {
-                showDialog(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return AlertDialog(
-                      title: Text('ข้อผิดพลาด'), // ชื่อของ dialog
-                      content: Text(
-                          'ไม่สามารถเลือกเวลาที่ผ่านมาแล้วได้'), // ข้อความแจ้งเตือน
-                      actions: <Widget>[
-                        TextButton(
-                          child: Text('ตกลง'),
-                          onPressed: () {
-                            Navigator.of(context).pop(); // ปิด dialog
-                          },
-                        ),
-                      ],
-                    );
-                  },
+              if (pickedTime != null) {
+                DateTime finalDateTime = DateTime(
+                  pickedDate.year,
+                  pickedDate.month,
+                  pickedDate.day,
+                  pickedTime.hour,
+                  pickedTime.minute,
                 );
+
+                // ตรวจสอบว่าเวลาที่เลือกอยู่ในช่วงเวลาที่กำหนด
+                if (pickedTime.hour >= startHour &&
+                    pickedTime.minute >= startMinute &&
+                    (pickedTime.hour < endHour ||
+                        (pickedTime.hour == endHour &&
+                            pickedTime.minute <= endMinute))) {
+                  setState(() {
+                    dateController.text = finalDateTime
+                        .toString(); // แสดงวันที่และเวลาที่เลือกในฟิลด์
+                  });
+                } else {
+                  // แสดงการแจ้งเตือนถ้าเวลาที่เลือกไม่อยู่ในช่วงที่กำหนด
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        title: Text('ข้อผิดพลาด'),
+                        content: Text('กรุณาเลือกเวลาที่อยู่ในช่วงที่กำหนด'),
+                        actions: <Widget>[
+                          TextButton(
+                            child: Text('ตกลง'),
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                }
               }
             }
           }

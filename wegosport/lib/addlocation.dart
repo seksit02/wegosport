@@ -644,7 +644,7 @@ class _AddLocationState extends State<AddLocationPage> {
             days.add('6');
             break;
           case 'อาทิตย์':
-            days.add('0');
+            days.add('7');
             break;
         }
       }
