@@ -55,15 +55,23 @@ class _HomepageState extends State<Homepage> {
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
 
+      // กรองกิจกรรมที่ยังไม่หมดเวลา
+      final currentDate = DateTime.now();
+      final upcomingActivities = data.where((activity) {
+        final activityDate = DateTime.parse(activity['activity_date']);
+        return activityDate
+            .isAfter(currentDate); // กรองเฉพาะกิจกรรมที่ยังไม่หมดเวลา
+      }).toList();
+
       // จัดเรียงกิจกรรมตามวันที่สร้าง
-      data.sort((a, b) {
+      upcomingActivities.sort((a, b) {
         final dateA = DateTime.parse(a['activity_date']);
         final dateB = DateTime.parse(b['activity_date']);
         return dateB.compareTo(dateA); // จัดเรียงตามลำดับวันที่
       });
 
       setState(() {
-        activities = data;
+        activities = upcomingActivities; // เก็บเฉพาะกิจกรรมที่ยังไม่หมดเวลา
         filteredActivities =
             activities; // ตั้งค่ารายการที่กรองเป็นรายการทั้งหมดเมื่อเริ่มต้น
       });
@@ -118,7 +126,7 @@ class _HomepageState extends State<Homepage> {
   }
 
   // ฟังก์ชันกรองกิจกรรม (ช่องค้นหา)
- void _filterActivities(String query) {
+  void _filterActivities(String query) {
     if (activities == null || query == null) {
       setState(() {
         searchQuery = query ?? '';
@@ -419,8 +427,9 @@ class _HomepageState extends State<Homepage> {
                       backgroundColor: Color.fromARGB(255, 255, 0, 0),
                       minimumSize: Size(double.infinity, 30), // ปรับขนาดของปุ่ม
                     ),
-                    child: Text('สร้างกิจกรรม',
-                    style: TextStyle(
+                    child: Text(
+                      'สร้างกิจกรรม',
+                      style: TextStyle(
                         fontSize: 18.0, // ปรับขนาดฟอนต์ตามที่ต้องการ
                         fontWeight: FontWeight.bold, // ทำให้ฟอนต์หนา
                       ),
@@ -442,8 +451,9 @@ class _HomepageState extends State<Homepage> {
                       backgroundColor: Color.fromARGB(255, 255, 0, 0),
                       minimumSize: Size(double.infinity, 30), // ปรับขนาดของปุ่ม
                     ),
-                    child: Text('เพิ่มสถานที่',
-                    style: TextStyle(
+                    child: Text(
+                      'เพิ่มสถานที่',
+                      style: TextStyle(
                         fontSize: 18.0, // ปรับขนาดฟอนต์ตามที่ต้องการ
                         fontWeight: FontWeight.bold, // ทำให้ฟอนต์หนา
                       ),
@@ -492,7 +502,6 @@ class ActivityCardItem extends StatelessWidget {
         activity['status'] == 'ยอดฮิต';
     print('Activity Status: ${activity['status']}'); // พิมพ์สถานะกิจกรรม
 
-
     final members = activity['members'];
     bool isPopular = (members != null && members.length > 3);
     String statusText = isPopular ? "ยอดฮิต" : "มาใหม่";
@@ -523,7 +532,6 @@ class ActivityCardItem extends StatelessWidget {
     return GestureDetector(
       onTap: () {
         if (isActive) {
-
           Navigator.push(
             context,
             MaterialPageRoute(
@@ -539,7 +547,6 @@ class ActivityCardItem extends StatelessWidget {
             // หลังจากกลับมาจากหน้า ActivityPage รีเฟรชข้อมูลกิจกรรม
             fetchActivities();
           });
-
         } else {
           showDialog(
             context: context,
