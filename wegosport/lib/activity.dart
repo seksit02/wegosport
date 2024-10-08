@@ -131,30 +131,107 @@ class _ActivityPageState extends State<ActivityPage> {
       );
     }
 
-    Future<void> _leaveActivity() async {
-      final response = await http.post(
-        Uri.parse(
-            'http://10.0.2.2/flutter_webservice/delete_member.php'), // URL API ของคุณ
-        body: {
-          'user_id': widget.userId, // ส่ง user_id ของผู้ใช้
-          'activity_id':
-              widget.activity['activity_id'], // ส่ง activity_id ของกิจกรรม
+Future<void> _leaveActivity() async {
+      bool? confirm = await showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('ยืนยันการออกจากกิจกรรม'),
+            content: Text('คุณแน่ใจหรือไม่ว่าต้องการออกจากกิจกรรมนี้?'),
+            actions: <Widget>[
+              TextButton(
+                child: Text('ยกเลิก'),
+                onPressed: () {
+                  Navigator.of(context)
+                      .pop(false); // ปิด dialog และส่งค่า false
+                },
+              ),
+              TextButton(
+                child: Text('ตกลง'),
+                onPressed: () {
+                  Navigator.of(context).pop(true); // ปิด dialog และส่งค่า true
+                },
+              ),
+            ],
+          );
         },
       );
 
-      if (response.statusCode == 200) {
-        final responseData = jsonDecode(response.body);
-        if (responseData['status'] == 'success') {
-          // ลบสำเร็จ
-          print('ออกจากกิจกรรมสำเร็จ');
-          Navigator.of(context).pop(); // ย้อนกลับหน้าก่อนหน้า
+      if (confirm == true) {
+        final response = await http.post(
+          Uri.parse('http://10.0.2.2/flutter_webservice/delete_member.php'),
+          body: {
+            'user_id': widget.userId,
+            'activity_id': widget.activity['activity_id'],
+          },
+        );
+
+        if (response.statusCode == 200) {
+          final responseData = jsonDecode(response.body);
+          if (responseData['status'] == 'success') {
+            // ลบสำเร็จ
+            showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  title: Text('ออกจากกิจกรรมสำเร็จ'),
+                  content: Text('คุณได้ออกจากกิจกรรมเรียบร้อยแล้ว'),
+                  actions: <Widget>[
+                    TextButton(
+                      child: Text('ตกลง'),
+                      onPressed: () {
+                        Navigator.of(context).pop(); // ปิด dialog
+                        Navigator.of(context).pop(); // ย้อนกลับหน้าก่อนหน้า
+                      },
+                    ),
+                  ],
+                );
+              },
+            );
+          } else {
+            // แสดงข้อความล้มเหลว
+            showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  title: Text('เกิดข้อผิดพลาด'),
+                  content:
+                      Text('ออกจากกิจกรรมล้มเหลว: ${responseData['message']}'),
+                  actions: <Widget>[
+                    TextButton(
+                      child: Text('ตกลง'),
+                      onPressed: () {
+                        Navigator.of(context).pop(); // ปิด dialog
+                      },
+                    ),
+                  ],
+                );
+              },
+            );
+          }
         } else {
-          // แสดงข้อความล้มเหลว
-          print('ออกจากกิจกรรมล้มเหลว: ${responseData['message']}');
+          // ข้อผิดพลาดการเชื่อมต่อ
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: Text('ข้อผิดพลาดการเชื่อมต่อ'),
+                content: Text('เกิดข้อผิดพลาด: ${response.statusCode}'),
+                actions: <Widget>[
+                  TextButton(
+                    child: Text('ตกลง'),
+                    onPressed: () {
+                      Navigator.of(context).pop(); // ปิด dialog
+                    },
+                  ),
+                ],
+              );
+            },
+          );
         }
       } else {
-        // ข้อผิดพลาดการเชื่อมต่อ
-        print('ข้อผิดพลาดการเชื่อมต่อ: ${response.statusCode}');
+        // ผู้ใช้กด "ยกเลิก" ไม่ต้องทำอะไร
+        print('ผู้ใช้ยกเลิกการออกจากกิจกรรม');
       }
     }
 
