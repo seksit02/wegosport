@@ -84,7 +84,7 @@ class _EditActivityState extends State<EditActivity> {
     });
     return days.join(','); // แปลง List เป็น String โดยแยกด้วย ','
   }
-  
+
   Future<void> fetchLocations() async {
     final response = await http.get(Uri.parse(
         'http://10.0.2.2/flutter_webservice/get_ShowDataLocation.php'));
@@ -99,7 +99,7 @@ class _EditActivityState extends State<EditActivity> {
         locations = locationData
             .map((item) => item['location_name'].toString())
             .toList();
-            print('รายชื่อสถานที่: $locations'); // พิมพ์รายการสถานที่ที่ดึงมาได้
+        print('รายชื่อสถานที่: $locations'); // พิมพ์รายการสถานที่ที่ดึงมาได้
       });
     } else {
       print('Failed to load locations.');
@@ -182,13 +182,12 @@ class _EditActivityState extends State<EditActivity> {
         }
 
         updateSportsForLocation(selectedLocation!);
-
       });
     } else {
       print('Failed to load activity details');
     }
   }
-  
+
   Future<void> updateActivity() async {
     String hashtags = _selectedTags.join(" ");
     List<String> hashtagList =
@@ -571,41 +570,92 @@ class _EditActivityState extends State<EditActivity> {
 
   Widget dateField() {
     return Container(
-      margin: EdgeInsets.fromLTRB(50, 20, 50, 0), // กำหนด margin รอบฟิลด์
+      margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
       child: TextFormField(
         controller: dateController,
         decoration: InputDecoration(
-          contentPadding:
-              EdgeInsets.fromLTRB(0, 15, 0, 0), // กำหนด padding ภายในฟิลด์
-          hintText: 'เพิ่มวันที่และเวลา', // ข้อความแนะนำในฟิลด์
-          fillColor: Color.fromARGB(255, 255, 255, 255), // สีพื้นหลังของฟิลด์
+          contentPadding: EdgeInsets.fromLTRB(0, 15, 0, 0),
+          hintText: 'เพิ่มวันที่และเวลา',
+          fillColor: Color.fromARGB(255, 255, 255, 255),
           filled: true,
           prefixIcon: Icon(
-            Icons.calendar_today, // ไอคอนวันที่และเวลา
-            color: Colors.red, // กำหนดสีของไอคอน
+            Icons.calendar_today,
+            color: Colors.red,
           ),
           border: OutlineInputBorder(
-            borderSide: BorderSide(color: Colors.black), // กำหนดสีของขอบฟิลด์
-            borderRadius: BorderRadius.circular(30), // ปรับความโค้งของขอบฟิลด์
+            borderSide: BorderSide(color: Colors.black),
+            borderRadius: BorderRadius.circular(30),
           ),
         ),
-        readOnly: true, // ปิดการแก้ไขฟิลด์โดยตรง
+        readOnly: true,
         onTap: () async {
+          if (locationTime == null) {
+            // แสดงข้อความแจ้งเตือนถ้ายังไม่ได้เลือกสถานที่
+            showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  title: Text('ข้อผิดพลาด'),
+                  content: Text('กรุณาเลือกสถานที่ก่อนที่จะเลือกวันที่และเวลา'),
+                  actions: <Widget>[
+                    TextButton(
+                      child: Text('ตกลง'),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                    ),
+                  ],
+                );
+              },
+            );
+            return; // หยุดการทำงานถ้ายังไม่ได้เลือกสถานที่
+          }
+
           DateTime now = DateTime.now();
 
           // กำหนดวันใน location_day ที่ให้เลือกได้เท่านั้น
           List<int> allowedDays =
               availableDays.map((day) => int.parse(day)).toList();
 
-          // ให้เลือกได้เฉพาะวันที่เปิดตาม availableDays
+          // หา initialDate ที่ตรงกับวันแรกที่เลือกได้จาก availableDays
+          DateTime initialDate = now;
+          bool foundInitialDate = false;
+          for (int day in allowedDays) {
+            if (day >= now.weekday) {
+              initialDate = now.add(Duration(days: day - now.weekday));
+              foundInitialDate = true;
+              break;
+            }
+          }
+
+          // ถ้าไม่มีวันที่ตรงในสัปดาห์ปัจจุบัน ให้เลือกวันแรกในสัปดาห์ถัดไป
+          if (!foundInitialDate) {
+            initialDate =
+                now.add(Duration(days: 7 - now.weekday + allowedDays.first));
+          }
+
           DateTime? pickedDate = await showDatePicker(
             context: context,
-            initialDate: now,
+            initialDate: initialDate,
             firstDate: now,
             lastDate: DateTime(2101),
             selectableDayPredicate: (DateTime date) {
-              return allowedDays
-                  .contains(date.weekday); // กรองวันที่อนุญาตให้เลือก
+              // อนุญาตให้เลือกวันที่ปัจจุบันถ้าเวลายังไม่เลยเวลาปิด
+              if (date.day == now.day &&
+                  date.month == now.month &&
+                  date.year == now.year) {
+                if (locationTime != null) {
+                  List<String> timeRange = locationTime!.split(' - ');
+                  int endHour = int.parse(timeRange[1].split(':')[0]);
+                  int endMinute = int.parse(timeRange[1].split(':')[1]);
+
+                  if (now.hour < endHour ||
+                      (now.hour == endHour && now.minute < endMinute)) {
+                    return true;
+                  }
+                }
+              }
+              return allowedDays.contains(date.weekday);
             },
           );
 
@@ -618,8 +668,38 @@ class _EditActivityState extends State<EditActivity> {
               int endHour = int.parse(timeRange[1].split(':')[0]);
               int endMinute = int.parse(timeRange[1].split(':')[1]);
 
-              TimeOfDay initialTime =
-                  TimeOfDay(hour: startHour, minute: startMinute);
+              // ถ้าเลือกวันที่เป็นวันนี้ ให้ล็อกเวลาเริ่มต้นเป็นเวลาปัจจุบัน
+              TimeOfDay initialTime;
+              if (pickedDate.day == now.day &&
+                  pickedDate.month == now.month &&
+                  pickedDate.year == now.year) {
+                // ตรวจสอบว่าเวลาปัจจุบันยังอยู่ในช่วงเวลาที่อนุญาต
+                if (now.hour > endHour ||
+                    (now.hour == endHour && now.minute > endMinute)) {
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        title: Text('ข้อผิดพลาด'),
+                        content: Text(
+                            'เวลาปัจจุบันเกินเวลาที่อนุญาตในสถานที่นี้แล้ว'),
+                        actions: <Widget>[
+                          TextButton(
+                            child: Text('ตกลง'),
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                  return;
+                }
+                initialTime = TimeOfDay(hour: now.hour, minute: now.minute);
+              } else {
+                initialTime = TimeOfDay(hour: startHour, minute: startMinute);
+              }
 
               TimeOfDay? pickedTime = await showTimePicker(
                 context: context,
@@ -627,7 +707,7 @@ class _EditActivityState extends State<EditActivity> {
                 builder: (context, child) {
                   return MediaQuery(
                     data: MediaQuery.of(context).copyWith(
-                      alwaysUse24HourFormat: true, // ใช้รูปแบบเวลา 24 ชั่วโมง
+                      alwaysUse24HourFormat: true,
                     ),
                     child: child!,
                   );
@@ -650,8 +730,7 @@ class _EditActivityState extends State<EditActivity> {
                         (pickedTime.hour == endHour &&
                             pickedTime.minute <= endMinute))) {
                   setState(() {
-                    dateController.text = finalDateTime
-                        .toString(); // แสดงวันที่และเวลาที่เลือกในฟิลด์
+                    dateController.text = finalDateTime.toString();
                   });
                 } else {
                   // แสดงการแจ้งเตือนถ้าเวลาที่เลือกไม่อยู่ในช่วงที่กำหนด
@@ -805,5 +884,4 @@ class _EditActivityState extends State<EditActivity> {
       ),
     );
   }
-
 }

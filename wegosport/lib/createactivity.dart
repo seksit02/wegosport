@@ -357,7 +357,7 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
     );
   }
 
-  Widget date() {
+Widget date() {
     return Container(
       margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
       child: TextFormField(
@@ -457,11 +457,34 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
               int endHour = int.parse(timeRange[1].split(':')[0]);
               int endMinute = int.parse(timeRange[1].split(':')[1]);
 
-              // ถ้าเลือกวันที่เป็นวันนี้ ให้เวลาเริ่มต้นเป็นเวลาปัจจุบัน
+              // ถ้าเลือกวันที่เป็นวันนี้ ให้ล็อกเวลาเริ่มต้นเป็นเวลาปัจจุบัน
               TimeOfDay initialTime;
               if (pickedDate.day == now.day &&
                   pickedDate.month == now.month &&
                   pickedDate.year == now.year) {
+                // ตรวจสอบว่าเวลาปัจจุบันยังอยู่ในช่วงเวลาที่อนุญาต
+                if (now.hour > endHour ||
+                    (now.hour == endHour && now.minute > endMinute)) {
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        title: Text('ข้อผิดพลาด'),
+                        content: Text(
+                            'เวลาปัจจุบันเกินเวลาที่อนุญาตในสถานที่นี้แล้ว'),
+                        actions: <Widget>[
+                          TextButton(
+                            child: Text('ตกลง'),
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                  return;
+                }
                 initialTime = TimeOfDay(hour: now.hour, minute: now.minute);
               } else {
                 initialTime = TimeOfDay(hour: startHour, minute: startMinute);
