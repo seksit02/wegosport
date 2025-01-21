@@ -23,7 +23,7 @@ class _MyactivityState extends State<Myactivity> {
   void initState() {
     super.initState();
     fetchUserData(widget.jwt).then((_) {
-      fetchActivities(); // ดึงข้อมูลกิจกรรมเมื่อดึงข้อมูลผู้ใช้สำเร็จ
+    fetchActivities(); // ดึงข้อมูลกิจกรรมเมื่อดึงข้อมูลผู้ใช้สำเร็จ
     });
   }
 
@@ -95,6 +95,7 @@ class _MyactivityState extends State<Myactivity> {
 
   // ฟังก์ชันสร้างรายการกิจกรรมที่ผู้ใช้เข้าร่วม
   Widget _buildActivityList() {
+
     if (userActivities.isEmpty) {
       return const Center(child: Text('ไม่มีกิจกรรมที่คุณเข้าร่วม'));
     }
@@ -177,7 +178,7 @@ class _MyactivityState extends State<Myactivity> {
                                 size: 16.0, color: Colors.grey),
                             const SizedBox(width: 5.0),
                             Text(
-                              'วันที่: $formattedDate',
+                              'วันที่ : $formattedDate',
                               style: TextStyle(
                                 fontSize: 14.0,
                                 color: Colors.grey[600],
@@ -207,12 +208,9 @@ class _MyactivityState extends State<Myactivity> {
         title: const Text('กิจกรรมที่ฉันเข้าร่วม'),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(8.0),
+        padding: const EdgeInsets.all(1.0),
         child: _buildActivityList(),
       ),
     );
   }
-
 }
-
-

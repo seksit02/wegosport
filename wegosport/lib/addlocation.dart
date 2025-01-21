@@ -50,6 +50,7 @@ class _AddLocationState extends State<AddLocationPage> {
     fetchType(); // เรียกใช้งานฟังก์ชัน fetchType เพื่อดึงข้อมูลประเภทสนาม
     _requestLocationPermission(); // ขออนุญาตการเข้าถึงตำแหน่ง
   }
+
   // ดึงข้อมูลประเภทสนามจากเซิร์ฟเวอร์
   Future<void> fetchType() async {
     final response = await http.get(Uri.parse(
@@ -113,10 +114,9 @@ class _AddLocationState extends State<AddLocationPage> {
       _isPickingImage = false; // ปรับสถานะเมื่อกระบวนการเสร็จสิ้น
     }
   }
-
-  
+ 
   // ขออนุญาตการเข้าถึงตำแหน่ง
-    Future<void> _requestLocationPermission() async {
+  Future<void> _requestLocationPermission() async {
       var status =
           await Permission.locationWhenInUse.status; // ตรวจสอบสถานะการอนุญาต
       if (!status.isGranted) {
@@ -279,6 +279,8 @@ class _AddLocationState extends State<AddLocationPage> {
   };
 
   Widget daySelection() {
+    bool isSelectAll = selectedDays.values.every((value) => value);
+
     return Container(
       margin: EdgeInsets.all(20), // เพิ่มระยะขอบรอบ ๆ
       padding: EdgeInsets.all(10), // เพิ่ม Padding ภายในกล่อง
@@ -295,17 +297,40 @@ class _AddLocationState extends State<AddLocationPage> {
         ],
       ),
       child: Column(
-        children: selectedDays.keys.map((String day) {
-          return CheckboxListTile(
-            title: Text(day),
-            value: selectedDays[day],
-            onChanged: (bool? value) {
-              setState(() {
-                selectedDays[day] = value!;
-              });
-            },
-          );
-        }).toList(),
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ...selectedDays.keys.map((String day) {
+            return CheckboxListTile(
+              title: Text(day),
+              value: selectedDays[day],
+              onChanged: (bool? value) {
+                setState(() {
+                  selectedDays[day] = value!;
+                });
+              },
+            );
+          }).toList(),
+          Align(
+            alignment: Alignment.center, // จัดปุ่มให้อยู่ขวา
+            child: ElevatedButton(
+              onPressed: () {
+                setState(() {
+                  if (isSelectAll) {
+                    selectedDays
+                        .updateAll((key, value) => false); // ยกเลิกทั้งหมด
+                  } else {
+                    selectedDays
+                        .updateAll((key, value) => true); // เลือกทั้งหมด
+                  }
+                });
+              },
+              child: Text(
+                isSelectAll ? 'ยกเลิกทั้งหมด' : 'เลือกทั้งหมด',
+                style: TextStyle(color: Colors.black), // สีตัวหนังสือ
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -500,7 +525,7 @@ class _AddLocationState extends State<AddLocationPage> {
               borderRadius:
                   BorderRadius.circular(40), // กำหนดความโค้งของขอบรูปภาพ
               child: Image.asset(
-                'images/logo.png', // ใช้โลโก้เป็นรูปภาพเริ่มต้น
+                'images/BGLocation1.jpg', // ใช้โลโก้เป็นรูปภาพเริ่มต้น
               ),
             ),
           )
@@ -763,7 +788,6 @@ class _AddLocationState extends State<AddLocationPage> {
           "Error: $error"); // แสดงข้อความเมื่อเกิดข้อผิดพลาดในกระบวนการส่งคำขอ
     }
   }
-
 
   @override
   Widget build(BuildContext context) {

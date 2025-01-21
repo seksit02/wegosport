@@ -93,6 +93,8 @@ flutter:
     - images/L001.jpg
     - images/L001.jpg
     - images/BGProfile.jpg
+    - images/BGLocation.jpg
+    - images/BGLocation1.jpg
   
 
   # An image asset can refer to one or more resolution-specific "variants", see

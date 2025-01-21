@@ -63,11 +63,11 @@ class _HomepageState extends State<Homepage> {
             .isAfter(currentDate); // กรองเฉพาะกิจกรรมที่ยังไม่หมดเวลา
       }).toList();
 
-      // จัดเรียงกิจกรรมตามวันที่สร้าง
+      // จัดเรียงกิจกรรมที่ใกล้จะหมดเวลามาก่อน
       upcomingActivities.sort((a, b) {
         final dateA = DateTime.parse(a['activity_date']);
         final dateB = DateTime.parse(b['activity_date']);
-        return dateB.compareTo(dateA); // จัดเรียงตามลำดับวันที่
+        return dateA.compareTo(dateB); // กิจกรรมที่ใกล้จะหมดเวลามาก่อน
       });
 
       setState(() {
@@ -179,29 +179,26 @@ class _HomepageState extends State<Homepage> {
 
   // ฟังก์ชันกรองกิจกรรมตามแฮชแท็กที่ถูกกด
   void _filterActivitiesByHashtag(String hashtag) {
-    final filtered = activities.where((activity) {
-      final hashtags = activity['hashtags'] as List<dynamic>? ?? [];
-
-      // เพิ่มเงื่อนไขในการตรวจสอบสถานะว่ากิจกรรมยังไม่ถูกระงับ
-      final isActive = activity['status'] == 'active' ||
-          activity['status'] == 'มาใหม่' ||
-          activity['status'] == 'ยอดฮิต';
-
-      return isActive &&
-          hashtags.any((tag) => tag['hashtag_message'] == hashtag);
-    }).toList();
-
     setState(() {
-      filteredActivities = filtered.isEmpty
-          ? [
-              {'activity_name': 'ไม่มีกิจกรรม'}
-            ]
-          : filtered.map((activity) {
-              final members = activity['members'];
-              final status =
-                  (members != null && members.length > 3) ? "ยอดฮิต" : "มาใหม่";
-              return {...activity, 'status': status};
-            }).toList();
+      // ถ้ากดแฮชแท็กเดิม ให้คืนค่ากิจกรรมทั้งหมด
+      if (searchQuery == hashtag) {
+        searchQuery = ''; // ล้างข้อความค้นหา
+        filteredActivities = activities; // คืนค่ากิจกรรมทั้งหมด
+      } else {
+        // กดแฮชแท็กใหม่ กรองกิจกรรมตามแฮชแท็กที่เลือก
+        searchQuery = hashtag;
+        filteredActivities = activities.where((activity) {
+          final hashtags = activity['hashtags'] as List<dynamic>? ?? [];
+          return hashtags.any((tag) => tag['hashtag_message'] == hashtag);
+        }).toList();
+
+        // ถ้าไม่มีผลลัพธ์ ให้แสดงข้อความ 'ไม่มีกิจกรรม'
+        if (filteredActivities.isEmpty) {
+          filteredActivities = [
+            {'activity_name': 'ไม่มีกิจกรรม'}
+          ];
+        }
+      }
     });
   }
 
@@ -647,13 +644,13 @@ class ActivityCardItem extends StatelessWidget {
               // แถวของแท็ก
               Wrap(
                 runSpacing: 5.0,
-                children: (activity['hashtags'] as List<dynamic>? ?? [])
-                    .map((tag) => GestureDetector(
-                          onTap: () => onHashtagTap(tag[
-                              'hashtag_message']), // เพิ่มการทำงานเมื่อกดแฮชแท็ก
-                          child: TagWidget(text: tag['hashtag_message']),
-                        ))
-                    .toList(),
+                children:
+                    (activity['hashtags'] as List<dynamic>? ?? []).map((tag) {
+                  return GestureDetector(
+                    onTap: () => onHashtagTap(tag['hashtag_message']),
+                    child: TagWidget(text: tag['hashtag_message']),
+                  );
+                }).toList(),
               ),
               SizedBox(height: 8),
               // วันที่และเวลา
