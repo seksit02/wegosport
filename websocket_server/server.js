@@ -74,52 +74,46 @@ server.on("connection", (ws) => {
     // ถ้า action คือ 'get_messages' จะเป็นการดึงข้อความของกิจกรรมที่กำหนด
     if (action === "get_messages") {
       db.query(
-        "SELECT * FROM messages WHERE activity_id = ? ORDER BY timestamp ASC LIMIT 50",
-        [activityId], // ส่ง activity_id เพื่อกรองข้อความของกิจกรรมที่กำหนด
+        "SELECT user_id, user_name, user_photo, message, timestamp FROM messages WHERE activity_id = ? ORDER BY timestamp ASC LIMIT 50",
+        [activityId],
         (err, rows) => {
           if (err) {
-            console.log("Error retrieving messages:", err); // แสดงข้อผิดพลาดถ้า query ผิดพลาด
+            console.log("Error retrieving messages:", err);
             ws.send(
               JSON.stringify({
                 action: "error",
-                message: "Error retrieving messages", // ส่งข้อความแสดงข้อผิดพลาดกลับไปที่ client
+                message: "Error retrieving messages",
               })
             );
           } else {
             const messages = rows.map((row) => ({
-              user_id: row.user_id, // user_id ของผู้ที่ส่งข้อความ
-              user_name: row.user_name, // ชื่อผู้ที่ส่งข้อความ
-              user_photo: row.user_photo, // รูปของผู้ที่ส่งข้อความ
-              message: row.message, // เนื้อหาข้อความ
-              timestamp: row.timestamp, // เวลาที่ส่งข้อความ
-              status: row.status, // สถานะของข้อความ เช่น 'read' หรือ 'sent'
+              user_id: row.user_id,
+              user_name: row.user_name,
+              user_photo: row.user_photo,
+              message: row.message,
+              timestamp: row.timestamp,
             }));
 
             ws.send(
               JSON.stringify({
                 action: "messages",
-                messages: messages, // ส่งรายการข้อความกลับไปที่ client
+                messages: messages,
               })
             );
 
-            // อัปเดตสถานะเป็น 'read' เมื่อมีการดึงข้อความ
-            db.query(
-              "UPDATE messages SET status = 'read' WHERE activity_id = ?",
-              [activityId]
-            );
+            // **ลบการอัปเดตสถานะ 'read' ออก**
+            // เพราะตารางไม่มีคอลัมน์ status อีกต่อไป
           }
         }
       );
     }
 
-    // ถ้า action คือ 'send_message' จะเป็นการส่งข้อความใหม่
     if (action === "send_message") {
       let msgContent = parsedMessage.message;
       let photoName = userPhoto.split("/").pop();
 
-      // บันทึกข้อความลงในฐานข้อมูลพร้อมกับ timestamp
       const query =
-        "INSERT INTO messages (user_id, user_name, user_photo, activity_id, message, timestamp, status) VALUES (?, ?, ?, ?, ?, NOW(), 'sent')";
+        "INSERT INTO messages (user_id, user_name, user_photo, activity_id, message, timestamp) VALUES (?, ?, ?, ?, ?, NOW())";
       db.query(
         query,
         [userId, userName, photoName, activityId, msgContent],
@@ -130,14 +124,13 @@ server.on("connection", (ws) => {
           } else {
             console.log("Message saved to DB for activityId:", activityId);
 
-            // ส่งข้อความใหม่ให้ทุก client พร้อมกับ timestamp
             const newMessage = {
               user_id: userId,
               user_name: userName,
               user_photo: userPhoto,
               message: msgContent,
               activity_id: activityId,
-              timestamp: new Date().toISOString(), // ส่ง timestamp ด้วย
+              timestamp: new Date().toISOString(),
             };
 
             clients.forEach((client) => {
@@ -154,7 +147,6 @@ server.on("connection", (ws) => {
         }
       );
     }
-
   });
 
   ws.on("close", () => {
