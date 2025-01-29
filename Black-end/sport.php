@@ -53,22 +53,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 if (isset($_GET['delete'])) {
     $sport_id = $_GET['delete'];
 
-    // Check if the sport_id is being referenced in the sport_in_type table
-    $sql = "SELECT * FROM sport_in_type WHERE sport_id='$sport_id'";
-    $result = $conn->query($sql);
-    
-    if ($result->num_rows > 0) {
-        $error = "ไม่สามารถลบข้อมูลได้ เนื่องจากมีความสัมพันธ์กับข้อมูลในตารางประเภทกีฬา";
+    // ลบข้อมูลที่เกี่ยวข้องจากตาราง sport_in_type ก่อน
+    $sql_delete_sport_in_type = "DELETE FROM sport_in_type WHERE sport_id='$sport_id'";
+    $conn->query($sql_delete_sport_in_type);
+
+    // ลบข้อมูลจากตาราง sport
+    $sql_delete_sport = "DELETE FROM sport WHERE sport_id='$sport_id'";
+    if ($conn->query($sql_delete_sport) === TRUE) {
+        $message = "ลบข้อมูลสำเร็จ";
     } else {
-        // Safe to delete
-        $sql = "DELETE FROM sport WHERE sport_id='$sport_id'";
-        if ($conn->query($sql) === TRUE) {
-            $message = "ลบข้อมูลสำเร็จ";
-        } else {
-            $error = "Error: " . $sql . "<br>" . $conn->error;
-        }
+        $error = "Error: " . $sql_delete_sport . "<br>" . $conn->error;
     }
 }
+
 
 ?>
 
@@ -227,14 +224,20 @@ if (isset($_GET['delete'])) {
     </div>
     
     <div class="menu-group">
-        <a href="user.php">ข้อมูลสมาชิก</a>
+        <a href="user.php">ข้อมูลผู้ใช้งาน</a>
         <a href="sport.php">ข้อมูลกีฬา</a>
-        <a href="location.php">ข้อมูลสถานที่เล่นกีฬา</a>
         <a href="sport_type.php">ข้อมูลประเภทสนามกีฬา</a>
+        <a href="location.php">ข้อมูลสถานที่เล่นกีฬา</a>
         <a href="hashtag.php">ข้อมูลแฮชแท็ก</a>
         <br>
-        <p>ข้อมูลทั่วไป</p>
+        <p>การอนุมัติ</p>
     </div>
+    
+    <div class="menu-group">
+        <a href="approve.php">อนุมัติสถานที่</a>
+    </div>
+
+    <p>ข้อมูลทั่วไป</p>
     
     <div class="menu-group">
         <a href="sport_type_in_location.php">ข้อมูลสนามกีฬา</a>
@@ -242,14 +245,12 @@ if (isset($_GET['delete'])) {
         <a href="member_in_activity.php">ข้อมูลสมาชิกกิจกรรม</a>
         <a href="profile.php">ข้อมูลโปรไฟล์</a>
     </div>
-    <p>การอนุมัติ</p>
-    <div class="menu-group">
-        <a href="approve.php">อนุมัติสถานที่</a>
-    </div>
+
     <div class="menu-group">
         <a href="report.php">รายงาน</a>
     </div>
-    <a href="index.php" class="btn-logout" onclick="return confirm('คุณแน่ใจว่าต้องการออกจากระบบหรือไม่?');">ออกจากระบบ</a>
+
+    <a href="index.php" class="btn-logout" onclick="return confirm('คุณแน่ใจว่าต้องการออกจากระบบหรือไม่?');">ออกจากระบบ</a><br>
 </div>
 
 <div class="container">

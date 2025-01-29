@@ -22,13 +22,13 @@ function getDetailedLocationData($conn) {
             location.location_name, 
             location.latitude, 
             location.longitude, 
-            sport_type.type_name,  -- ดึงข้อมูลชื่อประเภทกีฬา
+            sport_type.type_name,  
             location.location_day, 
             location.location_time, 
             COUNT(activity.activity_id) AS usage_count
         FROM location
         LEFT JOIN sport_type_in_location ON location.location_id = sport_type_in_location.location_id
-        LEFT JOIN sport_type ON sport_type_in_location.type_id = sport_type.type_id  -- ใช้ type_id สำหรับการเชื่อมโยง
+        LEFT JOIN sport_type ON sport_type_in_location.type_id = sport_type.type_id
         LEFT JOIN activity ON location.location_id = activity.location_id
         GROUP BY location.location_id
     ";
@@ -39,8 +39,6 @@ function getDetailedLocationData($conn) {
     }
     return $data;
 }
-
-
 
 // Function to get activity data with names, member count, and member names
 function getActivityDataWithNames($conn) {
@@ -99,6 +97,7 @@ function getUserInformationData($conn) {
     }
     return $data;
 }
+
 // Function to get location report with usage count
 function getLocationReport($conn) {
     $query = "
@@ -121,14 +120,33 @@ function getLocationReport($conn) {
     }
     return $data;
 }
+function getHashtagReport($conn) {
+    $query = "
+        SELECT 
+            hashtag.hashtag_message AS hashtag_name, 
+            activity.activity_name, 
+            user_information.user_name 
+        FROM hashtags_in_activities
+        JOIN hashtag ON hashtags_in_activities.hashtag_id = hashtag.hashtag_id
+        JOIN activity ON hashtags_in_activities.activity_id = activity.activity_id
+        JOIN creator ON activity.activity_id = creator.activity_id
+        JOIN user_information ON creator.user_id = user_information.user_id
+        GROUP BY hashtag.hashtag_message, activity.activity_name, user_information.user_name
+    ";
+    $result = mysqli_query($conn, $query);
+    $data = array();
+    while ($row = mysqli_fetch_assoc($result)) {
+        $data[] = $row;
+    }
+    return $data;
+}
 
 
 
-
-
-// Check if form is submitted
+/// Check if form is submitted
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $reportType = $_POST['report-type'];
+    
     if ($reportType == 'location') {
         $locationData = getLocationData($conn);
         $detailedLocationData = getDetailedLocationData($conn);
@@ -136,20 +154,45 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $activityData = getActivityDataWithNames($conn);
     } elseif ($reportType == 'user') {
         $userData = getUserInformationData($conn);
+    } elseif ($reportType == 'location1') {
+        $location1Data = getLocationReport($conn);  // กำหนดค่า $location1Data อย่างถูกต้อง
+    } elseif ($reportType == 'hashtag') {
+        $hashtagData = getHashtagReport($conn);
     }
 }
-// สร้างฟังก์ชันสำหรับแปลงหมายเลขวันเป็นชื่อวันภาษาไทย
+
+// ฟังก์ชันสำหรับแปลงหมายเลขวันเป็นชื่อวันภาษาไทยและเรียงลำดับตามหมายเลข
 function getThaiDayNamesList($days) {
-    $dayNames = array('อาทิตย์', 'จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์', 'เสาร์');
-    $dayNumbers = explode(',', $days); // แยกวันทำการที่เก็บเป็นหมายเลขด้วยเครื่องหมายจุลภาค
-    $dayList = '<ul>'; // เริ่มต้นรายการ (list)
+    // สร้างอาเรย์สำหรับชื่อวันภาษาไทย
+    $dayNames = array(
+        '1' => 'จันทร์',
+        '2' => 'อังคาร',
+        '3' => 'พุธ',
+        '4' => 'พฤหัสบดี',
+        '5' => 'ศุกร์',
+        '6' => 'เสาร์',
+        '7' => 'อาทิตย์'
+    );
     
+    // แยกวันทำการที่เก็บเป็นหมายเลขด้วยเครื่องหมายจุลภาค
+    $dayNumbers = explode(',', $days); 
+    
+    // จัดเรียงวันตามลำดับหมายเลข
+    sort($dayNumbers);
+    
+    // เริ่มต้นรายการ (list) สำหรับชื่อวัน
+    $dayList = '<ul>';
+    
+    // แปลงหมายเลขเป็นชื่อวันและเพิ่มลงในรายการ
     foreach ($dayNumbers as $dayNumber) {
-        $dayList .= '<li>' . $dayNames[trim($dayNumber)] . '</li>'; // แปลงหมายเลขเป็นชื่อวันและเพิ่มลงในรายการ
+        $dayList .= '<li>' . $dayNames[trim($dayNumber)] . '</li>';
     }
     
-    $dayList .= '</ul>'; // ปิดรายการ
-    return $dayList; // คืนค่าเป็น HTML ที่เป็นรายการของชื่อวัน
+    // ปิดรายการ
+    $dayList .= '</ul>';
+    
+    // คืนค่าเป็น HTML ที่เป็นรายการของชื่อวัน
+    return $dayList;
 }
 
 
@@ -161,6 +204,7 @@ function getThaiDayNamesList($days) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>รายงาน</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!-- เพิ่ม Chart.js -->
+   
     <style>
           body {
             display: flex;
@@ -168,6 +212,45 @@ function getThaiDayNamesList($days) {
             font-family: Arial, sans-serif;
             margin: 0;
             background: #f4f7f6;
+        }
+        /* Modal styles */
+        .modal {
+    display: none;
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    overflow: auto; /* เพิ่ม overflow เพื่อให้เลื่อนดูเนื้อหาที่เกินได้ */
+}
+
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 15% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 40%; /* ปรับขนาดของการ์ด */
+    max-width: 600px; /* กำหนดขนาดสูงสุด */
+    min-width: 300px; /* กำหนดขนาดขั้นต่ำ */
+    word-wrap: break-word; /* ทำให้ข้อความที่ยาวเกินขอบสามารถขึ้นบรรทัดใหม่ได้ */
+    box-sizing: border-box; /* ปรับการคำนวณขนาดกล่องให้อยู่ภายในขอบ */
+}
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
         }
         .sidebar {
             position: fixed;
@@ -224,15 +307,17 @@ function getThaiDayNamesList($days) {
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
-            background: #ecf0f1;
         }
         table, th, td {
             border: 1px solid #bdc3c7;
         }
+      
         th, td {
             padding: 15px;
             text-align: left;
+            border: 1px solid #bdc3c7;
         }
+
         th {
             background: #2c3e50;
             color: white;
@@ -333,6 +418,13 @@ button {
     font-size: 16px; /* กำหนดขนาดฟอนต์ */
 }
 
+/* สไตล์สำหรับจุด ... */
+.more-link {
+            cursor: pointer;
+            color: blue;
+            text-decoration: underline;
+        }
+
     </style>
 </head>
 <body>
@@ -345,15 +437,20 @@ button {
     </div>
     
     <div class="menu-group">
-        <a href="user.php">ข้อมูลสมาชิก</a>
+        <a href="user.php">ข้อมูลผู้ใช้งาน</a>
         <a href="sport.php">ข้อมูลกีฬา</a>
-        <a href="location.php">ข้อมูลสถานที่เล่นกีฬา</a>
         <a href="sport_type.php">ข้อมูลประเภทสนามกีฬา</a>
+        <a href="location.php">ข้อมูลสถานที่เล่นกีฬา</a>
         <a href="hashtag.php">ข้อมูลแฮชแท็ก</a>
         <br>
-        <p>ข้อมูลทั่วไป</p>
+        <p>การอนุมัติ</p>
     </div>
     
+    <div class="menu-group">
+        <a href="approve.php">อนุมัติสถานที่</a>
+    </div>
+
+    <p>ข้อมูลทั่วไป</p>
     
     <div class="menu-group">
         <a href="sport_type_in_location.php">ข้อมูลสนามกีฬา</a>
@@ -361,14 +458,12 @@ button {
         <a href="member_in_activity.php">ข้อมูลสมาชิกกิจกรรม</a>
         <a href="profile.php">ข้อมูลโปรไฟล์</a>
     </div>
-    <p>การอนุมัติ</p>
-    <div class="menu-group">
-        <a href="approve.php">อนุมัติสถานที่</a>
-    </div>
+
     <div class="menu-group">
         <a href="report.php">รายงาน</a>
     </div>
-    <a href="index.php" class="btn-logout" onclick="return confirm('คุณแน่ใจว่าต้องการออกจากระบบหรือไม่?');">ออกจากระบบ</a>
+
+    <a href="index.php" class="btn-logout" onclick="return confirm('คุณแน่ใจว่าต้องการออกจากระบบหรือไม่?');">ออกจากระบบ</a><br>
 </div>
 
 <div class="container">
@@ -382,6 +477,7 @@ button {
             <option value="activity">รายงานข้อมูลกิจกรรม</option>
             <option value="user">รายงานข้อมูลสมาชิก</option>
             <option value="location1">รายงานข้อมูลสนามกีฬา</option>
+            <option value="hashtag">รายงานข้อมูลแฮชแท็ก</option>
         </select>
     </div>
 
@@ -397,18 +493,24 @@ button {
 
 <div id="reportData">
     <?php
-    if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($locationData)) {
+    if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($detailedLocationData)) {
         echo "<h2>รายงานข้อมูลสถานที่เล่นกีฬา</h2>";
         echo "<table>";
-        echo "<tr><th>ลำดับ</th><th>ชื่อสถานที่</th><th>ละติจูด</th><th>ลองจิจูด</th><th>ประเภทสนามกีฬา</th><th>วันทำการ</th><th>เวลาเปิด-ปิด</th><th>จำนวนครั้งที่ถูกเรียกใช้</th></tr>";
+        echo "<tr><th>ลำดับ</th><th>ชื่อสถานที่</th><th>ละติจูด ลองจิจูด</th><th>ประเภทสนามกีฬา</th><th>วันทำการ</th><th>เวลาเปิด-ปิด</th><th>จำนวนครั้งที่ถูกเรียกใช้</th></tr>";
         $counter = 1;
         foreach ($detailedLocationData as $location) {
-            $thaiDayList = getThaiDayNamesList($location['location_day']); // เรียกใช้ฟังก์ชันเพื่อแปลงวันทำการเป็นรายการ
+            $latitude = $location['latitude'];
+            $longitude = $location['longitude'];
+            $coordinates = $latitude . "," . $longitude;
+            $googleMapsLink = "https://www.google.com/maps/place/$coordinates";
+
+            // เรียกใช้ฟังก์ชัน getThaiDayNamesList() เพื่อแสดงวันทำการเป็นรายการ
+            $thaiDayList = getThaiDayNamesList($location['location_day']);
+
             echo "<tr>";
             echo "<td>" . $counter . "</td>";
             echo "<td>" . htmlspecialchars($location['location_name']) . "</td>";
-            echo "<td>" . htmlspecialchars($location['latitude']) . "</td>";
-            echo "<td>" . htmlspecialchars($location['longitude']) . "</td>";
+            echo "<td><a href='" . htmlspecialchars($googleMapsLink) . "' target='_blank'>" . htmlspecialchars($coordinates) . "</a></td>";
             echo "<td>" . htmlspecialchars($location['type_name']) . "</td>";
             echo "<td>" . $thaiDayList . "</td>"; // แสดงรายการวันทำการเป็น list
             echo "<td>" . htmlspecialchars($location['location_time']) . "</td>";
@@ -417,68 +519,121 @@ button {
             $counter++;
         }
         echo "</table>";
+
     } elseif ($_SERVER["REQUEST_METHOD"] == "POST" && isset($activityData)) {
         echo "<h2>รายงานข้อมูลกิจกรรม</h2>";
         echo "<table>";
-        echo "<tr><th>ลำดับ</th><th>ชื่อกิจกรรม</th><th>ชื่อคนสร้าง</th><th>ประเภทกีฬา</th><th>วัน/เดือน/ปี</th><th>เวลา</th><th>จำนวนสมาชิก (คน)</th><th>รายชื่อสมาชิก</th></tr>";
+        echo "<tr><th>ลำดับ</th><th>กิจกรรมที่ใกล้มาถึง</th><th>เวลา</th><th>ชื่อกิจกรรม</th><th>ชื่อคนสร้าง</th><th>ประเภทกีฬา</th><th>จำนวนสมาชิก (คน)</th><th>รายชื่อสมาชิก</th></tr>";
         $counter = 1;
         foreach ($activityData as $activity) {
             $activityDate = date('d-m-Y', strtotime($activity['activity_date'])); // แยกวันที่
             $activityTime = date('H:i:s', strtotime($activity['activity_date'])); // แยกเวลา
             echo "<tr>";
             echo "<td>" . $counter . "</td>";
+            echo "<td>" . htmlspecialchars($activityDate) . "</td>"; // แสดงวันที่
+            echo "<td>" . htmlspecialchars($activityTime) . "</td>"; // แสดงเวลา
             echo "<td>" . htmlspecialchars($activity['activity_name']) . "</td>";
             echo "<td>" . htmlspecialchars($activity['creator_name']) . "</td>"; // ชื่อคนสร้าง
             echo "<td>" . htmlspecialchars($activity['sport_name']) . "</td>"; // ประเภทกีฬา
-            echo "<td>" . htmlspecialchars($activityDate) . "</td>"; // แสดงวันที่
-            echo "<td>" . htmlspecialchars($activityTime) . "</td>"; // แสดงเวลา
             echo "<td>" . htmlspecialchars($activity['member_count']) . "</td>"; // จำนวนสมาชิก
-            echo "<td>" . htmlspecialchars($activity['member_names']) . "</td>"; // รายชื่อสมาชิก
+            
+            // ตัดรายชื่อสมาชิกแค่ 3 คนและเพิ่มจุด ... พร้อมปุ่มสำหรับแสดง Modal
+            $members = explode(", ", $activity['member_names']);
+            $shown_members = array_slice($members, 0, 3); // ตัดรายชื่อสมาชิกแค่ 3 คน
+            $hidden_members = array_slice($members, 3); // รายชื่อสมาชิกที่เหลือ
+
+            echo "<td>" . htmlspecialchars(implode(", ", $shown_members));
+            if (count($hidden_members) > 0) {
+                echo ' <span class="more-link" onclick="openModal(' . $counter . ')">...ดูเพิ่มเติม</span>';
+                echo '<div id="modal-' . $counter . '" class="modal">';
+                echo '<div class="modal-content">';
+                echo '<span class="close" onclick="closeModal(' . $counter . ')">&times;</span>';
+                echo '<p>' . htmlspecialchars(implode(", ", $hidden_members)) . '</p>';
+                echo '</div></div>';
+            }
+            echo "</td>";
             echo "</tr>";
             $counter++;
         }
         echo "</table>";
+
     } elseif($_SERVER["REQUEST_METHOD"] == "POST" && isset($userData)) {
         echo "<h2>รายงานข้อมูลสมาชิก</h2>";
         echo "<table>";
-        echo "<tr><th>ลำดับ</th><th>ชื่อสมาชิก</th><th>วันเกิด</th><th>วิธีการสมัคร</th><th>สร้างกิจกรรม</th><th>เข้าร่วมกิจกรรม</th></tr>";
+        echo "<tr><th>ลำดับ</th><th>ชื่อสมาชิก</th><th>วันเกิด</th><th>สร้างกิจกรรม</th><th>เข้าร่วมกิจกรรม</th></tr>";
         $counter = 1;
         foreach ($userData as $user) {
             $registrationType = $user['user_token'] ? 'สมัครผ่านเฟสบุ๊ค' : 'สมัครธรรมดา';
-            
             // แปลงวันเกิดเป็นรูปแบบ d-m-Y
             $formattedBirthday = date('d-m-Y', strtotime($user['user_age']));
-            
+
             echo "<tr>";
             echo "<td>" . $counter . "</td>";
             echo "<td>" . htmlspecialchars($user['user_name']) . "</td>";
-            echo "<td>" . htmlspecialchars($formattedBirthday) . "</td>"; // วันเกิดในรูปแบบ d-m-Y
-            echo "<td>" . htmlspecialchars($registrationType) . "</td>"; // วิธีการสมัคร
-            echo "<td>" . htmlspecialchars($user['created_activities']) . "</td>"; // กิจกรรมที่สร้าง
-            echo "<td>" . htmlspecialchars($user['joined_activities']) . "</td>"; // กิจกรรมที่เข้าร่วม
+            echo "<td>" . htmlspecialchars($formattedBirthday) . "</td>";
+            echo "<td>" . htmlspecialchars($user['created_activities']) . "</td>";
+
+            // ตัดรายชื่อกิจกรรมที่เข้าร่วมเหลือ 3 รายการ
+            $joinedActivities = explode(", ", $user['joined_activities']);
+            $shownActivities = array_slice($joinedActivities, 0, 3); // แสดงกิจกรรมแค่ 3 รายการ
+            $hiddenActivities = array_slice($joinedActivities, 3); // เก็บกิจกรรมที่เหลือ
+
+            echo "<td>" . htmlspecialchars(implode(", ", $shownActivities));
+            if (count($hiddenActivities) > 0) {
+                echo ' <span class="more-link" onclick="openModal(' . $counter . ')">...ดูเพิ่มเติม</span>';
+                echo '<div id="modal-' . $counter . '" class="modal">';
+                echo '<div class="modal-content">';
+                echo '<span class="close" onclick="closeModal(' . $counter . ')">&times;</span>';
+                echo '<p>' . htmlspecialchars(implode(", ", $hiddenActivities)) . '</p>';
+                echo '</div></div>';
+            }
+            echo "</td>";
+
             echo "</tr>";
             $counter++;
         }
         echo "</table>";
-    } elseif ($_SERVER["REQUEST_METHOD"] == "POST") {
-        $locationReport = getLocationReport($conn);
+
+    } elseif ($_SERVER["REQUEST_METHOD"] == "POST" && isset($location1Data)) {
         echo "<h2>รายงานข้อมูลสนามกีฬา</h2>";
         echo "<table>";
-        echo "<tr><th>ลำดับ</th><th>ชื่อสนามกีฬา</th><th>ละติจูด</th><th>ลองจิจูด</th><th>ประเภทกีฬา</th><th>จำนวนครั้งที่ถูกใช้งาน</th></tr>";
+        echo "<tr><th>ลำดับ</th><th>ชื่อสนามกีฬา</th><th>ละติจูด ลองจิจูด</th><th>ประเภทกีฬา</th><th>จำนวนครั้งที่ถูกใช้งาน</th></tr>";
         $counter = 1;
-        foreach ($locationReport as $location1) {
+        foreach ($location1Data as $location1) {
+            // รวมละติจูดและลองจิจูดเข้าด้วยกันในคอลัมน์เดียว
+            $latitude = $location1['latitude'];
+            $longitude = $location1['longitude'];
+            $coordinates = $latitude . "," . $longitude;
+            $googleMapsLink = "https://www.google.com/maps/place/$coordinates";
+
             echo "<tr>";
             echo "<td>" . $counter . "</td>";
             echo "<td>" . htmlspecialchars($location1['location_name']) . "</td>";
-            echo "<td>" . htmlspecialchars($location1['latitude']) . "</td>";
-            echo "<td>" . htmlspecialchars($location1['longitude']) . "</td>";
+            // แสดงละติจูดและลองจิจูดพร้อมลิงก์ไป Google Maps
+            echo "<td><a href='" . htmlspecialchars($googleMapsLink) . "' target='_blank'>" . htmlspecialchars($coordinates) . "</a></td>";
             echo "<td>" . htmlspecialchars($location1['type_name']) . "</td>";
             echo "<td>" . htmlspecialchars($location1['usage_count']) . "</td>";
             echo "</tr>";
             $counter++;
         }
         echo "</table>";
-    }
+
+    } elseif($_SERVER["REQUEST_METHOD"] == "POST" && isset($hashtagData)) {
+        echo "<h2>รายงานข้อมูลแฮชแท็ก</h2>";
+        echo "<table>";
+        echo "<tr><th>ลำดับ</th><th>ชื่อแฮชแท็ก</th><th>ชื่อกิจกรรม</th><th>ชื่อสมาชิกที่เรียกใช้</th></tr>";
+        $counter = 1;
+        foreach ($hashtagData as $hashtag) {
+            echo "<tr>";
+            echo "<td>" . $counter . "</td>";
+            echo "<td>" . htmlspecialchars($hashtag['hashtag_name']) . "</td>";
+            echo "<td>" . htmlspecialchars($hashtag['activity_name']) . "</td>";
+            echo "<td>" . htmlspecialchars($hashtag['user_name']) . "</td>";
+            echo "</tr>";
+            $counter++;
+        }
+        echo "</table>";
+}
     ?>
 </div>
 
@@ -489,6 +644,15 @@ button {
 <script>
 function printReport() {
     window.print();
+}
+    // JavaScript สำหรับเปิดและปิด Modal
+// JavaScript สำหรับเปิดและปิด Modal
+function openModal(id) {
+    document.getElementById('modal-' + id).style.display = 'block';
+}
+
+function closeModal(id) {
+    document.getElementById('modal-' + id).style.display = 'none';
 }
 </script>
 

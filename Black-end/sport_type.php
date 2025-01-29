@@ -4,45 +4,68 @@ include 'config.php';
 $message = '';
 $error = '';
 
-// ฟังก์ชันสำหรับสร้าง `hashtag_id` อัตโนมัติ
-function getNextHashtagId($conn) {
-    $sql = "SELECT hashtag_id FROM hashtag ORDER BY hashtag_id DESC LIMIT 1";
+// ฟังก์ชันสำหรับสร้าง `type_id` อัตโนมัติ
+function getNextTypeId($conn) {
+    $sql = "SELECT type_id FROM sport_type ORDER BY type_id DESC LIMIT 1";
     $result = $conn->query($sql);
     $lastId = $result->fetch_assoc();
     if ($lastId) {
-        $num = (int)substr($lastId['hashtag_id'], 1) + 1;
-        return 'H' . str_pad($num, 3, '0', STR_PAD_LEFT);
+        $num = (int)$lastId['type_id'] + 1;
+        return $num;
     } else {
-        return 'H001';
+        return 1;
+    }
+}
+
+// ฟังก์ชันสำหรับสร้าง `sport_in_type_id` อัตโนมัติ
+function getNextSportInTypeId($conn) {
+    $sql = "SELECT sport_in_type_id FROM sport_in_type ORDER BY sport_in_type_id DESC LIMIT 1";
+    $result = $conn->query($sql);
+    $lastId = $result->fetch_assoc();
+    if ($lastId) {
+        $num = (int)$lastId['sport_in_type_id'] + 1;
+        return $num;
+    } else {
+        return 1;
     }
 }
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $hashtag_id = $_POST["hashtag_id"] ?? '';
-    $hashtag_message = $_POST["hashtag_message"] ?? '';
+    $type_id = $_POST["type_id"] ?? '';
+    $type_name = $_POST["type_name"] ?? '';
+    $sport_id = $_POST["sport_id"] ?? '';
 
-    if (!empty($hashtag_id)) {
+    if (!empty($type_id)) {
         // อัปเดตข้อมูลที่มีอยู่
-        $sql = "UPDATE hashtag SET hashtag_message='$hashtag_message' WHERE hashtag_id='$hashtag_id'";
+        $sql = "UPDATE sport_type SET type_name='$type_name' WHERE type_id='$type_id'";
         if ($conn->query($sql) === TRUE) {
             $message = "แก้ไขข้อมูลสำเร็จ";
         } else {
             $error = "Error: " . $sql . "<br>" . $conn->error;
         }
     } else {
-        // ตรวจสอบว่ามีข้อความแฮชแท็กซ้ำหรือไม่
-        $sql = "SELECT * FROM hashtag WHERE hashtag_message='$hashtag_message'";
+        // ตรวจสอบว่ามีชื่อประเภทกีฬาซ้ำหรือไม่
+        $sql = "SELECT * FROM sport_type WHERE type_name='$type_name'";
         $result = $conn->query($sql);
         if ($result->num_rows > 0) {
             $error = "ข้อมูลซ้ำกรุณากรอกใหม่";
         } else {
-            // สร้าง `hashtag_id` ใหม่
-            $hashtag_id = getNextHashtagId($conn);
+            // สร้าง `type_id` ใหม่
+            $type_id = getNextTypeId($conn);
 
-            // เพิ่มข้อมูลใหม่
-            $sql = "INSERT INTO hashtag (hashtag_id, hashtag_message) VALUES ('$hashtag_id', '$hashtag_message')";
+            // เพิ่มข้อมูลใหม่ลงใน sport_type
+            $sql = "INSERT INTO sport_type (type_id, type_name) VALUES ('$type_id', '$type_name')";
             if ($conn->query($sql) === TRUE) {
-                $message = "เพิ่มข้อมูลสำเร็จ";
+                // สร้าง `sport_in_type_id` ใหม่
+                $sport_in_type_id = getNextSportInTypeId($conn);
+
+                // เพิ่มข้อมูลใหม่ลงใน sport_in_type
+                $sql_sport_in_type = "INSERT INTO sport_in_type (sport_in_type_id, type_id, sport_id) VALUES ('$sport_in_type_id', '$type_id', '$sport_id')";
+                if ($conn->query($sql_sport_in_type) === TRUE) {
+                    $message = "เพิ่มข้อมูลสำเร็จ";
+                } else {
+                    $error = "Error: " . $sql_sport_in_type . "<br>" . $conn->error;
+                }
             } else {
                 $error = "Error: " . $sql . "<br>" . $conn->error;
             }
@@ -51,16 +74,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 }
 
 if (isset($_GET['delete'])) {
-    $hashtag_id = $_GET['delete'];
+    $type_id = $_GET['delete'];
 
-    // ลบข้อมูลแฮชแท็ก
-    $sql = "DELETE FROM hashtag WHERE hashtag_id='$hashtag_id'";
-    if ($conn->query($sql) === TRUE) {
+    // ลบข้อมูลที่เกี่ยวข้องจากตาราง sport_in_type ก่อน
+    $sql_delete_sport_in_type = "DELETE FROM sport_in_type WHERE type_id='$type_id'";
+    $conn->query($sql_delete_sport_in_type);
+
+    // ลบข้อมูลจากตาราง sport_type
+    $sql_delete_sport_type = "DELETE FROM sport_type WHERE type_id='$type_id'";
+    if ($conn->query($sql_delete_sport_type) === TRUE) {
         $message = "ลบข้อมูลสำเร็จ";
     } else {
-        $error = "Error: " . $sql . "<br>" . $conn->error;
+        $error = "Error: " . $sql_delete_sport_type . "<br>" . $conn->error;
     }
 }
+
 ?>
 
 <!DOCTYPE html>
@@ -253,14 +281,20 @@ if (isset($_GET['delete'])) {
     </div>
     
     <div class="menu-group">
-        <a href="user.php">ข้อมูลสมาชิก</a>
+        <a href="user.php">ข้อมูลผู้ใช้งาน</a>
         <a href="sport.php">ข้อมูลกีฬา</a>
-        <a href="location.php">ข้อมูลสถานที่เล่นกีฬา</a>
         <a href="sport_type.php">ข้อมูลประเภทสนามกีฬา</a>
+        <a href="location.php">ข้อมูลสถานที่เล่นกีฬา</a>
         <a href="hashtag.php">ข้อมูลแฮชแท็ก</a>
         <br>
-        <p>ข้อมูลทั่วไป</p>
+        <p>การอนุมัติ</p>
     </div>
+    
+    <div class="menu-group">
+        <a href="approve.php">อนุมัติสถานที่</a>
+    </div>
+
+    <p>ข้อมูลทั่วไป</p>
     
     <div class="menu-group">
         <a href="sport_type_in_location.php">ข้อมูลสนามกีฬา</a>
@@ -268,14 +302,12 @@ if (isset($_GET['delete'])) {
         <a href="member_in_activity.php">ข้อมูลสมาชิกกิจกรรม</a>
         <a href="profile.php">ข้อมูลโปรไฟล์</a>
     </div>
-    <p>การอนุมัติ</p>
-    <div class="menu-group">
-        <a href="approve.php">อนุมัติสถานที่</a>
-    </div>
+
     <div class="menu-group">
         <a href="report.php">รายงาน</a>
     </div>
-    <a href="index.php" class="btn-logout" onclick="return confirm('คุณแน่ใจว่าต้องการออกจากระบบหรือไม่?');">ออกจากระบบ</a>
+
+    <a href="index.php" class="btn-logout" onclick="return confirm('คุณแน่ใจว่าต้องการออกจากระบบหรือไม่?');">ออกจากระบบ</a><br>
 </div>
 
 <div class="container">
@@ -286,10 +318,27 @@ if (isset($_GET['delete'])) {
 
     <form method="POST" action="sport_type.php" onsubmit="return confirmSave()">
         <input type="hidden" id="type_id" name="type_id">
+
         <div class="form-group">
-            <label for="type_name">ชื่อประเภทกีฬา:</label>
+            <label for="type_name">ชื่อประเภทสนามกีฬา:</label>
             <input type="text" id="type_name" name="type_name" required>
         </div>
+
+        <div class="form-group">
+            <label for="sport_id">กีฬา:</label>
+            <select id="sport_id" name="sport_id" required>
+                <option value="">-- เลือกกีฬา --</option>
+                <?php
+                // ดึงข้อมูลกีฬาจากตาราง sport
+                $sql_sport = "SELECT sport_id, sport_name FROM sport";
+                $result_sport = $conn->query($sql_sport);
+                while ($row_sport = $result_sport->fetch_assoc()) {
+                    echo "<option value='".htmlspecialchars($row_sport['sport_id'])."'>".htmlspecialchars($row_sport['sport_name'])."</option>";
+                }
+                ?>
+            </select>
+        </div>
+
         <button type="submit" class="btn-submit">บันทึก</button>
     </form>
 

@@ -345,14 +345,20 @@ if (isset($_GET['reactivate'])) {
     </div>
     
     <div class="menu-group">
-        <a href="user.php">ข้อมูลสมาชิก</a>
+        <a href="user.php">ข้อมูลผู้ใช้งาน</a>
         <a href="sport.php">ข้อมูลกีฬา</a>
-        <a href="location.php">ข้อมูลสถานที่เล่นกีฬา</a>
         <a href="sport_type.php">ข้อมูลประเภทสนามกีฬา</a>
+        <a href="location.php">ข้อมูลสถานที่เล่นกีฬา</a>
         <a href="hashtag.php">ข้อมูลแฮชแท็ก</a>
         <br>
-        <p>ข้อมูลทั่วไป</p>
+        <p>การอนุมัติ</p>
     </div>
+    
+    <div class="menu-group">
+        <a href="approve.php">อนุมัติสถานที่</a>
+    </div>
+
+    <p>ข้อมูลทั่วไป</p>
     
     <div class="menu-group">
         <a href="sport_type_in_location.php">ข้อมูลสนามกีฬา</a>
@@ -360,18 +366,16 @@ if (isset($_GET['reactivate'])) {
         <a href="member_in_activity.php">ข้อมูลสมาชิกกิจกรรม</a>
         <a href="profile.php">ข้อมูลโปรไฟล์</a>
     </div>
-    <p>การอนุมัติ</p>
-    <div class="menu-group">
-        <a href="approve.php">อนุมัติสถานที่</a>
-    </div>
+
     <div class="menu-group">
         <a href="report.php">รายงาน</a>
     </div>
-    <a href="index.php" class="btn-logout" onclick="return confirm('คุณแน่ใจว่าต้องการออกจากระบบหรือไม่?');">ออกจากระบบ</a>
+
+    <a href="index.php" class="btn-logout" onclick="return confirm('คุณแน่ใจว่าต้องการออกจากระบบหรือไม่?');">ออกจากระบบ</a><br>
 </div>
 
 <div class="container">
-    <h2>ข้อมูลสมาชิก</h2>
+    <h2>ข้อมูลผู้ใช้งาน</h2>
 
     <?php
     if ($message) { echo "<div class='message'>$message</div>"; }
@@ -383,7 +387,7 @@ if (isset($_GET['reactivate'])) {
         <input type="hidden" id="edit_user_id" name="edit_user_id">
 
         <div class="form-group">
-            <label for="user_id">ชื่อสมาชิก:</label>
+            <label for="user_id">ชื่อผู้ใช้งาน:</label>
             <input type="text" id="user_id" name="user_id" required>
         </div>
         
@@ -431,7 +435,7 @@ if (isset($_GET['reactivate'])) {
         echo "<table>";
         echo "<tr>
                 <th>ลำดับ</th>
-                <th>ชื่อสมาชิก</th>
+                <th>ชื่อผู้ใช้งาน</th>
                 <th>อีเมล</th>
                 <th>ชื่อ - สกุล</th>
                 <th>วันเกิด</th>

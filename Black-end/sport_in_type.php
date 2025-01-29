@@ -279,7 +279,7 @@ if (isset($_GET['activate'])) {
     <div class="menu-group">
         <a href="report.php">รายงาน</a>
     </div>
-    <a href="index.php" class="btn-logout" onclick="return confirm('คุณแน่ใจว่าต้องการออกจากระบบหรือไม่?');">ออกจากระบบ</a>
+    <a href="index.php" class="btn-logout" onclick="return confirm('คุณแน่ใจว่าต้องการออกจากระบบหรือไม่?');">ออกจากระบบ</a><br>
 </div>
 
 <div class="container">

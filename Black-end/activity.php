@@ -35,71 +35,76 @@
         }
     }
 
-    if ($_SERVER["REQUEST_METHOD"] == "POST") {
-        $activity_id = $_POST["activity_id"] ?? '';
-        $activity_name = $_POST["activity_name"] ?? '';
-        $activity_date = $_POST["activity_date"] ?? '';
-        $location_id = $_POST["location_id"] ?? '';
-        $sport_id = $_POST["sport_id"] ?? '';
-        $user_id = $_POST["user_id"] ?? ''; // รับค่า user_id จากฟอร์ม
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $activity_name = $_POST["activity_name"] ?? '';
+    $activity_date = $_POST["activity_date"] ?? '';
+    $location_id = $_POST["location_id"] ?? '';
+    $sport_id = $_POST["sport_id"] ?? '';
+    $user_id = $_POST["user_id"] ?? ''; // รับค่า user_id จากฟอร์ม
 
-        // ตรวจสอบว่า user_id มีอยู่ใน user_information
-        $user_check_sql = "SELECT user_id FROM user_information WHERE user_id = '$user_id'";
-        $user_check_result = $conn->query($user_check_sql);
+    // ตรวจสอบว่า user_id มีอยู่ใน user_information
+    $user_check_sql = "SELECT user_id FROM user_information WHERE user_id = '$user_id'";
+    $user_check_result = $conn->query($user_check_sql);
 
-        if ($user_check_result->num_rows > 0) {
-            // ตรวจสอบว่า activity_id ถูกสร้างแล้วหรือยัง
-            if (!empty($activity_id)) {
-                // Update existing record
-                $sql = "UPDATE activity SET activity_name='$activity_name', activity_date='$activity_date', location_id='$location_id', sport_id='$sport_id' WHERE activity_id='$activity_id'";
-                if ($conn->query($sql) === TRUE) {
-                    // อัปเดตข้อมูลในตาราง creator และ member_in_activity
-                    $sql_creator = "UPDATE creator SET user_id='$user_id' WHERE activity_id='$activity_id'";
-                    $conn->query($sql_creator);
+    if ($user_check_result->num_rows > 0) {
+        if (!empty($_POST['activity_id'])) {
+            // Update existing record
+            $activity_id = $_POST['activity_id'];
+            $sql = "UPDATE activity SET activity_name='$activity_name', activity_date='$activity_date', location_id='$location_id', sport_id='$sport_id' WHERE activity_id='$activity_id'";
+            if ($conn->query($sql) ===   TRUE) {
+                $sql_creator = "UPDATE creator SET user_id='$user_id' WHERE activity_id='$activity_id'";
+                $conn->query($sql_creator);
 
-                    $sql_member = "UPDATE member_in_activity SET user_id='$user_id' WHERE activity_id='$activity_id'";
-                    $conn->query($sql_member);
+                $sql_member = "UPDATE member_in_activity SET user_id='$user_id' WHERE activity_id='$activity_id'";
+                $conn->query($sql_member);
 
-                    $message = "แก้ไขข้อมูลสำเร็จ";
-                } else {
-                    $error = "Error: " . $sql . "<br>" . $conn->error;
-                }
+                $message = "แก้ไขข้อมูลสำเร็จ";
             } else {
-                // ถ้ายังไม่มี activity_id ให้สร้างใหม่
-                $activity_id = getNextActivityId($conn);
-
-                // เริ่ม transaction
-                $conn->begin_transaction();
-
-                try {
-                    // Insert ข้อมูลใหม่ใน activity ก่อน
-                    $sql = "INSERT INTO activity (activity_id, activity_name, activity_date, location_id, sport_id, status) 
-                            VALUES ('$activity_id', '$activity_name', '$activity_date', '$location_id', '$sport_id', 'active')";
-                    $conn->query($sql);
-
-                    // หลังจาก insert ข้อมูลใน activity เสร็จแล้ว ให้ insert ข้อมูลในตาราง creator และ member_in_activity
-                    $sql_creator = "INSERT INTO creator (activity_id, user_id) VALUES ('$activity_id', '$user_id')";
-                    $conn->query($sql_creator);
-
-                    $sql_member = "INSERT INTO member_in_activity (activity_id, user_id) VALUES ('$activity_id', '$user_id')";
-                    $conn->query($sql_member);
-
-                    // Commit transaction
-                    $conn->commit();
-                    $message = "เพิ่มข้อมูลสำเร็จ";
-                } catch (Exception $e) {
-                    // Rollback ถ้ามีข้อผิดพลาด
-                    $conn->rollback();
-                    $error = "Error: " . $e->getMessage();
-                }
+                $error = "Error: " . $sql . "<br>" . $conn->error;
             }
         } else {
-            $error = "ไม่พบ user_id ในตาราง user_information";
+            // ใช้การสร้าง activity_id โดยอัตโนมัติจากฐานข้อมูล
+            $conn->begin_transaction();
+            try {
+                $sql = "INSERT INTO activity (activity_name, activity_date, location_id, sport_id, status) 
+                        VALUES ('$activity_name', '$activity_date', '$location_id', '$sport_id', 'active')";
+                $conn->query($sql);
+
+                // ตรวจสอบว่า insert activity สำเร็จหรือไม่
+                if ($conn->affected_rows > 0) {
+                    // รับค่า activity_id ล่าสุดที่ถูกสร้าง
+                    $activity_id = $conn->insert_id;
+
+                    $sql_creator = "INSERT INTO creator (activity_id, user_id) VALUES ('$activity_id', '$user_id')";
+                    if ($conn->query($sql_creator) && $conn->affected_rows > 0) {
+                        $sql_member = "INSERT INTO member_in_activity (activity_id, user_id) VALUES ('$activity_id', '$user_id')";
+                        $conn->query($sql_member);
+
+                        $conn->commit();
+                        $message = "เพิ่มข้อมูลสำเร็จ";
+                    } else {
+                        throw new Exception("Failed to insert into creator.");
+                    }
+                } else {
+                    throw new Exception("Failed to insert into activity.");
+                }
+            } catch (Exception $e) {
+                $conn->rollback();
+                $error = "Error: " . $e->getMessage();
+            }
         }
+    } else {
+        $error = "ไม่พบ user_id ในตาราง user_information";
     }
+}
+
 
     if (isset($_GET['delete'])) {
         $activity_id = $_GET['delete'];
+
+        // ลบข้อมูลในตาราง messages ที่เกี่ยวข้องกับ activity_id นี้
+        $sql_messages = "DELETE FROM messages WHERE activity_id='$activity_id'";
+        $conn->query($sql_messages);
 
         // ลบข้อมูลในตาราง hashtags_in_activities
         $sql_hashtags = "DELETE FROM hashtags_in_activities WHERE activity_id='$activity_id'";
@@ -300,14 +305,20 @@
     </div>
     
     <div class="menu-group">
-        <a href="user.php">ข้อมูลสมาชิก</a>
+        <a href="user.php">ข้อมูลผู้ใช้งาน</a>
         <a href="sport.php">ข้อมูลกีฬา</a>
-        <a href="location.php">ข้อมูลสถานที่เล่นกีฬา</a>
         <a href="sport_type.php">ข้อมูลประเภทสนามกีฬา</a>
+        <a href="location.php">ข้อมูลสถานที่เล่นกีฬา</a>
         <a href="hashtag.php">ข้อมูลแฮชแท็ก</a>
         <br>
-        <p>ข้อมูลทั่วไป</p>
+        <p>การอนุมัติ</p>
     </div>
+    
+    <div class="menu-group">
+        <a href="approve.php">อนุมัติสถานที่</a>
+    </div>
+
+    <p>ข้อมูลทั่วไป</p>
     
     <div class="menu-group">
         <a href="sport_type_in_location.php">ข้อมูลสนามกีฬา</a>
@@ -315,18 +326,16 @@
         <a href="member_in_activity.php">ข้อมูลสมาชิกกิจกรรม</a>
         <a href="profile.php">ข้อมูลโปรไฟล์</a>
     </div>
-    <p>การอนุมัติ</p>
-    <div class="menu-group">
-        <a href="approve.php">อนุมัติสถานที่</a>
-    </div>
+
     <div class="menu-group">
         <a href="report.php">รายงาน</a>
     </div>
-    <a href="index.php" class="btn-logout" onclick="return confirm('คุณแน่ใจว่าต้องการออกจากระบบหรือไม่?');">ออกจากระบบ</a>
+
+    <a href="index.php" class="btn-logout" onclick="return confirm('คุณแน่ใจว่าต้องการออกจากระบบหรือไม่?');">ออกจากระบบ</a><br>
 </div>
 
 <div class="container">
-    <h2>ข้อมูลกิจกรรม</h2>
+    <h2>แก้ไขข้อมูลกิจกรรม </h2>
 
     <?php if ($message) { echo "<div class='message'>$message</div>"; } ?>
     <?php if ($error) { echo "<div class='error'>$error</div>"; } ?>

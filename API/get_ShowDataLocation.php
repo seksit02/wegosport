@@ -1,9 +1,9 @@
 <?php
 include 'Connect.php'; // เชื่อมต่อกับฐานข้อมูล
 
-// Query เพื่อดึงข้อมูลทุก location พร้อมกับประเภทกีฬาและข้อมูลกีฬา รวมถึงสถานะของ location
+// Query เพื่อดึงข้อมูล location รวมถึงวันและเวลาที่เปิดใช้งาน
 $sql = "
-    SELECT l.location_name, l.status, st.type_id, st.type_name, s.sport_id, s.sport_name
+    SELECT l.location_name, l.status, l.location_time, l.location_day, st.type_id, st.type_name, s.sport_id, s.sport_name
     FROM location l
     LEFT JOIN sport_type_in_location stil ON l.location_id = stil.location_id
     LEFT JOIN sport_type st ON stil.type_id = st.type_id
@@ -18,6 +18,8 @@ if (mysqli_num_rows($result) > 0) { // ตรวจสอบว่ามีข�
     while($row = mysqli_fetch_assoc($result)) { // วนลูปผ่านแต่ละแถวของผลลัพธ์
         $location_name = $row['location_name']; // เก็บชื่อ location จากแถวปัจจุบัน
         $status = $row['status']; // เก็บสถานะของ location
+        $location_time = $row['location_time']; // เก็บเวลาที่เปิดให้บริการ
+        $location_day = $row['location_day']; // เก็บวันเปิดใช้งาน
 
         $sport_type = array( // เก็บข้อมูลประเภทกีฬา
             "type_id" => $row['type_id'],
@@ -35,6 +37,8 @@ if (mysqli_num_rows($result) > 0) { // ตรวจสอบว่ามีข�
             $locations[$location_name] = array( // หากยังไม่มี location นี้ใน array ให้เพิ่มเข้าไป
                 "location_name" => $location_name,
                 "status" => $status, // เพิ่มสถานะของ location เข้าไปในข้อมูล
+                "location_time" => $location_time, // เพิ่มเวลาเปิดใช้งานของ location
+                "location_day" => $location_day, // เพิ่มวันเปิดใช้งานของ location
                 "sport_types" => array() // สร้างอาร์เรย์เปล่าสำหรับเก็บข้อมูลประเภทกีฬา
             );
         }
