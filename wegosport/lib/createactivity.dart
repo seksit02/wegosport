@@ -129,19 +129,19 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
   // ฟังก์ชันดึงข้อมูลแฮชแท็กจากเซิร์ฟเวอร์
   Future<void> fetchHashtags() async {
     final response = await http.get(Uri.parse(
-        'http://10.0.2.2/flutter_webservice/get_ShowDataHashtag.php')); // เรียก API ดึงข้อมูลแฮชแท็ก
+        'http://10.0.2.2/flutter_webservice/get_ShowDataHashtag.php')); // ใช้ API ดึงแฮชแท็ก + จำนวนการใช้
 
     if (response.statusCode == 200) {
-      final data = json.decode(response.body);
+      final List<dynamic> data = json.decode(response.body);
       setState(() {
-        _allHashtags = List<String>.from(data
-            .map((item) => item['hashtag_message'])
-            .where((item) => item != null)
-            .toSet()); // เก็บแฮชแท็กที่ดึงมาได้ใน List
+        _allHashtags = data.map<String>((item) {
+          String hashtag = item['hashtag_message'];
+          String count = '${item['usage_count']} กิจกรรม';
+          return '$hashtag|$count'; // ใช้ `|` เป็นตัวแบ่งข้อมูล
+        }).toList();
       });
     } else {
-      print(
-          'Failed to load hashtags. Status code: ${response.statusCode}'); // พิมพ์ข้อผิดพลาดหากไม่สามารถโหลดข้อมูลได้
+      print('Failed to load hashtags. Status code: ${response.statusCode}');
       throw Exception('Failed to load hashtags');
     }
   }
@@ -357,7 +357,7 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
     );
   }
 
-Widget date() {
+  Widget date() {
     return Container(
       margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
       child: TextFormField(
@@ -552,18 +552,18 @@ Widget date() {
   // วิดเจ็ตฟิลด์แฮชแท็ก
   Widget hashtag() {
     return Container(
-      margin: EdgeInsets.fromLTRB(50, 20, 50, 0), // กำหนด margin รอบฟิลด์
+      margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Wrap(
-            spacing: 8.0, // กำหนดระยะห่างระหว่างแฮชแท็ก
+            spacing: 8.0,
             children: _selectedTags
                 .map((tag) => Chip(
-                      label: Text(tag), // ข้อความในแฮชแท็ก
+                      label: Text(tag), // แสดงเฉพาะชื่อแฮชแท็ก
                       onDeleted: () {
                         setState(() {
-                          _selectedTags.remove(tag); // ลบแฮชแท็กที่ถูกเลือกออก
+                          _selectedTags.remove(tag);
                         });
                       },
                     ))
@@ -573,10 +573,9 @@ Widget date() {
             textFieldConfiguration: TextFieldConfiguration(
               controller: hashtagController,
               decoration: InputDecoration(
-                hintText: 'เพิ่มแฮชแท็กที่ต้องการ', // ข้อความแนะนำในฟิลด์
+                hintText: 'เพิ่มแฮชแท็กที่ต้องการ',
                 suffixIcon: Padding(
-                  padding: const EdgeInsets.only(
-                      right: 8.0), // เพิ่ม padding ด้านขวา
+                  padding: const EdgeInsets.only(right: 8.0),
                   child: TextButton(
                     onPressed: () {
                       String newTag = hashtagController.text.trim();
@@ -589,54 +588,73 @@ Widget date() {
                           if (!newTag.startsWith('#')) {
                             newTag = '#$newTag';
                           }
-                          _selectedTags.add(newTag); // เพิ่มแฮชแท็กใหม่
-                          hashtagController
-                              .clear(); // ล้างฟิลด์หลังเพิ่มแฮชแท็ก
+                          _selectedTags.add(newTag);
+                          hashtagController.clear();
                         });
                       }
                     },
-                    child: Text('เพิ่ม'), // ข้อความบนปุ่ม
+                    child: Text('เพิ่ม'),
                   ),
                 ),
                 border: OutlineInputBorder(
-                  borderRadius:
-                      BorderRadius.circular(30), // ปรับความโค้งของขอบฟิลด์
+                  borderRadius: BorderRadius.circular(30),
                 ),
               ),
             ),
             suggestionsCallback: (pattern) {
-              return _allHashtags.where((hashtag) => hashtag
-                  .toLowerCase()
-                  .contains(
-                      pattern.toLowerCase())); // กรองรายการแฮชแท็กตามคำค้นหา
+              return _allHashtags
+                  .where((hashtag) =>
+                      hashtag.toLowerCase().contains(pattern.toLowerCase()))
+                  .toList();
             },
             itemBuilder: (context, suggestion) {
+              List<String> parts = suggestion.split('|'); // แยกแฮชแท็กกับจำนวน
+              String hashtag = parts[0].trim();
+              String count = parts.length > 1 ? parts[1].trim() : '';
+
               return ListTile(
-                title: Text(suggestion), // แสดงแฮชแท็กที่แนะนำ
+                title: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        hashtag,
+                        style: TextStyle(fontSize: 16),
+                      ),
+                    ),
+                    Text(
+                      count,
+                      style: TextStyle(fontSize: 14, color: Colors.grey),
+                      textAlign: TextAlign.right, // จัดให้จำนวนกิจกรรมชิดขวา
+                    ),
+                  ],
+                ),
               );
             },
             onSuggestionSelected: (suggestion) {
+              List<String> parts = suggestion.split('|'); // แยกแฮชแท็กกับจำนวน
+              String selectedTag = parts[0].trim(); // เอาเฉพาะชื่อแฮชแท็ก
+
               if (_selectedTags.length < 3 &&
-                  !_selectedTags.contains(suggestion) &&
-                  !_selectedTags.contains('#$suggestion')) {
+                  !_selectedTags.contains(selectedTag) &&
+                  !_selectedTags.contains('#$selectedTag')) {
                 setState(() {
-                  if (!suggestion.startsWith('#')) {
-                    suggestion = '#$suggestion';
+                  if (!selectedTag.startsWith('#')) {
+                    selectedTag = '#$selectedTag';
                   }
-                  _selectedTags.add(suggestion); // เพิ่มแฮชแท็กที่เลือก
-                  hashtagController.clear(); // ล้างฟิลด์หลังเพิ่มแฮชแท็ก
+                  _selectedTags.add(selectedTag); // เพิ่มเฉพาะชื่อแฮชแท็ก
+                  hashtagController.clear();
                 });
               }
             },
             noItemsFoundBuilder: (context) {
               return Padding(
-                padding: EdgeInsets.all(8.0), // เพิ่ม padding รอบข้อความ
+                padding: EdgeInsets.all(8.0),
                 child: Text(
-                  'ไม่พบแฮชแท็ก', // ข้อความที่จะแสดงเมื่อไม่พบแฮชแท็ก
+                  'ไม่พบแฮชแท็ก',
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    color: Colors.grey, // กำหนดสีของข้อความ
-                    fontSize: 18.0, // ขนาดของข้อความ
+                    color: Colors.grey,
+                    fontSize: 18.0,
                   ),
                 ),
               );
